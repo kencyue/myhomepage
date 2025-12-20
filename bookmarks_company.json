@@ -1,0 +1,202 @@
+{
+  "title": "🔧 自訂首頁",
+  "groups": [
+    {
+      "group": "工作工具",
+      "items": [
+        {
+          "url": "calendar",
+          "text": "公司月曆",
+          "img": "images/calendar.png",
+          "order": 1
+        },
+        {
+          "url": "https://pmst.panasonic.com.tw/peph/default_pda.asp",
+          "text": "iEPOCH",
+          "img": "images/favicon.ico",
+          "order": 2
+        },
+        {
+          "url": "https://pmst.panasonic.com.tw/Consumer/Support/Download",
+          "text": "說明書下載",
+          "img": "images/userguide.png",
+          "order": 3
+        },
+        {
+          "url": "parts/",
+          "text": "材料查詢",
+          "img": "images/database.png",
+          "order": 4
+        },
+        {
+          "url": "parts/e2p",
+          "text": "E2P查詢",
+          "img": "images/chip.png",
+          "order": 5
+        },
+        {
+          "url": "parts/compare",
+          "text": "E2P比較",
+          "img": "images/compare.png",
+          "order": 6
+        },
+        {
+          "url": "https://kencyue.rf.gd/drive/index.html",
+          "text": "檔案查詢",
+          "img": "images/folder.png",
+          "order": 7
+        },
+        {
+          "url": "panasonic_error/",
+          "text": "空調故障碼",
+          "img": "images/errorcode.png",
+          "order": 8
+        },
+        {
+          "url": "http://140.116.86.242:33335",
+          "text": "Panasonic AI",
+          "img": "images/chatbot.png",
+          "order": 9
+        },
+        {
+          "url": "https://intellicon.app/ewc/5TEil9Y",
+          "text": "愛比AI",
+          "img": "https://img.intellicon.app/Intellicon-assets/ITC_Logo_Trans_256x256.png",
+          "order": 10
+        },
+        {
+          "url": "line://ti/g2/PoBXFcFAKoaLHsmL8bbrwBBXrIzAyN0N7uaKLw",
+          "text": "維修line群",
+          "img": "images/line.png",
+          "order": 11
+        },
+        {
+          "url": "tools/cooling.html",
+          "text": "冷房能力試算",
+          "img": "images/cooling.png",
+          "order": 12
+        },
+        {
+          "url": "tools/airspeed_to_airvolume_converter",
+          "text": "風速風量轉換",
+          "img": "images/airspeed.png",
+          "order": 13
+        },
+        {
+          "url": "tools/dewpoint_converter.html",
+          "text": "溫溼露點轉換",
+          "img": "images/humidity.png",
+          "order": 14
+        },
+        {
+          "url": "tools/dry_wet_rh.html",
+          "text": "乾溼溼度轉換",
+          "img": "images/rh.png",
+          "order": 15
+        },
+        {
+          "url": "tools/cadr.html",
+          "text": "CADR計算",
+          "img": "images/cadr.png",
+          "order": 16
+        },
+        {
+          "url": "tools/pt_lookup.html",
+          "text": "冷媒PT表",
+          "img": "images/gauge.png",
+          "order": 17
+        },
+        {
+          "url": "tools/vacuum.html",
+          "text": "真空度轉換",
+          "img": "images/vacuum.png",
+          "order": 18
+        },
+        {
+          "url": "tools/modbus.html",
+          "text": "全熱Modbus",
+          "img": "images/modbus.png",
+          "order": 19
+        },
+        {
+          "url": "modbus/index3.html",
+          "text": "空調空質Modbus",
+          "img": "images/modbus_co.png",
+          "order": 20
+        },
+        {
+          "url": "https://drive.google.com/file/d/1UUWvfBTkHuyy-XTCMXj8VUMINrKMKM4B/view?usp=drive_link",
+          "text": "IoT設備列表",
+          "img": "images/iot.png",
+          "order": 21
+        },
+        {
+          "url": "MQC/rule",
+          "text": "MQC登錄規則",
+          "img": "https://cdn-icons-png.freepik.com/512/7785/7785900.png",
+          "order": 22
+        },
+        {
+          "url": "tools/qrcode/",
+          "text": "QR掃描",
+          "img": "images/qrcode.png",
+          "order": 23
+        },
+        {
+          "url": "bookmarks_leak.html",
+          "text": "漏點位置圖",
+          "img": "images/leak.png",
+          "order": 24
+        },
+        {
+          "url": "tools/password.html",
+          "text": "二代治具密碼",
+          "img": "images/password.png",
+          "order": 25
+        },
+        {
+          "url": "secure/",
+          "text": "安全檢查表",
+          "img": "images/checklist.png",
+          "order": 26
+        },
+        {
+          "url": "https://kencyue.rf.gd/?i=1",
+          "text": "公務車預約",
+          "img": "images/van.png",
+          "order": 27
+        },
+        {
+          "url": "calc/index.html",
+          "text": "計算機",
+          "img": "images/calc.png",
+          "order": 28
+        },
+        {
+          "url": "tools/paint/index.html",
+          "text": "圖片標注",
+          "img": "images/paint.png",
+          "order": 29
+        },
+        {
+          "url": "https://www.fotojet.com/tw/apps/?entry=collage",
+          "text": "相片拼貼",
+          "img": "images/fotojet.png",
+          "order": 30
+        },
+        {
+          "url": "tools/sn",
+          "text": "機種機號",
+          "img": "images/sn.png",
+          "order": 31
+        },
+        {
+          "url": "tools/keyparts",
+          "text": "常用code",
+          "img": "images/promo.png",
+          "order": 32
+        }
+      ]
+    }
+  ]
+}
