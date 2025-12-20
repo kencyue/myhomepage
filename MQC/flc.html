@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>80FLC 軟體更新統計報告 (最終版 - 圖例視覺優化)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    /* 藍色系配色方案 */
+    :root {
+        --color-primary-dark: #1A237E;      
+        --color-primary-light: #BBDEFB;     
+        --color-highlight: #42A5F5;         
+        --color-total: #0D47A1;             
+        --color-subtle-bg: #E3F2FD;         
+        --color-alert: #D32F2F;             
+        
+        /* 圓餅圖強對比色 */
+        --color-chart-north: #42A5F5;       
+        --color-chart-central: #FF5722;     
+        --color-chart-south: #4CAF50;       
+    }
+
+    /* 基礎與背景 */
+    body {
+        margin: 0;
+        padding: 10px;
+        
+        font-family: 'Microsoft JhengHei','Noto Sans TC',sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    /* 核心卡片 (鎖定 4:3 比例) */
+    .card {
+        width: 750px;
+        height: 562.5px; /* 鎖定 4:3 比例 */
+        background: white;
+        overflow: hidden; 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 標頭區 */
+    header {
+        background: #0D47A1;
+        color: #FFFFFF;
+        padding: 20px;
+        text-align: center;
+        flex-shrink: 0; 
+    }
+    h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 600;
+    }
+    .date {
+        font-size: 18px;
+        margin-top: 3px;
+        opacity: 0.9;
+    }
+
+    /* 內容區：左右分欄 */
+    .content {
+        padding: 20px;
+        display: flex;
+        flex-grow: 1;
+        gap: 20px;
+        min-height: 0;
+    }
+    
+    /* 左右分欄樣式 */
+    .column {
+        flex: 1; 
+        padding-right: 0; 
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; 
+    }
+
+    /* 右側欄位修正 (水平填滿) */
+    .content > .column:nth-child(2) {
+        margin-right: -20px; /* 拉伸至卡片邊緣 */
+        padding-right: 20px; 
+    }
+
+    /* 區塊標題 */
+    h3 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--color-primary-dark);
+        border-bottom: 1px solid var(--color-primary-light);
+        padding-bottom: 5px;
+        flex-shrink: 0;
+    }
+
+    /* 表格基礎樣式 */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 24px;
+        margin-bottom: 0;
+        table-layout: fixed; 
+    }
+    td {
+        padding: 2px 3px; 
+        text-align: center;
+        border-bottom: none; 
+        vertical-align: middle; 
+        word-break: break-all; 
+    }
+    
+    /* 欄位寬度比例 */
+    #current-month-table td:first-child,
+    #history-table td:first-child {
+        width: 35%; 
+        text-align: left;
+        color: var(--color-primary-dark);
+        font-weight: 600;
+        white-space: nowrap; 
+    }
+    #current-month-table td,
+    #history-table td {
+        width: 21.66%; 
+    }
+
+
+    /* --- 左欄：本月統計 (垂直壓縮) --- */
+    
+    /* 圓餅圖容器 */
+    #pie-chart-container {
+        flex-shrink: 0;
+        height: 140px; 
+        width: 100%;
+        margin-bottom: 8px; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 本月表格佔用所有剩餘空間 */
+    #current-month-table {
+        flex-grow: 1; 
+        flex-direction: column;
+        justify-content: space-evenly; 
+        height: 100%;
+    }
+
+    /* 分處數字加大 */
+    #current-month-table td {
+        padding: 5px 3px; 
+        font-size: 18px; 
+    }
+    
+    #current-month-table .num {
+        font-size: 30px; 
+        font-weight: bold;
+        color: var(--color-highlight);
+    }
+    
+    /* 總計行 */
+    #current-month-table .total td {
+        background: var(--color-subtle-bg);
+        font-size: 20px; 
+        border-top: 2px solid var(--color-total);
+        padding: 8px 3px; 
+    }
+    #current-month-table .total .num {
+        font-size: 50px; 
+        color: var(--color-total);
+    }
+
+
+    /* --- 右欄：歷史數據 (無捲軸) --- */
+    
+    #history-table {
+        flex-grow: 1; 
+        flex-direction: column;
+        height: 100%; 
+        overflow-y: hidden; 
+    }
+    
+    /* 歷史表格表頭 */
+    .history-header {
+        flex-shrink: 0; 
+    }
+    .history-header td {
+        font-size: 14px;
+        padding: 3px 3px;
+        border-bottom: 2px solid var(--color-highlight);
+        background: var(--color-subtle-bg);
+    }
+    
+    /* 動態插入的月份行：實現均分高/佔滿剩餘空間的關鍵 */
+    #history-table tr:not(.history-header):not(.grand-total-row):not(.total-sum-row) {
+        flex: 1; 
+    }
+    
+    /* 歷史月份欄字體 */
+    #history-table tr:not(.history-header):not(.grand-total-row):not(.total-sum-row) td:first-child {
+        font-size: 14px; 
+        font-weight: normal;
+        color: var(--color-primary-dark);
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    /* 數據行邊框修正 */
+    #history-table tr.data-row:not(.empty-fill) td {
+        border-bottom: 1px dashed #E0E0E0;
+    }
+    
+    /* 歷史每月數據 */
+    #history-table .history-num {
+        font-size: 12px; 
+        font-weight: 500;
+        color: var(--color-primary-dark);
+    }
+    
+    /* 累計行基礎 */
+    .grand-total-row {
+        flex-shrink: 0; 
+        margin-top: auto; 
+        z-index: 20;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+    }
+    .grand-total-row{
+        font-size:20px
+    }
+    /* 累計件數行 */
+    .grand-total-row:not(.total-sum-row) {
+        background: #FFEBEE; 
+        border-top: 3px solid var(--color-alert);
+    }
+    
+    #current-total{
+        color:#b53426 !important;
+    }
+    td{
+        text-align:center!important;
+    }
+
+    /* 新增樣式：歷史總件數 */
+    .total-sum-row {
+        background: #E8F5E9; /* 淺綠色或另一種對比色 */
+        border-top: 3px solid var(--color-chart-south); /* 使用綠色線條 */
+        font-size: 20px;
+    }
+    .total-sum-row td {
+        padding: 0px 0px;
+    }
+    #grand-total-sum {
+        color: #2E7D32 !important; /* 深綠色強調 */
+        font-size: 26px !important;
+    }
+</style>
+</head>
+<body>
+<div class="card">
+    <header>
+        <h1>台銀標80FLC機種軟體更新件數統計</h1>
+        <div class="date" id="current-month-range"></div>
+    </header>
+    
+    <div class="content">
+                <div class="column">
+            <h3>📅本月 (<span id="current-month-display"></span>) 統計</h3>
+
+            <div id="pie-chart-container">
+                <canvas id="pie-chart"></canvas>
+            </div>
+
+            <table id="current-month-table">
+                <tr id="north-row"><td>北處</td><td class="num"></td></tr>
+                <tr id="central-row"><td>中處</td><td class="num"></td></tr>
+                <tr id="south-row"><td>南處</td><td class="num"></td></tr>
+                <tr class="total"><td>本月總計</td><td class="num" id="current-total"></td></tr>
+            </table>
+        </div>
+
+                <div class="column">
+            <h3>📚 累計件數</h3>
+            
+            <table id="history-table">
+                                <tr class="history-header">
+                    <td>月份</td>
+                    <td>北處</td>
+                    <td>中處</td>
+                    <td>南處</td>
+                </tr>
+                
+                                    <tr class="grand-total-row">
+                    <td>累計件數</td>
+                    <td class="num" id="grand-total-north"></td>
+                    <td class="num" id="grand-total-central"></td>
+                    <td class="num" id="grand-total-south"></td>
+                </tr>
+                <tr class="grand-total-row total-sum-row">
+                    <td>累計總件數</td>
+                    <td class="num" id="grand-total-sum" colspan="3"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// *** 模擬您的歷史數據 ***
+const historyData = [
+    { month: '2025-11', north: 0, central: 67, south: 0 },
+];
+
+function renderPieChart(data) {
+    const total = data.north + data.central + data.south;
+    if (total === 0) {
+        document.getElementById('pie-chart-container').innerHTML = '<p style="text-align:center; color: #999; font-size:14px;">本月無更新數據</p>';
+        return;
+    }
+
+    const ctx = document.getElementById('pie-chart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['北處', '中處', '南處'], // 縮短標籤以避免換行
+            datasets: [{
+                data: [data.north, data.central, data.south],
+                backgroundColor: [
+                    getComputedStyle(document.documentElement).getPropertyValue('--color-chart-north').trim(), 
+                    getComputedStyle(document.documentElement).getPropertyValue('--color-chart-central').trim(), 
+                    getComputedStyle(document.documentElement).getPropertyValue('--color-chart-south').trim()
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom', 
+                    labels: {
+                        font: {
+                            size: 12,
+                            family: 'Microsoft JhengHei'
+                        },
+                        // *** 關鍵修正：使用圓點色塊並在圖例中顯示百分比 ***
+                        usePointStyle: true, // 使用圓點而非方形色塊
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                const totalValue = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                return data.labels.map(function(label, i) {
+                                    const value = data.datasets[0].data[i];
+                                    const percentage = totalValue > 0 ? (value / totalValue * 100).toFixed(1) : 0;
+                                    return {
+                                        text: label + ': ' + value + ' (' + percentage + '%)',
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor,
+                                        lineWidth: data.datasets[0].borderWidth,
+                                        // 確保圖例標記是點
+                                        pointStyle: 'circle',
+                                        hidden: !chart.isDatasetVisible(0) || chart.getDatasetMeta(0).data[i].hidden,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            // 保留 Tooltip 的百分比顯示
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                label += ' (' + (context.parsed / total * 100).toFixed(1) + '%)'; 
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+function renderReport() {
+    const historyTable = document.getElementById('history-table');
+    
+    // 格式化月份： YYYY/MM
+    const formatMonth = (date) => `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    if (historyData.length === 0) {
+        document.getElementById('current-month-range').textContent = '無數據';
+        return;
+    }
+
+    // --- 1. 處理本月數據 (左側表格 & 圓餅圖) ---
+    const latestMonth = historyData[0];
+    const latestDate = new Date(latestMonth.month + '-01');
+
+    document.getElementById('current-month-range').textContent = `${formatMonth(latestDate)}（資料區間：${latestMonth.month}-01 – ${latestMonth.month}-30）`;
+    document.getElementById('current-month-display').textContent = formatMonth(latestDate);
+    
+    // 填充左側分處數據
+    document.querySelector('#north-row td:nth-child(2)').textContent = latestMonth.north;
+    document.querySelector('#central-row td:nth-child(2)').textContent = latestMonth.central;
+    document.querySelector('#south-row td:nth-child(2)').textContent = latestMonth.south;
+
+    const currentTotal = latestMonth.north + latestMonth.central + latestMonth.south;
+    document.getElementById('current-total').textContent = currentTotal;
+
+    // 渲染圓餅圖
+    renderPieChart(latestMonth);
+
+    // --- 2. 處理歷史數據 (右側表格) ---
+    const dataToDisplay = historyData.slice(0, 12); // 只顯示近 12 個月
+    
+    // 計算歷史總累計 (包含所有數據)
+    let cumulativeGrandTotal = { north: 0, central: 0, south: 0 };
+    historyData.forEach(item => {
+        cumulativeGrandTotal.north += item.north;
+        cumulativeGrandTotal.central += item.central;
+        cumulativeGrandTotal.south += item.south;
+    });
+
+    let historyHtml = '';
+    const MAX_DISPLAY_MONTHS = 12; 
+    
+    // 插入實際數據行
+    dataToDisplay.forEach((item, i) => {
+        const monthDate = new Date(item.month + '-01');
+        const monthDisplay = formatMonth(monthDate);
+        const isCurrentMonth = i === 0;
+
+        historyHtml += `
+            <tr class="data-row ${isCurrentMonth ? 'current-month-row' : ''}" style="height: ${100 / MAX_DISPLAY_MONTHS}%">
+                <td>${isCurrentMonth ? '本月' : monthDisplay}</td>
+                <td class="history-num">${item.north}</td>
+                <td class="history-num">${item.central}</td>
+                <td class="history-num">${item.south}</td>
+            </tr>
+        `;
+    });
+    
+    // 確保總行數達到 12 行
+    const actualDisplayMonths = dataToDisplay.length;
+    const remainingRows = MAX_DISPLAY_MONTHS - actualDisplayMonths;
+    if (remainingRows > 0) {
+        // 使用空的 <tr> 搭配 CSS 實現均分高度
+        const emptyRowHtml = `<tr class="data-row empty-fill" style="height: ${100 / MAX_DISPLAY_MONTHS}%">
+            <td></td><td></td><td></td><td></td>
+        </tr>`;
+        
+        for (let i = 0; i < remainingRows; i++) {
+            historyHtml += emptyRowHtml;
+        }
+    }
+
+
+    // 將月份數據和填充行插入到歷史表格中 (在表頭行之後，總累計行之前)
+    const historyHeaderRow = historyTable.querySelector('.history-header');
+    const grandTotalRow = historyTable.querySelector('.grand-total-row:not(.total-sum-row)');
+    if (historyHeaderRow && grandTotalRow) {
+        historyHeaderRow.insertAdjacentHTML('afterend', historyHtml);
+    } 
+    
+    // --- 3. 顯示總累計 (使用包含所有數據的總和) ---
+    document.getElementById('grand-total-north').textContent = cumulativeGrandTotal.north;
+    document.getElementById('grand-total-central').textContent = cumulativeGrandTotal.central;
+    document.getElementById('grand-total-south').textContent = cumulativeGrandTotal.south;
+
+    // *** 新增：計算並顯示歷史總計 (總件數) ***
+    const totalGrandSum = cumulativeGrandTotal.north + cumulativeGrandTotal.central + cumulativeGrandTotal.south;
+    document.getElementById('grand-total-sum').textContent = totalGrandSum;
+}
+
+// 運行程式
+document.addEventListener('DOMContentLoaded', renderReport);
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <META NAME="Author" CONTENT="ARTER">
+  <meta charset="utf-8" />
+  <title>除溼機漏點位置圖</title>
+  <style type="text/css">
+*{margin:0;font-size:20px;}
+#maps{background-image:url(./cd.jpg);height:682px;width:980px;}
+#maps div{position: absolute;width:35px; height:30px;border:3px solid #00f;border-radius:999em;cursor:pointer;}
+#maps div:hover{border:3px solid #f00;}
+</style>
+</head>
+<body>
+<script>
+function l_click(val){
+if(document.getElementById('location').value=="")
+document.getElementById('location').value=val;
+else
+document.getElementById('location').value=document.getElementById('location').value+","+val;
+}
+function clr(){
+document.getElementById('location').value="";
+}
+</script>
+<div id="maps">
+<div id="m10" style="left:432px;top:529px;" onclick="l_click('10壓縮機本體漏')" title="10壓縮機本體漏"></div>
+<div id="m11" style="left:399px;top:473px;" onclick="l_click('11壓縮機吐出管')" title="11壓縮機吐出管"></div>
+<div id="m12" style="left:418px;top:423px;" onclick="l_click('12壓縮機吸入管')" title="12壓縮機吸入管"></div>
+<div id="m20" style="left:699px;top:118px;" onclick="l_click('20散熱器本體漏')" title="20散熱器本體漏"></div>
+<div id="m21" style="left:264px;top:432px;" onclick="l_click('21散熱器出口漏')" title="21散熱器出口漏"></div>
+<div id="m22" style="left:315px;top:42px;" onclick="l_click('22散熱器入口漏')" title="22散熱器入口漏"></div>
+<div id="m23" style="left:38px;top:302px;" onclick="l_click('23散熱器分流管漏(入)')" title="23散熱器分流管漏(入)"></div>
+<div id="m24" style="left:34px;top:208px;" onclick="l_click('24散熱器分流管漏(出)')" title="24散熱器分流管漏(出)"></div>
+<div id="m25" style="left:326px;top:235px;" onclick="l_click('25U管漏/連接管')" title="25U管漏/連接管"></div>
+<div id="m26" style="left:894px;top:167px;" onclick="l_click('26銅管漏(HIR PIN)')" title="26銅管漏(HIR PIN)"></div>
+<div id="m30" style="left:678px;top:210px;" onclick="l_click('30蒸發器本體漏')" title="30蒸發器本體漏"></div>
+<div id="m31" style="left:341px;top:125px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m32" style="left:373px;top:406px;" onclick="l_click('32蒸發器入口漏')" title="32蒸發器入口漏"></div>
+<div id="m35" style="left:393px;top:365px;" onclick="l_click('35U管漏/連接管')" title="35U管漏/連接管"></div>
+<div id="m36" style="left:895px;top:219px;" onclick="l_click('36銅管漏(HIR PIN)')" title="36銅管漏(HIR PIN)"></div>
+<div id="m37" style="left:328px;top:311px;" onclick="l_click('37蒸發器集流管(入)')" title="37蒸發器集流管(入)"></div>
+<div id="m38" style="left:319px;top:372px;" onclick="l_click('38蒸發器集流管(出)')" title="38蒸發器集流管(出)"></div>
+<div id="m70" style="left:23px;top:420px;" onclick="l_click('70高壓連接管(COMP-D)')" title="70高壓連接管(COMP-D)"></div>
+<div id="m70" style="left:617px;top:297px;" onclick="l_click('70高壓連接管(COMP-D)')" title="70高壓連接管(COMP-D)"></div>
+<div id="m72" style="left:372px;top:174px;" onclick="l_click('72封入管(液側)')" title="72封入管(液側)"></div>
+<div id="m73" style="left:30px;top:252px;" onclick="l_click('73特殊集流管漏')" title="73特殊集流管漏"></div>
+<div id="m75" style="left:345px;top:556px;" onclick="l_click('75低壓連接管(COMP)')" title="75低壓連接管(COMP)"></div>
+<div id="m80" style="left:309px;top:153px;" onclick="l_click('80毛細管/膨脹閥本體')" title="80毛細管/膨脹閥本體"></div>
+<div id="m81" style="left:311px;top:279px;" onclick="l_click('81毛細管(入)/膨脹閥')" title="81毛細管(入)/膨脹閥"></div>
+<div id="m82" style="left:324px;top:191px;" onclick="l_click('82毛細管(出)/膨脹閥')" title="82毛細管(出)/膨脹閥"></div>
+<div id="m83" style="left:370px;top:269px;" onclick="l_click('83封入管(液側)[封口處]')" title="83封入管(液側)[封口處]"></div>
+<div id="m84" style="left:314px;top:92px;" onclick="l_click('84封入管(液側)[根部處]')" title="84封入管(液側)[根部處]"></div>
+</div><br>零件位置：<input id="location" type="text" size="79" value=""></input><button id="clear" onclick="clr();">清除</button><button>送出</button>
+  <script>
+function l_click(val){
+  const input = document.getElementById('location');
+  if(input.value === "")
+    input.value = val;
+  else
+    input.value = input.value + "," + val;
+  highlightFromInput(); // 每次點擊也同步高亮
+}
+
+function clr(){
+  document.getElementById('location').value = "";
+  clearHighlights();
+}
+
+// 新增：清除所有紅色邊框
+function clearHighlights(){
+  document.querySelectorAll('#maps div').forEach(el => {
+    el.style.border = "3px solid #00f";
+  });
+}
+
+// 新增：根據輸入欄位自動高亮相關的框
+function highlightFromInput(){
+  clearHighlights();
+  const input = document.getElementById('location').value;
+  const matches = input.match(/\d+/g); // 擷取所有數字
+  if (!matches) return;
+
+  matches.forEach(num => {
+    const matchIdList = Array.from(document.querySelectorAll('#maps div'))
+      .filter(el => el.title.startsWith(num));
+    matchIdList.forEach(el => el.style.border = "5px solid red");
+  });
+}
+
+// 新增：輸入欄位監聽
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById('location').addEventListener('input', highlightFromInput);
+});
+</script>
+</body>
+</html>

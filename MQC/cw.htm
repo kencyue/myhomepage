@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <META NAME="Author" CONTENT="ARTER">
+  <meta charset="utf-8" />
+  <title>窗型冷氣機漏點位置圖</title>
+  <style type="text/css">
+*{margin:0;font-size:20px;}
+#maps{background-image:url(./cw.jpg);height:702px;width:980px;}
+#maps div{position: absolute;width:35px; height:30px;border:3px solid #00f;border-radius:999em;cursor:pointer;}
+#maps div:hover{border:3px solid #f00;}
+    .fixed-cs {
+      position: fixed;
+      top: 0;
+      left: 0;
+      font-size: 72pt;
+      color: red;
+      font-weight: bold;
+      z-index: 9999;
+      padding: 0.4em;
+    }
+</style>
+</head>
+<body>
+  <div class="fixed-cs">CW</div>
+<script>
+function l_click(val){
+if(document.getElementById('location').value=="")
+document.getElementById('location').value=val;
+else
+document.getElementById('location').value=document.getElementById('location').value+","+val;
+}
+function clr(){
+document.getElementById('location').value="";
+}
+</script>
+<div id="maps">
+<div id="m10" style="left:383px;top:306px;" onclick="l_click('10壓縮機本體漏')" title="10壓縮機本體漏"></div>
+<div id="m11" style="left:218px;top:53px;" onclick="l_click('11壓縮機吐出管')" title="11壓縮機吐出管"></div>
+<div id="m12" style="left:305px;top:56px;" onclick="l_click('12壓縮機吸入管')" title="12壓縮機吸入管"></div>
+<div id="m20" style="left:737px;top:98px;" onclick="l_click('20散熱器本體漏')" title="20散熱器本體漏"></div>
+<div id="m22" style="left:825px;top:165px;" onclick="l_click('22散熱器入口漏')" title="22散熱器入口漏"></div>
+<div id="m24" style="left:865px;top:165px;" onclick="l_click('24散熱器分流管漏(出)')" title="24散熱器分流管漏(出)"></div>
+<div id="m25" style="left:850px;top:345px;" onclick="l_click('25U管漏/連接管')" title="25U管漏/連接管"></div>
+<div id="m26" style="left:473px;top:78px;" onclick="l_click('26銅管漏(HIR PIN)')" title="26銅管漏(HIR PIN)"></div>
+<div id="m27" style="left:887px;top:39px;" onclick="l_click('27散熱器集流管(入)')" title="27散熱器集流管(入)"></div>
+<div id="m28" style="left:657px;top:344px;" onclick="l_click('28散熱器集流管(出)')" title="28散熱器集流管(出)"></div>
+<div id="m30" style="left:426px;top:325px;" onclick="l_click('30蒸發器本體漏')" title="30蒸發器本體漏"></div>
+<div id="m31" style="left:397px;top:642px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m34" style="left:37px;top:447px;" onclick="l_click('34蒸發器分流管漏(出)')" title="34蒸發器分流管漏(出)"></div>
+<div id="m35" style="left:273px;top:512px;" onclick="l_click('34蒸發器分流管漏(出)')" title="34蒸發器分流管漏(出)"></div>
+<div id="m36" style="left:92px;top:480px;" onclick="l_click('36銅管漏(HIR PIN)')" title="36銅管漏(HIR PIN)"></div>
+<div id="m40" style="left:539px;top:637px;" onclick="l_click('40四方閥本體')" title="40四方閥本體"></div>
+<div id="m41" style="left:504px;top:526px;" onclick="l_click('41四方閥連接處(D)')" title="41四方閥連接處(D)"></div>
+<div id="m42" style="left:593px;top:615px;" onclick="l_click('42四方閥連接處(E)')" title="42四方閥連接處(E)"></div>
+<div id="m43" style="left:612px;top:578px;" onclick="l_click('43四方閥連接處(S)')" title="43四方閥連接處(S)"></div>
+<div id="m44" style="left:653px;top:538px;" onclick="l_click('44四方閥連接處(C)')" title="44四方閥連接處(C)"></div>
+<div id="m70" style="left:123px;top:262px;" onclick="l_click('70高壓連接管(COMP-D)')" title="70高壓連接管(COMP-D)"></div>
+<div id="m71" style="left:552px;top:237px;" onclick="l_click('71高壓連接管(C-COND)')" title="71高壓連接管(C-COND)"></div>
+<div id="m72" style="left:632px;top:475px;" onclick="l_click('72封入管(液側)')" title="72封入管(液側)"></div>
+<div id="m75" style="left:426px;top:264px;" onclick="l_click('75低壓連接管(COMP)')" title="75低壓連接管(COMP)"></div>
+<div id="m76" style="left:497px;top:372px;" onclick="l_click('76低壓連接管(E-EVA)')" title="76低壓連接管(E-EVA)"></div>
+<div id="m77" style="left:490px;top:154px;" onclick="l_click('77封入管(氣側)')" title="77封入管(氣側)"></div>
+<div id="m82" style="left:631px;top:296px;" onclick="l_click('82毛細管(出)/膨脹閥')" title="82毛細管(出)/膨脹閥"></div>
+<div id="m83" style="left:642px;top:413px;" onclick="l_click('83封入管(液側)[封口處]')" title="83封入管(液側)[封口處]"></div>
+<div id="m85" style="left:560px;top:189px;" onclick="l_click('85封入管(氣側)[封口處]')" title="85封入管(氣側)[封口處]"></div>
+<div id="m86" style="left:448px;top:161px;" onclick="l_click('86封入管(氣側)[根部處]')" title="86封入管(氣側)[根部處]"></div>
+<div id="m211" style="left:914px;top:74px;" onclick="l_click('21散熱器出口漏')" title="21散熱器出口漏"></div>
+<div id="m212" style="left:737px;top:569px;" onclick="l_click('21散熱器出口漏')" title="21散熱器出口漏"></div>
+<div id="m231" style="left:620px;top:156px;" onclick="l_click('23散熱器分流管漏(入)')" title="23散熱器分流管漏(入)"></div>
+<div id="m232" style="left:900px;top:349px;" onclick="l_click('23散熱器分流管漏(入)')" title="23散熱器分流管漏(入)"></div>
+<div id="m281" style="left:738px;top:40px;" onclick="l_click('28散熱器集流管(出)')" title="28散熱器集流管(出)"></div>
+<div id="m282" style="left:772px;top:435px;" onclick="l_click('28散熱器集流管(出)')" title="28散熱器集流管(出)"></div>
+<div id="m321" style="left:10px;top:412px;" onclick="l_click('32蒸發器入口漏')" title="32蒸發器入口漏"></div>
+<div id="m322" style="left:287px;top:448px;" onclick="l_click('32蒸發器入口漏')" title="32蒸發器入口漏"></div>
+<div id="m331" style="left:59px;top:641px;" onclick="l_click('33蒸發器分流管漏(入)')" title="33蒸發器分流管漏(入)"></div>
+<div id="m332" style="left:460px;top:576px;" onclick="l_click('33蒸發器分流管漏(入)')" title="33蒸發器分流管漏(入)"></div>
+<div id="m371" style="left:140px;top:650px;" onclick="l_click('37蒸發器集流管(入)')" title="37蒸發器集流管(入)"></div>
+<div id="m372" style="left:248px;top:570px;" onclick="l_click('37蒸發器集流管(入)')" title="37蒸發器集流管(入)"></div>
+<div id="m381" style="left:291px;top:560px;" onclick="l_click('38蒸發器集流管(出)')" title="38蒸發器集流管(出)"></div>
+<div id="m382" style="left:497px;top:562px;" onclick="l_click('38蒸發器集流管(出)')" title="38蒸發器集流管(出)"></div>
+<div id="m801" style="left:589px;top:222px;" onclick="l_click('80毛細管/膨脹閥本體')" title="80毛細管/膨脹閥本體"></div>
+<div id="m802" style="left:867px;top:405px;" onclick="l_click('80毛細管/膨脹閥本體')" title="80毛細管/膨脹閥本體"></div>
+<div id="m811" style="left:626px;top:200px;" onclick="l_click('81毛細管(入)/膨脹閥')" title="81毛細管(入)/膨脹閥"></div>
+<div id="m812" style="left:918px;top:528px;" onclick="l_click('81毛細管(入)/膨脹閥')" title="81毛細管(入)/膨脹閥"></div>
+<div id="m822" style="left:852px;top:528px;" onclick="l_click('82毛細管(出)/膨脹閥')" title="82毛細管(出)/膨脹閥"></div>
+</div><br>零件位置：<input id="location" type="text" size="79" value="" onclick="clr();"></input><button id="clear" onclick="clr();">清除</button><button>送出</button>
+  <script>
+function l_click(val){
+  const input = document.getElementById('location');
+  if(input.value === "")
+    input.value = val;
+  else
+    input.value = input.value + "," + val;
+  highlightFromInput(); // 每次點擊也同步高亮
+}
+
+function clr(){
+  document.getElementById('location').value = "";
+  clearHighlights();
+}
+
+// 新增：清除所有紅色邊框
+function clearHighlights(){
+  document.querySelectorAll('#maps div').forEach(el => {
+    el.style.border = "3px solid #00f";
+  });
+}
+
+// 新增：根據輸入欄位自動高亮相關的框
+function highlightFromInput(){
+  clearHighlights();
+  const input = document.getElementById('location').value;
+  const matches = input.match(/\d+/g); // 擷取所有數字
+  if (!matches) return;
+
+  matches.forEach(num => {
+    const matchIdList = Array.from(document.querySelectorAll('#maps div'))
+      .filter(el => el.title.startsWith(num));
+    matchIdList.forEach(el => el.style.border = "3px solid red");
+  });
+}
+
+// 新增：輸入欄位監聽
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById('location').addEventListener('input', highlightFromInput);
+});
+</script>
+</body>
+</html>

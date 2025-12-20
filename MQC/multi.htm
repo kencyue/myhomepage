@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <META NAME="Author" CONTENT="ARTER">
+  <meta charset="utf-8" />
+  <title>一對多室外機漏點位置圖</title>
+  <style type="text/css">
+*{margin:0;font-size:20px;}
+#maps{background-image:url(./multi.jpg);height:688px;width:980px;}
+#maps div{position: absolute;width:35px; height:30px;border:3px solid #00f;border-radius:999em;cursor:pointer;}
+#maps div:hover{border:3px solid #f00;}
+</style>
+</head>
+<body>
+<script>
+function l_click(val){
+if(document.getElementById('location').value=="")
+document.getElementById('location').value=val;
+else
+document.getElementById('location').value=document.getElementById('location').value+","+val;
+}
+function clr(){
+document.getElementById('location').value="";
+}
+</script>
+<div id="maps">
+<div id="m10" style="left:59px;top:535px;" onclick="l_click('10壓縮機本體漏')" title="10壓縮機本體漏"></div>
+<div id="m11" style="left:78px;top:460px;" onclick="l_click('11壓縮機吐出管')" title="11壓縮機吐出管"></div>
+<div id="m12" style="left:111px;top:381px;" onclick="l_click('12壓縮機吸入管')" title="12壓縮機吸入管"></div>
+<div id="m13" style="left:320px;top:430px;" onclick="l_click('13儲液器本體')" title="13儲液器本體"></div>
+<div id="m14" style="left:260px;top:220px;" onclick="l_click('14儲液器(入)')" title="14儲液器(入)"></div>
+<div id="m15" style="left:207px;top:293px;" onclick="l_click('15儲液器(出)')" title="15儲液器(出)"></div>
+<div id="m20" style="left:336px;top:78px;" onclick="l_click('20散熱器本體漏')" title="20散熱器本體漏"></div>
+<div id="m21" style="left:484px;top:104px;" onclick="l_click('21散熱器出口漏')" title="21散熱器出口漏"></div>
+<div id="m22" style="left:484px;top:315px;" onclick="l_click('22散熱器入口漏')" title="22散熱器入口漏"></div>
+<div id="m23" style="left:477px;top:208px;" onclick="l_click('23散熱器分流管漏(入)')" title="23散熱器分流管漏(入)"></div>
+<div id="m24" style="left:642px;top:260px;" onclick="l_click('24散熱器分流管漏(出)')" title="24散熱器分流管漏(出)"></div>
+<div id="m25" style="left:462px;top:170px;" onclick="l_click('25U管漏/連接管')" title="25U管漏/連接管"></div>
+<div id="m26" style="left:107px;top:147px;" onclick="l_click('26銅管漏(HIR PIN)')" title="26銅管漏(HIR PIN)"></div>
+<div id="m27" style="left:659px;top:380px;" onclick="l_click('27散熱器集流管(入)')" title="27散熱器集流管(入)"></div>
+<div id="m28" style="left:638px;top:318px;" onclick="l_click('28散熱器集流管(出)')" title="28散熱器集流管(出)"></div>
+<div id="m40" style="left:392px;top:245px;" onclick="l_click('40四方閥本體')" title="40四方閥本體"></div>
+<div id="m41" style="left:334px;top:395px;" onclick="l_click('41四方閥連接處(D)')" title="41四方閥連接處(D)"></div>
+<div id="m42" style="left:340px;top:251px;" onclick="l_click('42四方閥連接處(E)')" title="42四方閥連接處(E)"></div>
+<div id="m43" style="left:403px;top:452px;" onclick="l_click('43四方閥連接處(S)')" title="43四方閥連接處(S)"></div>
+<div id="m44" style="left:430px;top:406px;" onclick="l_click('44四方閥連接處(C)')" title="44四方閥連接處(C)"></div>
+<div id="m45" style="left:832px;top:528px;" onclick="l_click('45過濾器')" title="45過濾器"></div>
+<div id="m46" style="left:818px;top:485px;" onclick="l_click('46過濾器(入)')" title="46過濾器(入)"></div>
+<div id="m47" style="left:828px;top:569px;" onclick="l_click('47過濾器(出)')" title="47過濾器(出)"></div>
+<div id="m50" style="left:768px;top:300px;" onclick="l_click('50液側閥本體')" title="50液側閥本體"></div>
+<div id="m51" style="left:772px;top:338px;" onclick="l_click('51液側閥螺栓處')" title="51液側閥螺栓處"></div>
+<div id="m52" style="left:893px;top:343px;" onclick="l_click('52液側閥出口螺帽裂')" title="52液側閥出口螺帽裂"></div>
+<div id="m53" style="left:901px;top:302px;" onclick="l_click('53液側閥出口處漏')" title="53液側閥出口處漏"></div>
+<div id="m54" style="left:881px;top:247px;" onclick="l_click('54液側閥連接管漏')" title="54液側閥連接管漏"></div>
+<div id="m60" style="left:907px;top:471px;" onclick="l_click('60氣側閥本體')" title="60氣側閥本體"></div>
+<div id="m61" style="left:930px;top:443px;" onclick="l_click('61氣側閥螺栓處')" title="61氣側閥螺栓處"></div>
+<div id="m62" style="left:929px;top:406px;" onclick="l_click('62氣側閥出口螺帽裂')" title="62氣側閥出口螺帽裂"></div>
+<div id="m63" style="left:923px;top:369px;" onclick="l_click('63氣側閥出口處漏')" title="63氣側閥出口處漏"></div>
+<div id="m64" style="left:787px;top:372px;" onclick="l_click('64氣側閥連接管漏')" title="64氣側閥連接管漏"></div>
+<div id="m65" style="left:872px;top:491px;" onclick="l_click('65氣側閥服務針閥漏')" title="65氣側閥服務針閥漏"></div>
+<div id="m70" style="left:324px;top:527px;" onclick="l_click('70高壓連接管(COMP-D)')" title="70高壓連接管(COMP-D)"></div>
+<div id="m71" style="left:431px;top:221px;" onclick="l_click('71高壓連接管(C-COND)')" title="71高壓連接管(C-COND)"></div>
+<div id="m72" style="left:682px;top:54px;" onclick="l_click('72封入管(液側)')" title="72封入管(液側)"></div>
+<div id="m73" style="left:649px;top:196px;" onclick="l_click('73特殊集流管漏')" title="73特殊集流管漏"></div>
+<div id="m74" style="left:688px;top:329px;" onclick="l_click('74液側分流管漏')" title="74液側分流管漏"></div>
+<div id="m75" style="left:204px;top:172px;" onclick="l_click('75低壓連接管(COMP)')" title="75低壓連接管(COMP)"></div>
+<div id="m76" style="left:417px;top:543px;" onclick="l_click('76低壓連接管(E-EVA)')" title="76低壓連接管(E-EVA)"></div>
+<div id="m78" style="left:433px;top:485px;" onclick="l_click('78氣側分流管漏')" title="78氣側分流管漏"></div>
+<div id="m81" style="left:711px;top:644px;" onclick="l_click('81毛細管(入)/膨脹閥')" title="81毛細管(入)/膨脹閥"></div>
+<div id="m821" style="left:697px;top:392px;" onclick="l_click('82毛細管(出)/膨脹閥')" title="82毛細管(出)/膨脹閥"></div>
+<div id="m822" style="left:523px;top:617px;" onclick="l_click('82毛細管(出)/膨脹閥')" title="82毛細管(出)/膨脹閥"></div>
+<div id="m83" style="left:650px;top:28px;" onclick="l_click('83封入管(液側)[封口處]')" title="83封入管(液側)[封口處]"></div>
+<div id="m84" style="left:640px;top:72px;" onclick="l_click('84封入管(液側)[根部處]')" title="84封入管(液側)[根部處]"></div>
+</div><br>零件位置：<input id="location" type="text" size="79" value=""></input><button id="clear" onclick="clr();">清除</button><button>送出</button>
+  <script>
+function l_click(val){
+  const input = document.getElementById('location');
+  if(input.value === "")
+    input.value = val;
+  else
+    input.value = input.value + "," + val;
+  highlightFromInput(); // 每次點擊也同步高亮
+}
+
+function clr(){
+  document.getElementById('location').value = "";
+  clearHighlights();
+}
+
+// 新增：清除所有紅色邊框
+function clearHighlights(){
+  document.querySelectorAll('#maps div').forEach(el => {
+    el.style.border = "3px solid #00f";
+  });
+}
+
+// 新增：根據輸入欄位自動高亮相關的框
+function highlightFromInput(){
+  clearHighlights();
+  const input = document.getElementById('location').value;
+  const matches = input.match(/\d+/g); // 擷取所有數字
+  if (!matches) return;
+
+  matches.forEach(num => {
+    const matchIdList = Array.from(document.querySelectorAll('#maps div'))
+      .filter(el => el.title.startsWith(num));
+    matchIdList.forEach(el => el.style.border = "3px solid red");
+  });
+}
+
+// 新增：輸入欄位監聽
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById('location').addEventListener('input', highlightFromInput);
+});
+</script>
+</body>
+</html>

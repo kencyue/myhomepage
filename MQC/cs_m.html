@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>室內機漏點位置圖</title>
+  <style>
+    :root{--marker-size:clamp(14px,4vw,28px);--blue:#007bff;--red:#ff3333;}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif;}
+    body{background:#f7f7f7;font-size:16px;line-height:1.4;display:flex;flex-direction:column;min-height:100vh;}
+    .fixed-cs{position:fixed;top:.25rem;left:.25rem;font-size:1.8rem;font-weight:700;color:#fff;background:#ff3333;padding:.1em .4em;border-radius:.25rem;z-index:9999;}
+    #maps{position:relative;width:100%;max-width:800px;margin:0 auto;background:url("./cs.jpg") center/contain no-repeat;}#maps::before{content:"";display:block;padding-top:68.27%;}
+    .marker{position:absolute;width:var(--marker-size);height:var(--marker-size);border:2px solid var(--blue);border-radius:50%;cursor:pointer;transition:.2s;}
+    .marker:hover{transform:scale(1.2);border-color:var(--red);} .marker.active{border-color:var(--red);}
+    #selector,#control{width:100%;max-width:800px;margin:1rem auto;text-align:center;}
+    #selector select{font-size:1rem;padding:.5em;border-radius:4px;}
+    #control{background:#fff;padding:1rem;box-shadow:0 -2px 6px rgba(0,0,0,.1);} 
+    #location{width:90%;max-width:600px;font-size:1rem;padding:.5em;border:1px solid #ccc;border-radius:4px;text-align:center;}
+    #result{margin-top:.75rem;font-size:1rem;color:#333;white-space:pre-wrap;}
+    #clearBtn{
+  font-size:1rem;padding:.5em 1em;margin-left:.5rem;
+  border:1px solid #ccc;border-radius:4px;background:#eee;cursor:pointer;
+}
+
+  </style>
+</head>
+<body>
+  <div class="fixed-cs">CS</div>
+  <div id="selector">
+    <select id="switcher">
+      <option value="">請選擇機器類型</option>
+      <option value="cu_m.html">CU室外機</option>
+      <option value="cw_m.html">CW窗型</option>
+      <option value="multi_m.html">MULTI一對多</option>
+      <option value="cd_m.html">CD除溼機</option>
+    </select>
+    <button id="clearBtn" type="button">清除</button>  <!-- 新增 -->
+  </div>
+  <div id="maps"></div>
+  <div id="control">
+    <input id="location" type="text" placeholder="僅輸入數字，如 30,32…" inputmode="numeric" pattern="[0-9,]*" />
+    <div id="result"></div>
+  </div>
+<script>
+const leaks = [
+  { id:"30",  title:"30蒸發器本體漏",         left:29.0, top:24.8 },
+  { id:"31",  title:"31蒸發器出口漏",         left:45.4, top:7.9  },
+  { id:"31",  title:"31蒸發器出口漏",         left:70.4, top:8.2  },
+  { id:"31",  title:"31蒸發器出口漏",         left:92.1, top:32 },
+  { id:"31",  title:"31蒸發器出口漏",         left:93.9, top:69.2 },
+  { id:"31",  title:"31蒸發器出口漏",         left:94.3, top:13.2 },
+  { id:"32",  title:"32蒸發器入口漏",         left:48.4, top:54.4 },
+  { id:"32",  title:"32蒸發器入口漏",         left:82.1, top:77.6 },
+  { id:"33",  title:"33蒸發器分流管漏(入)",   left:65.8, top:55.4 },
+  { id:"33",  title:"33蒸發器分流管漏(入)",   left:90.9, top:74.1 },
+  { id:"34",  title:"34蒸發器分流管漏(出)",   left:52.4, top:47.1 },
+  { id:"34",  title:"34蒸發器分流管漏(出)",   left:86.3, top:75.0 },
+  { id:"35",  title:"35U管漏/連接管",         left:39.4, top:15.7 },
+  { id:"35",  title:"35U管漏/連接管",         left:27.7, top:71.9 },
+  { id:"36",  title:"36銅管漏(HIR PIN)",       left:10.7, top:42.4 },
+  { id:"37",  title:"37蒸發器集流管(入)",     left:71.9, top:13.3 },
+  { id:"37",  title:"37蒸發器集流管(入)",     left:91.6, top:8.1  },
+  { id:"37",  title:"37蒸發器集流管(入)",     left:83.3, top:44.7 },
+  { id:"38",  title:"38蒸發器集流管(出)",     left:79.1, top:8.2  },
+  { id:"38",  title:"38蒸發器集流管(出)",     left:84.0, top:68.6 },
+  { id:"38",  title:"38蒸發器集流管(出)",     left:80.2, top:33.6 },
+  { id:"50",  title:"50液側閥本體",           left:54.0, top:68.5 },
+  { id:"52",  title:"52液側閥出口螺帽裂",     left:50.6, top:64.1 },
+  { id:"53",  title:"53液側閥出口處漏",       left:46.2, top:84.3 },
+  { id:"54",  title:"54液側閥連接管漏",       left:57.5, top:71.8 },
+  { id:"60",  title:"60氣側閥本體",           left:62.8, top:89.5 },
+  { id:"62",  title:"62氣側閥出口螺帽裂",     left:57.6, top:90.9 },
+  { id:"63",  title:"63氣側閥出口處漏",       left:50.4, top:84.3 },
+  { id:"64",  title:"64氣側閥連接管漏",       left:67.5, top:88.5 }
+];
+
+const maps = document.getElementById('maps');
+leaks.forEach(l => {
+  const m = document.createElement('div');
+  m.className = 'marker';
+  m.style.left = `${l.left}%`;
+  m.style.top = `${l.top}%`;
+  m.title = l.title;
+  m.dataset.id = l.id;
+  m.addEventListener('click', () => addLeak(l.id));
+  maps.appendChild(m);
+});
+
+const locInput = document.getElementById('location');
+const resultText = document.getElementById('result');
+
+function addLeak(id) {
+  const ids = locInput.value.split(/\s*,\s*/).filter(Boolean);
+  if (!ids.includes(id)) ids.push(id);
+  locInput.value = ids.join(',');
+  highlight();
+  updateResult();
+}
+
+function highlight() {
+  document.querySelectorAll('.marker').forEach(el => el.classList.remove('active'));
+  const ids = locInput.value.match(/\d+/g) || [];
+  ids.forEach(id => {
+    document.querySelectorAll(`.marker[data-id='${id}']`).forEach(el => el.classList.add('active'));
+  });
+}
+
+function updateResult() {
+  const ids = locInput.value.match(/\d+/g) || [];
+  const titles = [];
+  ids.forEach(id => {
+    leaks.forEach(l => { if (l.id === id && !titles.includes(l.title)) titles.push(l.title); });
+  });
+  resultText.textContent = titles.join("\n");
+}
+
+locInput.addEventListener('input', () => {
+  locInput.value = locInput.value.replace(/[^0-9,]/g, '');
+  highlight();
+  updateResult();
+});
+
+/* 刪除（或註解掉）原本的 dblclick 事件 */
+// locInput.addEventListener('dblclick', …);
+
+/* 新增清除鈕點擊事件 */
+document.getElementById('clearBtn').addEventListener('click', () => {
+  locInput.value = '';
+  highlight();
+  resultText.textContent = '';
+});
+
+
+document.getElementById('switcher').addEventListener('change', function () {
+  if (this.value) location.href = this.value;
+});
+</script>
+</body>
+</html>

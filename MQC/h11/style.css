@@ -1,0 +1,13 @@
+a:link {
+  color: blue; /* 未訪問連結的字體顏色 */
+  text-decoration: none; /* 未訪問連結的下劃線 */
+  font-size:30px;
+  line-height: 200%; /* 150%的行高 */
+}
+
+a:visited {
+  color: blue; /* 已訪問連結的字體顏色 */
+  text-decoration: none; /* 已訪問連結的下劃線 */
+  font-size:30px;
+  line-height: 200%; /* 150%的行高 */
+}

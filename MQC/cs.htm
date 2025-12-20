@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <META NAME="Author" CONTENT="ARTER">
+  <meta charset="utf-8" />
+  <title>室內機漏點位置圖</title>
+  <style type="text/css">
+*{margin:0;font-size:20px;}
+#maps{background-image:url(./cs.jpg);height:669px;width:980px;}
+#maps div{position: absolute;width:35px; height:30px;border:3px solid #00f;border-radius:999em;cursor:pointer;}
+#maps div:hover{border:3px solid #f00;}
+    .fixed-cs {
+      position: fixed;
+      top: 0;
+      left: 0;
+      font-size: 72pt;
+      color: red;
+      font-weight: bold;
+      z-index: 9999;
+      padding: 0.4em;
+    }
+</style>
+</head>
+<body>
+  <div class="fixed-cs">CS</div>
+<script>
+function l_click(val){
+if(document.getElementById('location').value=="")
+document.getElementById('location').value=val;
+else
+document.getElementById('location').value=document.getElementById('location').value+","+val;
+}
+function clr(){
+document.getElementById('location').value="";
+}
+</script>
+<div id="maps">
+<div id="m30" style="left:284px;top:166px;" onclick="l_click('30蒸發器本體漏')" title="30蒸發器本體漏"></div>
+<div id="m36" style="left:105px;top:284px;" onclick="l_click('36銅管漏(HIR PIN)')" title="36銅管漏(HIR PIN)"></div>
+<div id="m50" style="left:529px;top:458px;" onclick="l_click('50液側閥本體')" title="50液側閥本體"></div>
+<div id="m52" style="left:496px;top:429px;" onclick="l_click('52液側閥出口螺帽裂')" title="52液側閥出口螺帽裂"></div>
+<div id="m53" style="left:453px;top:564px;" onclick="l_click('53液側閥出口處漏')" title="53液側閥出口處漏"></div>
+<div id="m54" style="left:564px;top:480px;" onclick="l_click('54液側閥連接管漏')" title="54液側閥連接管漏"></div>
+<div id="m60" style="left:615px;top:599px;" onclick="l_click('60氣側閥本體')" title="60氣側閥本體"></div>
+<div id="m62" style="left:565px;top:608px;" onclick="l_click('62氣側閥出口螺帽裂')" title="62氣側閥出口螺帽裂"></div>
+<div id="m63" style="left:494px;top:564px;" onclick="l_click('63氣側閥出口處漏')" title="63氣側閥出口處漏"></div>
+<div id="m64" style="left:662px;top:592px;" onclick="l_click('64氣側閥連接管漏')" title="64氣側閥連接管漏"></div>
+<div id="m311" style="left:445px;top:53px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m312" style="left:690px;top:55px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m313" style="left:903px;top:212px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m314" style="left:920px;top:463px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m315" style="left:924px;top:88px;" onclick="l_click('31蒸發器出口漏')" title="31蒸發器出口漏"></div>
+<div id="m321" style="left:474px;top:364px;" onclick="l_click('32蒸發器入口漏')" title="32蒸發器入口漏"></div>
+<div id="m322" style="left:805px;top:519px;" onclick="l_click('32蒸發器入口漏')" title="32蒸發器入口漏"></div>
+<div id="m331" style="left:645px;top:371px;" onclick="l_click('33蒸發器分流管漏(入)')" title="33蒸發器分流管漏(入)"></div>
+<div id="m332" style="left:891px;top:496px;" onclick="l_click('33蒸發器分流管漏(入)')" title="33蒸發器分流管漏(入)"></div>
+<div id="m341" style="left:514px;top:315px;" onclick="l_click('34蒸發器分流管漏(出)')" title="34蒸發器分流管漏(出)"></div>
+<div id="m342" style="left:846px;top:502px;" onclick="l_click('34蒸發器分流管漏(出)')" title="34蒸發器分流管漏(出)"></div>
+<div id="m351" style="left:386px;top:105px;" onclick="l_click('35U管漏/連接管')" title="35U管漏/連接管"></div>
+<div id="m352" style="left:271px;top:481px;" onclick="l_click('35U管漏/連接管')" title="35U管漏/連接管"></div>
+<div id="m371" style="left:705px;top:89px;" onclick="l_click('37蒸發器集流管(入)')" title="37蒸發器集流管(入)"></div>
+<div id="m372" style="left:898px;top:54px;" onclick="l_click('37蒸發器集流管(入)')" title="37蒸發器集流管(入)"></div>
+<div id="m373" style="left:816Px;top:299px;" onclick="l_click('37蒸發器集流管(入)')" title="37蒸發器集流管(入)"></div>
+<div id="m381" style="left:775px;top:55px;" onclick="l_click('38蒸發器集流管(出)')" title="38蒸發器集流管(出)"></div>
+<div id="m382" style="left:823px;top:459px;" onclick="l_click('38蒸發器集流管(出)')" title="38蒸發器集流管(出)"></div>
+<div id="m383" style="left:786px;top:225px;" onclick="l_click('38蒸發器集流管(出)')" title="38蒸發器集流管(出)"></div>
+</div><br>零件位置：<input id="location" type="text" size="79" value="" onclick="clr();"></input><button id="clear" onclick="clr();">清除</button><button>送出</button>
+  <script>
+function l_click(val){
+  const input = document.getElementById('location');
+  if(input.value === "")
+    input.value = val;
+  else
+    input.value = input.value + "," + val;
+  highlightFromInput(); // 每次點擊也同步高亮
+}
+
+function clr(){
+  document.getElementById('location').value = "";
+  clearHighlights();
+}
+
+// 新增：清除所有紅色邊框
+function clearHighlights(){
+  document.querySelectorAll('#maps div').forEach(el => {
+    el.style.border = "3px solid #00f";
+  });
+}
+
+// 新增：根據輸入欄位自動高亮相關的框
+function highlightFromInput(){
+  clearHighlights();
+  const input = document.getElementById('location').value;
+  const matches = input.match(/\d+/g); // 擷取所有數字
+  if (!matches) return;
+
+  matches.forEach(num => {
+    const matchIdList = Array.from(document.querySelectorAll('#maps div'))
+      .filter(el => el.title.startsWith(num));
+    matchIdList.forEach(el => el.style.border = "3px solid red");
+  });
+}
+
+// 新增：輸入欄位監聽
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById('location').addEventListener('input', highlightFromInput);
+});
+</script>
+</body>
+</html>

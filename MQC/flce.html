@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>80FLC 軟體更新統計報告 (最終版 - 優化)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    /* 藍色系配色方案 */
+    :root {
+        --color-primary-dark: #1A237E;
+        --color-primary-light: #BBDEFB;
+        --color-highlight: #42A5F5;
+        --color-total: #0D47A1;
+        --color-subtle-bg: #E3F2FD;
+        --color-alert: #D32F2F;
+
+        /* 圓餅圖強對比色 */
+        --color-chart-north: #42A5F5;
+        --color-chart-central: #FF5722;
+        --color-chart-south: #4CAF50;
+    }
+
+    /* 基礎與背景 */
+    body {
+        margin: 0;
+        padding: 10px;
+
+        font-family: 'Microsoft JhengHei','Noto Sans TC',sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f0f4f8; /* 增加背景色 */
+    }
+
+    /* 核心卡片 (鎖定 4:3 比例) */
+    .card {
+        width: 750px;
+        height: 562.5px; /* 鎖定 4:3 比例 */
+        background: white;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 標頭區 */
+    header {
+        background: #0D47A1;
+        color: #FFFFFF;
+        padding: 20px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 600;
+    }
+    .date {
+        font-size: 18px;
+        margin-top: 3px;
+        opacity: 0.9;
+    }
+
+    /* 內容區：左右分欄 */
+    .content {
+        padding: 20px;
+        display: flex;
+        flex-grow: 1;
+        gap: 20px;
+        min-height: 0;
+    }
+
+    /* 左右分欄樣式 */
+    .column {
+        flex: 1;
+        padding-right: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* 右側欄位修正 (水平填滿) */
+    .content > .column:nth-child(2) {
+        margin-right: -20px; /* 拉伸至卡片邊緣 */
+        padding-right: 20px;
+    }
+
+    /* 區塊標題 */
+    h3 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--color-primary-dark);
+        border-bottom: 1px solid var(--color-primary-light);
+        padding-bottom: 5px;
+        flex-shrink: 0;
+    }
+
+    /* 表格基礎樣式 */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 24px;
+        margin-bottom: 0;
+        table-layout: fixed;
+    }
+    td {
+        padding: 2px 3px;
+        text-align: center;
+        border-bottom: none;
+        vertical-align: middle;
+        word-break: break-all;
+    }
+
+    /* 欄位寬度比例 */
+    #current-month-table td:first-child,
+    #history-table td:first-child {
+        width: 35%;
+        text-align: left;
+        color: var(--color-primary-dark);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    #current-month-table td,
+    #history-table td {
+        width: 21.66%;
+    }
+
+
+    /* --- 左欄：本月統計 (垂直壓縮) --- */
+
+    /* 圓餅圖容器 */
+    #pie-chart-container {
+        flex-shrink: 0;
+        height: 140px;
+        width: 100%;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 本月表格佔用所有剩餘空間 */
+    #current-month-table {
+        flex-grow: 1;
+        flex-direction: column;
+        justify-content: space-evenly;
+        height: 100%;
+    }
+
+    /* 分處數字加大 */
+    #current-month-table td {
+        padding: 5px 3px;
+        font-size: 18px;
+    }
+
+    #current-month-table .num {
+        font-size: 30px;
+        font-weight: bold;
+        color: var(--color-highlight);
+    }
+
+    /* 總計行 */
+    #current-month-table .total td {
+        background: var(--color-subtle-bg);
+        font-size: 20px;
+        border-top: 2px solid var(--color-total);
+        padding: 8px 3px;
+    }
+    #current-month-table .total .num {
+        font-size: 50px;
+        color: var(--color-total);
+    }
+
+
+    /* --- 右欄：歷史數據 (無捲軸) --- */
+
+    #history-table {
+        flex-grow: 1;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: hidden;
+    }
+
+    /* 歷史表格表頭 */
+    .history-header {
+        flex-shrink: 0;
+    }
+    .history-header td {
+        font-size: 14px;
+        padding: 3px 3px;
+        border-bottom: 2px solid var(--color-highlight);
+        background: var(--color-subtle-bg);
+    }
+
+    /* 動態插入的月份行：實現均分高/佔滿剩餘空間的關鍵 */
+    #history-table tr:not(.history-header):not(.grand-total-row):not(.total-sum-row) {
+        flex: 1;
+    }
+
+    /* 歷史月份欄字體 */
+    #history-table tr:not(.history-header):not(.grand-total-row):not(.total-sum-row) td:first-child {
+        font-size: 14px;
+        font-weight: normal;
+        color: var(--color-primary-dark);
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    /* 數據行邊框修正 */
+    #history-table tr.data-row:not(.empty-fill) td {
+        border-bottom: 1px dashed #E0E0E0;
+    }
+
+    /* 歷史每月數據 */
+    #history-table .history-num {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-primary-dark);
+    }
+
+    /* 累計行基礎 */
+    .grand-total-row {
+        flex-shrink: 0;
+        margin-top: auto;
+        z-index: 20;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .grand-total-row{
+        font-size:20px
+    }
+    /* 累計件數行 */
+    .grand-total-row:not(.total-sum-row) {
+        background: #FFEBEE;
+        border-top: 3px solid var(--color-alert);
+    }
+
+    #current-total{
+        color:#b53426 !important;
+    }
+    td{
+        text-align:center!important;
+    }
+
+    /* 新增樣式：歷史總件數 */
+    .total-sum-row {
+        background: #E8F5E9; /* 淺綠色或另一種對比色 */
+        border-top: 3px solid var(--color-chart-south); /* 使用綠色線條 */
+        font-size: 20px;
+    }
+    .total-sum-row td {
+        padding: 0px 0px;
+    }
+    #grand-total-sum {
+        color: #2E7D32 !important; /* 深綠色強調 */
+        font-size: 26px !important;
+    }
+
+    /* ================================================= */
+    /* *** 新增：編輯器相關樣式 *** */
+    /* ================================================= */
+
+    /* 浮動編輯按鈕 */
+    #edit-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: var(--color-highlight);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s;
+        z-index: 1000; /* 確保在最上層 */
+    }
+    #edit-button:hover {
+        background-color: #1E88E5;
+    }
+
+    /* 編輯器浮動視窗 */
+    #editor-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .editor-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--color-primary-light);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .editor-header h2 {
+        margin: 0;
+        font-size: 24px;
+        color: var(--color-primary-dark);
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #757575;
+    }
+
+    /* 編輯表格容器 */
+    .editor-table-container {
+        flex-grow: 1;
+        overflow-y: auto; /* 允許表格內容捲動 */
+        margin-bottom: 15px;
+    }
+
+    /* 編輯表格樣式 */
+    #edit-data-table {
+        width: 100%;
+        table-layout: fixed;
+    }
+    #edit-data-table th, #edit-data-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+        font-size: 14px;
+    }
+    #edit-data-table th {
+        background-color: var(--color-subtle-bg);
+        color: var(--color-primary-dark);
+        font-weight: 600;
+    }
+    /* 刪除欄位樣式 */
+    #edit-data-table th:last-child {
+        width: 10%;
+    }
+    /* 可編輯儲存格 */
+    #edit-data-table td[contenteditable="true"] {
+        background-color: #FFFDE7; /* 淺黃色表示可編輯 */
+        cursor: text;
+        /* 避免光標跳轉的關鍵：移除 oninput 時的重新渲染/驗證邏輯，改用 onblur */
+    }
+    /* 月份欄位固定寬度 */
+    #edit-data-table th:first-child {
+        width: 25%;
+    }
+
+    /* 分頁與操作控制 */
+    .editor-controls {
+        display: flex;
+        flex-direction: column;
+    }
+    .pagination-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .pagination-controls button {
+        padding: 5px 10px;
+        background-color: var(--color-highlight);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .pagination-controls button:disabled {
+        background-color: #BDBDBD;
+        cursor: not-allowed;
+    }
+
+    .pagination-controls span {
+        font-weight: 600;
+        color: var(--color-primary-dark);
+    }
+
+    /* 新增按鈕 */
+    #add-month-button {
+        background-color: var(--color-chart-north);
+        color: white;
+        padding: 10px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 5px; /* 給底部一些間隔 */
+    }
+    #add-month-button:hover { background-color: #1E88E5; }
+
+    /* 刪除按鈕 */
+    .delete-btn {
+        background-color: var(--color-alert);
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    .delete-btn:hover {
+        background-color: #A31F1F;
+    }
+</style>
+</head>
+<body>
+<button id="edit-button">編輯數據 ✏️</button>
+
+<div class="card">
+    <header>
+        <h1>台銀標80FLC機種軟體更新件數統計</h1>
+        <div class="date" id="current-month-range"></div>
+    </header>
+
+    <div class="content">
+        <div class="column">
+            <h3>📅本月 (<span id="current-month-display"></span>) 統計</h3>
+
+            <div id="pie-chart-container">
+                <canvas id="pie-chart"></canvas>
+            </div>
+
+            <table id="current-month-table">
+                <tr id="north-row"><td>北處</td><td class="num"></td></tr>
+                <tr id="central-row"><td>中處</td><td class="num"></td></tr>
+                <tr id="south-row"><td>南處</td><td class="num"></td></tr>
+                <tr class="total"><td>本月總計</td><td class="num" id="current-total"></td></tr>
+            </table>
+        </div>
+
+        <div class="column">
+            <h3>📚 累計件數</h3>
+
+            <table id="history-table">
+                <tr class="history-header">
+                    <td>月份</td>
+                    <td>北處</td>
+                    <td>中處</td>
+                    <td>南處</td>
+                </tr>
+
+                <tr class="grand-total-row">
+                    <td>累計件數</td>
+                    <td class="num" id="grand-total-north"></td>
+                    <td class="num" id="grand-total-central"></td>
+                    <td class="num" id="grand-total-south"></td>
+                </tr>
+                <tr class="grand-total-row total-sum-row">
+                    <td>累計總件數</td>
+                    <td class="num" id="grand-total-sum" colspan="3"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="editor-modal">
+    <div class="editor-content">
+        <div class="editor-header">
+            <h2>編輯歷史數據 (即時保存)</h2>
+            <button class="close-button" id="close-editor-button">&times;</button>
+        </div>
+
+        <div class="editor-table-container">
+            <table id="edit-data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">月份 (YYYY-MM)</th>
+                        <th style="width: 20%;">北處</th>
+                        <th style="width: 20%;">中處</th>
+                        <th style="width: 20%;">南處</th>
+                        <th style="width: 15%;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="editor-table-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="editor-controls">
+            <div class="pagination-controls">
+                <button id="prev-page-button">上一頁</button>
+                <span id="page-info"></span>
+                <button id="next-page-button">下一頁</button>
+            </div>
+            <button id="add-month-button">➕ 新增月份</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // LocalStorage Key
+    const STORAGE_KEY = '80FLC_SoftwareUpdateHistory';
+
+    // 模擬您的初始歷史數據（當 LocalStorage 中沒有數據時使用）
+    const initialHistoryData = [
+        { month: '2025-12', north: 10, central: 20, south: 5 },
+        { month: '2025-11', north: 0, central: 67, south: 0 },
+        { month: '2025-10', north: 5, central: 12, south: 3 },
+        { month: '2025-09', north: 8, central: 4, south: 10 },
+        { month: '2025-08', north: 2, central: 0, south: 7 },
+        { month: '2025-07', north: 15, central: 25, south: 1 },
+        { month: '2025-06', north: 3, central: 10, south: 20 },
+        { month: '2025-05', north: 0, central: 0, south: 50 },
+        { month: '2025-04', north: 1, central: 3, south: 8 },
+        { month: '2025-03', north: 6, central: 9, south: 4 },
+        { month: '2025-02', north: 10, central: 10, south: 10 },
+        { month: '2025-01', north: 12, central: 15, south: 18 },
+        { month: '2024-12', north: 20, central: 30, south: 40 },
+        { month: '2024-11', north: 5, central: 8, south: 12 },
+        { month: '2024-10', north: 1, central: 1, south: 1 }
+    ];
+
+    let currentHistoryData = []; // 報表使用的數據源
+    const PAGE_SIZE = 12; // 編輯器每頁顯示筆數
+    let currentPage = 1; // 編輯器當前頁碼
+
+    // --- 輔助函數 ---
+
+    // 格式化月份顯示： YYYY/MM
+    const formatMonthDisplay = (date) => `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+    // 檢查 YYYY-MM 格式
+    const isValidMonthFormat = (monthStr) => /^\d{4}-\d{2}$/.test(monthStr);
+
+    // --- 數據加載與保存函數 ---
+
+    function loadHistoryData() {
+        const storedData = localStorage.getItem(STORAGE_KEY);
+        if (storedData) {
+            // 解析數據並按月份降序排序 (最新月份在最前面)
+            currentHistoryData = JSON.parse(storedData)
+                .filter(item => isValidMonthFormat(item.month)) // 確保數據格式正確
+                .sort((a, b) => b.month.localeCompare(a.month));
+        } else {
+            // 如果 LocalStorage 沒有數據，使用初始數據並保存
+            currentHistoryData = initialHistoryData.sort((a, b) => b.month.localeCompare(a.month));
+            saveHistoryData(currentHistoryData);
+        }
+    }
+
+    function saveHistoryData(data) {
+        // 保存前再次排序，確保最新月份永遠在最上面
+        const sortedData = data.sort((a, b) => b.month.localeCompare(a.month));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sortedData));
+        currentHistoryData = sortedData; // 更新內部變量
+    }
+
+    // --- 核心更新邏輯：即時保存與渲染 ---
+
+    /**
+     * 從當前編輯器表格中讀取所有數據，更新到 currentHistoryData，
+     * 保存到 LocalStorage，並重新渲染主報表和編輯器表格。
+     */
+    function updateAndRenderAll() {
+        const tableBody = document.getElementById('editor-table-body');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const newArray = [];
+        
+        // 1. 從當前編輯器表格讀取修改後的數據 (僅當前頁)
+        rows.forEach(row => {
+            const currentMonth = row.querySelector('[data-field="month"]').textContent.trim();
+            
+            // 由於我們只有當前頁的資料，需要從原始 currentHistoryData 找到所有未在當前頁顯示的資料
+            // 為了簡化邏輯和確保數據完整性，我們將在編輯器關閉時才進行保存。
+            // 
+            // 🚨 修正：為了實現即時保存，我們必須修改 currentHistoryData 本身，而不是每次都讀取。
+            // 這是更安全的做法，因為 currentHistoryData 包含了所有月份的資料。
+
+            // 獲取原數據在全域陣列中的索引
+            const originalMonth = row.getAttribute('data-month');
+            const originalIndex = currentHistoryData.findIndex(item => item.month === originalMonth);
+
+
+            if (originalIndex !== -1) {
+                // 驗證並更新
+                const newMonth = row.querySelector('[data-field="month"]').textContent.trim();
+                const north = row.querySelector('[data-field="north"]').textContent.trim() || '0';
+                const central = row.querySelector('[data-field="central"]').textContent.trim() || '0';
+                const south = row.querySelector('[data-field="south"]').textContent.trim() || '0';
+                
+                let valid = true;
+                
+                // 月份格式驗證
+                if (!isValidMonthFormat(newMonth)) {
+                    valid = false;
+                }
+                
+                // 數字驗證
+                if (isNaN(parseInt(north)) || isNaN(parseInt(central)) || isNaN(parseInt(south))) {
+                    valid = false;
+                }
+
+                // 月份重複驗證
+                const monthExists = currentHistoryData.some((item, i) => i !== originalIndex && item.month === newMonth);
+                if (monthExists) {
+                    valid = false;
+                }
+
+                if (valid) {
+                    currentHistoryData[originalIndex].month = newMonth;
+                    currentHistoryData[originalIndex].north = parseInt(north, 10);
+                    currentHistoryData[originalIndex].central = parseInt(central, 10);
+                    currentHistoryData[originalIndex].south = parseInt(south, 10);
+                    
+                    // 更新 data-month 屬性，確保下一輪查找正確
+                    row.setAttribute('data-month', newMonth);
+                } else {
+                    // 如果驗證失敗，不保存，也不重新渲染。
+                    return; 
+                }
+            }
+        });
+
+        // 2. 保存數據並重新渲染
+        saveHistoryData(currentHistoryData);
+        renderReport(); // 更新報表主體
+        // 重新渲染編輯器表格，保持在當前頁
+        renderEditorTable(false); 
+    }
+
+    // --- 編輯器相關函數 ---
+
+    let isInternalUpdate = false; // 用於防止 onblur 觸發時的死循環
+
+    // 渲染編輯器表格 (新增一個參數 forceRenderReport 用於頁面切換)
+    function renderEditorTable(forceRenderReport = true) {
+        const tableBody = document.getElementById('editor-table-body');
+        const totalItems = currentHistoryData.length;
+        const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (totalPages === 0) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * PAGE_SIZE;
+        const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
+        const pageData = currentHistoryData.slice(startIndex, endIndex);
+
+        let html = '';
+        pageData.forEach((item) => {
+            html += `
+                <tr data-month="${item.month}">
+                    <td contenteditable="true" data-field="month" 
+                        onblur="handleCellBlur(this, 'month')" 
+                        class="month-cell">${item.month}</td>
+                    <td contenteditable="true" data-field="north" onblur="handleCellBlur(this, 'number')">${item.north}</td>
+                    <td contenteditable="true" data-field="central" onblur="handleCellBlur(this, 'number')">${item.central}</td>
+                    <td contenteditable="true" data-field="south" onblur="handleCellBlur(this, 'number')">${item.south}</td>
+                    <td><button class="delete-btn" data-month-to-delete="${item.month}">刪除</button></td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = html;
+
+        // 更新分頁控制
+        document.getElementById('page-info').textContent = totalItems === 0 ? '無數據' : `第 ${currentPage} 頁 / 共 ${totalPages} 頁`;
+        document.getElementById('prev-page-button').disabled = currentPage === 1 || totalPages === 0;
+        document.getElementById('next-page-button').disabled = currentPage === totalPages || totalPages === 0;
+        document.querySelector('.pagination-controls').style.display = totalPages > 0 ? 'flex' : 'none';
+
+        // 重新綁定刪除事件
+        tableBody.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const monthToDelete = e.target.getAttribute('data-month-to-delete');
+                handleDeleteRow(monthToDelete); // 直接刪除，無提示
+            });
+        });
+
+        if (forceRenderReport) {
+            renderReport(); // 確保主報表是最新的
+        }
+    }
+
+    // 處理單元格失去焦點 (即時保存的核心)
+    function handleCellBlur(element, type) {
+        if (isInternalUpdate) return;
+        isInternalUpdate = true; // 設置鎖，防止遞迴調用
+
+        let value = element.textContent.trim();
+
+        if (type === 'number') {
+            // 數字驗證與格式化
+            value = value.replace(/[^0-9]/g, '');
+            value = parseInt(value, 10) || 0; // 轉為數字，無效則為 0
+            element.textContent = value;
+        } 
+        
+        // 數字輸入時，因為已經修正了，所以不用擔心光標問題。
+
+        // 立即更新並重新渲染所有內容
+        updateAndRenderAll();
+        
+        isInternalUpdate = false;
+    }
+
+    // 打開編輯器
+    function openEditor() {
+        loadHistoryData();
+        currentPage = 1; 
+        renderEditorTable(true);
+        document.getElementById('editor-modal').style.display = 'flex';
+    }
+
+    // 關閉編輯器
+    function closeEditor() {
+        document.getElementById('editor-modal').style.display = 'none';
+        // 確保關閉時是最新數據
+        renderReport();
+    }
+
+    // 處理新增月份
+    function handleAddRow() {
+        const newMonth = prompt("請輸入要新增的月份 (格式: YYYY-MM)，例如: 2026-01");
+
+        if (!newMonth) return;
+
+        const trimmedMonth = newMonth.trim();
+        if (!isValidMonthFormat(trimmedMonth)) {
+            // 不使用 alert，但操作失敗時必須給用戶反饋 (這裡使用 console 和 prompt 的方式)
+            console.error("月份格式錯誤。請使用 YYYY-MM 格式。");
+            return;
+        }
+
+        if (currentHistoryData.some(item => item.month === trimmedMonth)) {
+            console.error(`月份 ${trimmedMonth} 已存在於數據中。`);
+            return;
+        }
+
+        currentHistoryData.push({
+            month: trimmedMonth,
+            north: 0,
+            central: 0,
+            south: 0
+        });
+
+        // 保存並重新渲染，自動跳轉到包含新月份的第一頁 (最新月份會在第一頁)
+        saveHistoryData(currentHistoryData);
+        currentPage = 1; 
+        renderEditorTable(true);
+    }
+
+    // 處理刪除月份 (直接執行，無提示)
+    function handleDeleteRow(monthToDelete) {
+        const initialLength = currentHistoryData.length;
+        const newArray = currentHistoryData.filter(item => item.month !== monthToDelete);
+        
+        if (newArray.length === initialLength) {
+            console.error(`找不到月份 ${monthToDelete}。`);
+            return;
+        }
+
+        saveHistoryData(newArray); // 保存刪除後的數據
+
+        // 重新計算頁碼，確保不會停留在空頁
+        const totalPagesAfterDelete = Math.ceil(newArray.length / PAGE_SIZE);
+        if (currentPage > totalPagesAfterDelete && totalPagesAfterDelete > 0) {
+            currentPage = totalPagesAfterDelete;
+        } else if (totalPagesAfterDelete === 0) {
+            currentPage = 1;
+        }
+
+        // 重新渲染編輯器表格和報表
+        renderEditorTable(true); 
+    }
+
+    // --- 報表渲染函數 (保持不變) ---
+    let currentChart = null;
+
+    function renderPieChart(data) {
+        if (currentChart) {
+            currentChart.destroy();
+            currentChart = null;
+        }
+
+        const container = document.getElementById('pie-chart-container');
+        container.innerHTML = '<canvas id="pie-chart"></canvas>';
+        const ctx = document.getElementById('pie-chart').getContext('2d');
+        const total = data.north + data.central + data.south;
+
+        if (total === 0) {
+            container.innerHTML = '<p style="text-align:center; color: #999; font-size:14px;">本月無更新數據</p>';
+            return;
+        }
+
+        currentChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['北處', '中處', '南處'],
+                datasets: [{
+                    data: [data.north, data.central, data.south],
+                    backgroundColor: [
+                        getComputedStyle(document.documentElement).getPropertyValue('--color-chart-north').trim(),
+                        getComputedStyle(document.documentElement).getPropertyValue('--color-chart-central').trim(),
+                        getComputedStyle(document.documentElement).getPropertyValue('--color-chart-south').trim()
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 12, family: 'Microsoft JhengHei' },
+                            usePointStyle: true,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    const totalValue = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    return data.labels.map(function(label, i) {
+                                        const value = data.datasets[0].data[i];
+                                        const percentage = totalValue > 0 ? (value / totalValue * 100).toFixed(1) : 0;
+                                        return {
+                                            text: label + ': ' + value + ' (' + percentage + '%)',
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            pointStyle: 'circle',
+                                            hidden: !chart.isDatasetVisible(0) || chart.getDatasetMeta(0).data[i].hidden,
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed !== null) {
+                                    label += context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    label += ' (' + (context.parsed / total * 100).toFixed(1) + '%)';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderReport() {
+        loadHistoryData();
+        const historyTable = document.getElementById('history-table');
+        const MAX_DISPLAY_MONTHS = 12;
+
+        if (currentHistoryData.length === 0) {
+            // 清空報表所有數據
+            document.getElementById('current-month-range').textContent = '無數據';
+            document.getElementById('current-month-display').textContent = 'N/A';
+            ['current-total', 'grand-total-north', 'grand-total-central', 'grand-total-south', 'grand-total-sum'].forEach(id => document.getElementById(id).textContent = '0');
+            document.querySelectorAll('#current-month-table .num').forEach(el => el.textContent = '0');
+            document.getElementById('pie-chart-container').innerHTML = '<p style="text-align:center; color: #999; font-size:14px;">無數據可顯示</p>';
+            historyTable.querySelectorAll('.data-row').forEach(row => row.remove());
+            return;
+        }
+
+// --- 1. 處理本月數據 (左側表格 & 圓餅圖) ---
+const latestMonth = currentHistoryData[0];
+const latestDate = new Date(latestMonth.month + '-01');
+const monthDisplay = formatMonthDisplay(latestDate);
+
+// *** 修正部分開始 ***
+const [y, m] = latestMonth.month.split('-').map(Number);
+const lastDay = new Date(y, m, 0).getDate(); // 自動取得 28, 29, 30 或 31
+document.getElementById('current-month-range').textContent = `${monthDisplay}（資料區間：${latestMonth.month}-01 – ${latestMonth.month}-${lastDay}）`;
+// *** 修正部分結束 ***
+
+document.getElementById('current-month-display').textContent = monthDisplay;
+
+        document.querySelector('#north-row td:nth-child(2)').textContent = latestMonth.north;
+        document.querySelector('#central-row td:nth-child(2)').textContent = latestMonth.central;
+        document.querySelector('#south-row td:nth-child(2)').textContent = latestMonth.south;
+
+        const currentTotal = latestMonth.north + latestMonth.central + latestMonth.south;
+        document.getElementById('current-total').textContent = currentTotal;
+
+        renderPieChart(latestMonth);
+
+        // --- 2. 處理歷史數據 (右側表格) ---
+        const dataToDisplay = currentHistoryData.slice(0, MAX_DISPLAY_MONTHS);
+
+        let cumulativeGrandTotal = { north: 0, central: 0, south: 0 };
+        currentHistoryData.forEach(item => {
+            cumulativeGrandTotal.north += Number(item.north) || 0;
+            cumulativeGrandTotal.central += Number(item.central) || 0;
+            cumulativeGrandTotal.south += Number(item.south) || 0;
+        });
+
+        historyTable.querySelectorAll('.data-row').forEach(row => row.remove());
+
+        let historyHtml = '';
+
+        dataToDisplay.forEach((item, i) => {
+            const rowMonthDate = new Date(item.month + '-01');
+            const rowMonthDisplay = formatMonthDisplay(rowMonthDate);
+            const isCurrentMonth = i === 0;
+
+            historyHtml += `
+                <tr class="data-row ${isCurrentMonth ? 'current-month-row' : ''}" style="height: ${100 / MAX_DISPLAY_MONTHS}%">
+                    <td>${isCurrentMonth ? '本月' : rowMonthDisplay}</td>
+                    <td class="history-num">${item.north}</td>
+                    <td class="history-num">${item.central}</td>
+                    <td class="history-num">${item.south}</td>
+                </tr>
+            `;
+        });
+
+        const actualDisplayMonths = dataToDisplay.length;
+        const remainingRows = MAX_DISPLAY_MONTHS - actualDisplayMonths;
+        if (remainingRows > 0) {
+            const emptyRowHtml = `<tr class="data-row empty-fill" style="height: ${100 / MAX_DISPLAY_MONTHS}%">
+                <td></td><td></td><td></td><td></td>
+            </tr>`;
+
+            for (let i = 0; i < remainingRows; i++) {
+                historyHtml += emptyRowHtml;
+            }
+        }
+
+        const historyHeaderRow = historyTable.querySelector('.history-header');
+        historyHeaderRow.insertAdjacentHTML('afterend', historyHtml);
+
+
+        // --- 3. 顯示總累計 ---
+        document.getElementById('grand-total-north').textContent = cumulativeGrandTotal.north;
+        document.getElementById('grand-total-central').textContent = cumulativeGrandTotal.central;
+        document.getElementById('grand-total-south').textContent = cumulativeGrandTotal.south;
+
+        const totalGrandSum = cumulativeGrandTotal.north + cumulativeGrandTotal.central + cumulativeGrandTotal.south;
+        document.getElementById('grand-total-sum').textContent = totalGrandSum;
+    }
+
+
+    // 綁定事件
+    document.getElementById('edit-button').addEventListener('click', openEditor);
+    document.getElementById('close-editor-button').addEventListener('click', closeEditor);
+    document.getElementById('add-month-button').addEventListener('click', handleAddRow);
+
+    document.getElementById('prev-page-button').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderEditorTable(true);
+        }
+    });
+
+    document.getElementById('next-page-button').addEventListener('click', () => {
+        const totalItems = currentHistoryData.length;
+        const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderEditorTable(true);
+        }
+    });
+
+    // 運行程式
+    document.addEventListener('DOMContentLoaded', renderReport);
+</script>
+</body>
+</html>
