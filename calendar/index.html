@@ -520,7 +520,7 @@ if (!["ALL","KEN"].includes(userDept)) {
 async function login(){
   await supabase.auth.signInWithOAuth({
     provider:"google",
-    options:{redirectTo:"https://kencyue.neocities.org/calendar/index.html"}
+    options:{redirectTo:"https://kencyue.github.io/myhomepage/calendar/index.html"}
   });
 }
 async function logout() {
@@ -1070,4 +1070,5 @@ document.getElementById("confirmExportRange").onclick = async () => {
 </div>
 </body>
 </html>
+
 
