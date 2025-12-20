@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNY/JPY 轉 TWD 即時轉換</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+      background: #f2f2f2;
+      color: #333;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 95%;
+      font-size: 24px;
+      padding: 12px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    select {
+      width: 100%;
+      font-size: 18px;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .result {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .rate {
+      font-size: 14px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🇨🇳 CNY / 🇯🇵 JPY ➜ 🇹🇼 TWD 即時轉換</h2>
+    <label for="currencySelect">選擇貨幣：</label>
+    <select id="currencySelect" onchange="fetchRate(); updateResult();">
+      <option value="CNY">人民幣 (CNY)</option>
+      <option value="JPY">日圓 (JPY)</option>
+    </select>
+    <label for="amountInput">輸入金額：</label>
+    <input type="number" id="amountInput" placeholder="請輸入金額"
+           oninput="updateResult()" onclick="clearOnClick(this)">
+    <div class="result" id="result">TWD: 0.00</div>
+    <div class="rate" id="rateInfo">載入匯率中...</div>
+  </div>
+
+  <script>
+    let rates = { CNY: null, JPY: null };
+    let cleared = false;
+
+    async function fetchRate() {
+      const currency = document.getElementById("currencySelect").value;
+      try {
+        const res = await fetch(`https://open.er-api.com/v6/latest/${currency}`);
+        const data = await res.json();
+        rates[currency] = data.rates.TWD;
+        document.getElementById("rateInfo").textContent =
+          `匯率：1 ${currency} = ${rates[currency]} TWD（資料時間：${data.time_last_update_utc}）`;
+        updateResult();
+      } catch (err) {
+        document.getElementById("rateInfo").textContent = `⚠️ 無法取得${currency}匯率資料`;
+      }
+    }
+
+    function updateResult() {
+      const currency = document.getElementById("currencySelect").value;
+      const amount = parseFloat(document.getElementById("amountInput").value);
+      const twd = !isNaN(amount) && rates[currency] ? (amount * rates[currency]).toFixed(2) : "0.00";
+      document.getElementById("result").textContent = `TWD: ${twd}`;
+    }
+
+    function clearOnClick(input) {
+      input.value = '';
+      updateResult();
+    }
+
+    fetchRate(); // 初始化時抓取匯率
+  </script>
+</body>
+</html>
