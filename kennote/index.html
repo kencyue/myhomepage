@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Kennote todolist</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<link rel="stylesheet" type="text/css" href="style.css?ver=1">
+<style>
+/* 確保標題輸入框佔滿寬度 */
+.modal-input-new {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-bottom: 15px; 
+}
+/* 標籤容器樣式 */
+.tag-selection-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+/* 標籤按鈕基礎樣式 */
+.tag-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
+    white-space: nowrap; 
+}
+
+/* 確保舊的 modal-field-row 結構被完全隱藏 */
+.modal-field-row {
+    display: none !important; 
+}
+</style>
+</head>
+<body>
+<div id="loginScreen">    
+    <img src="icon/logo.png" alt="Kennote Logo" id="loginLogo"> 
+    <p>請使用 Google 帳號登入</p>    
+    <button id="btnGoogleSignIn" class="login-btn">      
+      <img src="icon/google.png" alt="Google 登入" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;">      
+      Google 登入    
+    </button>
+</div> 
+
+<div id="appContent" style="display: none;">
+  <header class="header-flex">  
+    <div class="logo-box">    
+      <img src="icon/logo.png" alt="keṅote" class="logo">  
+    </div>
+    <button id="btnLogout" class="nt-btn nt-ghost">登出</button>
+  </header>
+
+  <div class="toolbar" style="display:none">  
+    
+  </div>
+
+  <div id="main">
+    <div id="dateBar">  
+      <button id="btnPrevDay" class="date-nav-btn">    <img src="icon/previous.png" alt="前一天" class="date-nav-icon">  </button>
+      <div id="dateCenter" class="date-center">    
+        <button id="btnToday" class="nt-btn nt-ghost">今日</button>    
+        <div class="date-display">      <img src="icon/date.png" class="icon" alt="日期">      <span id="currentDateText"></span>    </div>    
+        <div id="dateBarIcon">▾</div>  
+      </div>
+      <button id="btnNextDay" class="date-nav-btn">    <img src="icon/next.png" alt="後一天" class="date-nav-icon">  </button>
+    </div>
+
+    <div class="add-filter-row">  
+      <button class="nt-btn nt-primary icon-btn" id="btnSearch">    <img src="icon/search.png" alt="搜尋"> 搜尋  </button>
+      <button class="nt-btn nt-primary icon-btn" id="btnAdd">    <img src="icon/edit.png" alt="新增"> 新增記事  </button>
+      <div id="filterBar">    
+        <button class="nt-btn nt-ghost active" data-filter="">全部</button>    
+        <button class="nt-btn nt-ghost" data-filter="私人">私人</button>    
+        <button class="nt-btn nt-ghost" data-filter="工作">工作</button>  
+      </div>
+    </div>
+    <div id="noteList"></div>
+  </div>
+</div>
+<input type="hidden" id="currentDate">
+
+<div id="noteModal" class="modal-overlay">  
+    <div class="modal-content">    
+        <div class="modal-header" id="noteModalHeader">新增記事</div>    
+        
+        <div class="modal-field-label">標題</div>    
+        <div class="modal-field-row-new" style="display: flex;">  
+            <input type="text" id="noteTitleInput" class="modal-input-new">
+        </div>
+        
+        <div class="modal-field-label">分類標籤</div>
+        <div id="noteCategoryTags" class="tag-selection-container" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            </div>
+
+        <div class="modal-field-label">內容</div>    
+        <textarea id="noteContentInput" class="modal-textarea"></textarea>    
+        
+        <div class="modal-field-row" style="display: none;"></div> 
+        
+        <div class="modal-footer">       
+            <button class="nt-btn nt-ghost"  id="noteModalCancel">取消</button>       
+            <button class="nt-btn nt-primary" id="noteModalSave">儲存</button>    
+        </div>  
+    </div>
+</div>
+<div id="calendarModal" class="modal-overlay">  <div class="modal-content">    <div class="calendar-header">      <button class="calendar-nav-btn" id="calPrev">&lt;</button>      <div class="calendar-title" id="calTitle"></div>      <button class="calendar-nav-btn" id="calNext">&gt;</button>    </div>    <div class="calendar-weekdays">      <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>    </div>    <div class="calendar-grid" id="calendarGrid"></div>  </div></div>
+<script>
+/* ============================================================
+===== Firebase/Firestore/Auth 配置及資料庫替換邏輯 (V9 Compat) =====
+============================================================
+*/
+// 🔥 您的 Firebase 專案配置 
+const firebaseConfig = {
+    apiKey: "AIzaSyD17BCkojSaGiuGzubNGMg-HKGJn5il79o",
+    authDomain: "kennote-58073.firebaseapp.com",
+    projectId: "kennote-58073",
+    appId: "1:1000941899656:web:5c2f62f428b9609520743d",
+};
+
+// 全域變數
+let auth = null;
+let db = null;
+let currentUserID = null;
+let editingId = null;
+let currentFilter = "";
+let calendarMonth = new Date();
+calendarMonth.setDate(1);
+let noteDateSet = new Set();
+let allUserNotesCache = []; 
+
+// 初始化 Firebase
+const app = firebase.initializeApp(firebaseConfig);
+auth = firebase.auth();
+db = firebase.firestore();
+
+/* =============================
+    身份驗證 (Authentication) - 【登入邏輯保持不變】
+============================= */
+auth.onAuthStateChanged(async (user) => {
+    const loginScreen = document.getElementById("loginScreen");
+    const appContent = document.getElementById("appContent");
+
+    if (user) {
+        currentUserID = user.uid;
+        
+        // 登入：隱藏 loginScreen，顯示 appContent (主畫面)
+        loginScreen.style.display = "none";
+        appContent.style.display = "flex"; 
+
+        const today = formatDate(new Date());
+        setCurrentDateStr(today);
+
+        // 啟動 Firestore 讀取
+        await fetchAllNotesForCache(); 
+        loadNotesForCurrentDate();
+        loadBackupList(); // 呼叫停用函式來設置選單訊息
+
+    } else {
+        currentUserID = null;
+        
+        // 未登入：顯示 loginScreen，隱藏 appContent
+        loginScreen.style.display = "flex";
+        appContent.style.display = "none";
+        
+        document.getElementById("noteList").innerHTML = '';
+        allUserNotesCache = [];
+    }
+});
+
+document.getElementById("btnGoogleSignIn").onclick = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+};
+
+document.getElementById("btnLogout").onclick = () => {
+    auth.signOut();
+};
+
+/* =============================
+    Firestore CRUD 替代 IndexedDB 
+============================= */
+// 讀取某日期的記事 (從本地快取)
+function loadNotesForCurrentDate() {
+    if (!currentUserID) return;
+    const targetDate = getCurrentDateStr();
+    const notesToday = allUserNotesCache
+        .filter(n => n.date === targetDate);
+             renderNotes(notesToday);
+}
+
+// 從 Firestore 獲取所有記事到本地快取，並更新月曆點點
+async function fetchAllNotesForCache() {
+    if (!currentUserID) return;
+    try {
+        const snapshot = await db.collection("users").doc(currentUserID).collection("notes").get();
+        allUserNotesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // 更新月曆點點
+        noteDateSet.clear();
+        allUserNotesCache.forEach(n => {
+            if (n.date) noteDateSet.add(n.date);
+        });
+        renderCalendar(); // 更新月曆
+
+        return allUserNotesCache; // 返回快取數據供搜尋使用
+    } catch (e) {
+        // 隔離錯誤
+        console.error("Error fetching documents: ", e);
+        if (e.code === 'permission-denied') {
+             alert("警告：Firestore 規則設定錯誤，無法讀取記事！請檢查 Console！");
+        }
+        return [];
+    }
+}
+
+// 儲存/更新記事 (Save/Update)
+async function saveNoteToDB(note, docId = null) {
+    if (!currentUserID) return;
+    const noteRef = db.collection("users").doc(currentUserID).collection("notes");
+        
+    let newNoteData = { ...note };
+    delete newNoteData.id;
+    
+    // 🔥【最小改動：移除 undefined 欄位】
+    Object.keys(newNoteData).forEach(key => {
+        if (newNoteData[key] === undefined) {
+            delete newNoteData[key];
+        }
+    });
+
+    try {
+        if (docId) {
+            await noteRef.doc(docId).update(newNoteData);
+        } else {
+            await noteRef.add(newNoteData);
+        }
+        await fetchAllNotesForCache(); // 更新快取
+        loadNotesForCurrentDate();
+    } catch (e) {
+        console.error("Error saving document: ", e);
+        alert("儲存失敗：" + e.message);
+    }
+}
+
+// 刪除記事 (Delete)
+async function deleteNote(id) {
+    if (!currentUserID) return;
+    try {
+        if (confirm("確定刪除這筆記事？")) {
+            await db.collection("users").doc(currentUserID).collection("notes").doc(id).delete();
+            await fetchAllNotesForCache(); // 更新快取
+            loadNotesForCurrentDate();
+        }
+    } catch (e) {
+        console.error("Error deleting document: ", e);
+        alert("刪除失敗：" + e.message);
+    }
+}
+
+// 標記完成 / 未完成
+async function markNoteDone(id, done_date) {
+    if (!currentUserID) return;
+    try {
+        await db.collection("users").doc(currentUserID).collection("notes").doc(id).update({
+            done_date: done_date,
+            // 排序欄位清空，讓 Sortable.js 把它丟到最底下
+            order_index: firebase.firestore.FieldValue.delete()
+        });
+        await fetchAllNotesForCache(); // 更新快取
+        loadNotesForCurrentDate();
+    } catch (e) {
+        console.error("Error updating done status: ", e);
+    }
+}
+
+// 搬移記事 (Move: 改日期 + 取消完成)
+async function moveNoteToDate(noteId, newDate) {
+    if (!currentUserID) return;
+    try {
+        await db.collection("users").doc(currentUserID).collection("notes").doc(noteId).update({
+            date: newDate,
+            done_date: null,
+            order_index: firebase.firestore.FieldValue.delete()
+        });
+        // 🚨 不強制跳轉，只重新整理
+        await fetchAllNotesForCache();
+        loadNotesForCurrentDate();
+        return true;
+    } catch (e) {
+        console.error("Error moving note: ", e);
+        return false;
+    }
+}
+
+// 複製記事 (Copy: 創建新記事) - 🚩 修正 order_index 錯誤
+async function copyNoteToDate(originalNote, newDate) {
+    if (!currentUserID) return;
+    const newNote = {
+        date: newDate,
+        title: originalNote.title,
+        content: originalNote.content,
+        category: originalNote.category,
+        done_date: null,
+        // 移除 order_index: firebase.firestore.FieldValue.delete()，因為 add() 不支援
+    };
+    try {
+        await db.collection("users").doc(currentUserID).collection("notes").add(newNote);
+        await fetchAllNotesForCache();
+        loadNotesForCurrentDate();
+        return true;
+    } catch (e) {
+        console.error("Error copying note: ", e);
+        return false;
+    }
+}
+
+// 排序功能：儲存新的 order_index
+async function saveNoteOrder(id, index) {
+    if (!currentUserID) return;
+    try {
+        await db.collection("users").doc(currentUserID).collection("notes").doc(id).update({
+            order_index: index
+        });
+    } catch(e) {
+        console.error("Error saving order: ", e);
+    }
+}
+
+
+/* =============================    雲端備份 / 還原 / 刪除 (功能已停用)============================= */
+function loadBackupList() {
+    // 該函式現在只負責初始化選單的顯示，但目前無須操作。
+}
+
+
+/* ================================================================= 
+    優化後的 JS 邏輯 (工具函數、渲染、事件) 
+=================================================================*/
+/* =============================    工具函數 + 標籤渲染功能 (顏色邏輯已更新) ============================= */
+function truncateTitle(title) {  return title.length > 10 ? title.slice(0, 10) + "…" : title;}     
+function formatDate(date) {  const y = date.getFullYear();  const m = String(date.getMonth() + 1).padStart(2, "0");  const d = String(date.getDate()).padStart(2, "0");  return `${y}-${m}-${d}`;}    
+function formatTime(date) {  const h = String(date.getHours()).padStart(2, "0");  const m = String(date.getMinutes()).padStart(2, "0");  const s = String(date.getSeconds()).padStart(2, "0");  return `${h}:${m}:${s}`;}    
+function formatDateTime(date) {  return `${formatDate(date)} ${formatTime(date)}`;}
+
+function getCurrentDateStr() {  return document.getElementById("currentDate").value;}
+function setCurrentDateStr(str) {  document.getElementById("currentDate").value = str;  document.getElementById("currentDateText").textContent = str;}
+
+const CATEGORIES = ["", "私人", "工作"]; // 可用的所有分類選項
+
+// 🔥 修改: 根據您的要求返回背景顏色
+function getCategoryColor(category) {
+    const colors = {
+        "": "#ffffff",      // 不分類: 白底
+        "私人": "#8B5E34",   // 私人: 棕色
+        "工作": "#4A5568",   // 工作: 深灰色
+        "學習": "#9C27B0"  
+    };
+    return colors[category] || "#1b1b1b"; 
+}
+
+// 🔥 新增: 決定文字顏色 (不分類為黑字，其他為白字)
+function getCategoryTextColor(category) {
+    if (category === "") {
+        return "#1b1b1b"; // 不分類: 黑字
+    }
+    return "white"; // 其他: 白字
+}
+
+// 🔥 修正：將 Hover 效果加入到 renderCategoryTags 函數中
+function renderCategoryTags(currentCategory) {
+    const container = document.getElementById("noteCategoryTags");
+    if (!container) return;
+
+    container.innerHTML = ''; 
+
+    CATEGORIES.forEach(category => {
+        const btn = document.createElement("button");
+        btn.textContent = category || "不分類"; 
+        btn.className = "nt-btn tag-btn"; // 使用現有的類名
+        btn.dataset.category = category;
+
+        // --- 樣式定義 ---
+        const defaultBg = "#ffffff";
+        const defaultText = "#1b1b1b";
+        const categoryBg = getCategoryColor(category);
+        const categoryText = getCategoryTextColor(category);
+
+        const applyDefaultStyle = (element) => {
+            // 初始狀態：白底黑字
+            element.style.backgroundColor = defaultBg;
+            element.style.color = defaultText;
+            element.style.border = '1px solid #E2E8F0';
+            element.style.opacity = '1';
+            element.style.transition = '0.2s';
+            element.style.outline = 'none';
+        };
+
+        const applyActiveStyle = (element) => {
+            // Active 狀態：使用分類顏色作為背景和文字色，並加上藍色邊框
+            element.style.backgroundColor = categoryBg;
+            element.style.color = categoryText;
+            element.style.outline = `2px solid ${categoryText}`; // 文字色內邊框
+        }
+        
+        const applyHoverStyle = (element, cat) => {
+            // Hover 狀態：不分類變黑底白字，其他變成分類色
+            if (cat === "") {
+                element.style.backgroundColor = '#1b1b1b';
+                element.style.color = 'white';
+                element.style.border = '1px solid #1b1b1b';
+            } else {
+                element.style.backgroundColor = categoryBg;
+                element.style.color = categoryText;
+                element.style.border = `1px solid ${categoryBg}`;
+            }
+        }
+
+
+        // 初始狀態
+        applyDefaultStyle(btn);
+
+        if (category === currentCategory) {
+            btn.classList.add("active");
+            applyActiveStyle(btn);
+        } 
+        
+        // --- 事件處理 ---
+
+        btn.onmouseenter = () => {
+            if (!btn.classList.contains('active')) {
+                applyHoverStyle(btn, category);
+            }
+        };
+
+        btn.onmouseleave = () => {
+            if (!btn.classList.contains('active')) {
+                applyDefaultStyle(btn);
+            } else {
+                applyActiveStyle(btn); // 確保 Active 狀態的樣式維持不變
+            }
+        };
+
+
+        btn.onclick = (e) => {
+            e.preventDefault(); 
+            
+            // 清除所有 active 狀態
+            container.querySelectorAll('.tag-btn').forEach(b => {
+                b.classList.remove('active');
+                applyDefaultStyle(b);
+            });
+            
+            // 設定當前 active 狀態
+            btn.classList.add('active');
+            applyActiveStyle(btn);
+        };
+
+        container.appendChild(btn);
+    });
+}
+
+
+// 👇 效能優化後的 renderNotes 函數 (使用 DocumentFragment + innerHTML)
+function renderNotes(notesArr) {
+    if (currentFilter) {
+        notesArr = notesArr.filter(n => n.category === currentFilter);
+    }
+    const listEl = document.getElementById("noteList");
+    listEl.innerHTML = ""; // 清空舊列表
+
+    // 🌟 關鍵效能優化：使用 DocumentFragment 🌟
+    const fragment = document.createDocumentFragment();
+
+    // 🟢 分成「未完成」與「已完成」
+    const undone = notesArr.filter(n => !n.done_date);
+    const done   = notesArr.filter(n => n.done_date);
+
+    // 依照 order_index 排序未完成的項目
+    undone.sort((a, b) => (a.order_index ?? 99999) - (b.order_index ?? 99999));
+
+
+    // 🟣 渲染(未完成在上 → 已完成在下)
+    ([...undone, ...done]).forEach(note => {
+        const item = document.createElement("div");
+        item.className = "note-item";
+        if (note.done_date) item.classList.add("completed"); 
+        item.dataset.id = note.id; 
+
+        const isDone = !!note.done_date;
+        const doneTagHtml = isDone 
+            ? `<span class="done-date">✔ ${note.done_date}</span>` 
+            : '';
+            
+        // 🔥 設置背景色 (background) 和文字顏色 (color)
+        const bgColor = getCategoryColor(note.category);
+        const textColor = getCategoryTextColor(note.category);
+        
+        const categoryTagHtml = note.category 
+            ? `<div class="note-category-tag" style="background:${bgColor}; color: ${textColor};">${note.category}</div>` 
+            : '';
+        
+        // 將 note 物件轉換為 JSON 字串並進行 HTML 編碼
+        const noteForCopy = JSON.stringify(note).replace(/"/g, '&quot;');
+        
+        item.innerHTML = `
+            <input type="checkbox" class="note-checkbox" data-note-id="${note.id}" ${isDone ? 'checked' : ''}>
+            <div class="note-title">
+                <span class="title-text ${isDone ? 'done' : ''}">${truncateTitle(note.title || "(無標題)")}</span>
+                ${doneTagHtml}
+            </div>
+            ${categoryTagHtml}
+            <div class="note-actions">
+                <button class="nt-btn icon-btn" title="點擊選擇要搬移的日期" onclick="event.stopPropagation(); startMoveMode('${note.id}')">
+                    <img src="icon/move.png" alt="move">
+                </button>
+                <button class="nt-btn icon-btn" title="點擊選擇要複製的日期" onclick="event.stopPropagation(); startCopyMode('${noteForCopy}')">
+                    <img src="icon/copy.png" alt="copy">
+                </button>
+                <button class="nt-btn nt-danger icon-btn" ondblclick="event.stopPropagation(); deleteNote('${note.id}')">
+                    <img src="icon/round.png" alt="刪除">
+                </button>
+            </div>
+        `;
+        
+        // 重新綁定 Checkbox 事件 (因為使用了 innerHTML，會覆蓋掉原來的綁定)
+        const chk = item.querySelector(".note-checkbox");
+        if (chk) {
+            // 由於 onClick 是在 HTML 中定義，這裡使用addEventListener確保事件不遺失
+            chk.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                const doneDate = chk.checked ? formatDateTime(new Date()) : null;
+                markNoteDone(note.id, doneDate);
+            });
+        }
+
+        // 重新綁定 Edit 事件
+        const titleEl = item.querySelector(".note-title");
+        if(titleEl) {
+             titleEl.addEventListener('click', () => openNoteModal(note));
+        }
+
+        fragment.appendChild(item);
+    });
+    
+    // 🌟 一次性將 DocumentFragment 內容插入到 DOM 中 🌟
+    listEl.appendChild(fragment);
+    
+    initSortable(); // 每次渲染完重新初始化 Sortable.js
+}
+
+
+/* =============================    彈窗 (Modal) - 🔥 邏輯修改區塊 🔥 ============================= */
+function openNoteModal(note) {
+    editingId = note ? note.id : null;
+
+    document.getElementById("noteModalHeader").textContent =
+        note ? "編輯記事" : "新增記事";
+
+    document.getElementById("noteTitleInput").value = note?.title || "";
+    document.getElementById("noteContentInput").value = note?.content || "";
+    
+    // 🔥 呼叫新的標籤渲染函數，並帶入當前分類
+    renderCategoryTags(note?.category || "");
+
+
+    // 確保彈窗欄位顯示（新結構）
+    document.querySelectorAll(".modal-field-label").forEach(el => el.style.display = "");
+    document.getElementById("noteTitleInput").style.display = "";
+    document.getElementById("noteContentInput").style.display = "";
+    document.getElementById("noteModalSave").style.display = "";
+    
+    // 顯示新結構的 row 和 tags
+    document.querySelector(".modal-field-row-new").style.display = "flex"; 
+    document.getElementById("noteCategoryTags").style.display = "flex";
+
+    // 隱藏舊的 row (防止搜尋結果的邏輯錯誤)
+    const oldRow = document.querySelector(".modal-field-row");
+    if (oldRow) oldRow.style.display = "none";
+    
+    const sr = document.getElementById("searchResultArea");
+    if (sr) sr.remove(); // 確保清除搜尋表格
+
+    document.getElementById("noteModal").style.display = "flex";
+}
+
+
+function closeNoteModal() {
+    document.getElementById("noteModal").style.display = "none";
+}
+
+async function handleSaveNote() {
+    const title = document.getElementById("noteTitleInput").value.trim();
+    const content = document.getElementById("noteContentInput").value.trim();
+    
+    // 🔥 替換：從標籤按鈕中獲取選中的 category
+    const activeTag = document.querySelector("#noteCategoryTags .active");
+    const category = activeTag ? activeTag.dataset.category : "";
+
+    const dateStr = getCurrentDateStr();
+
+    if (!title && !content) return closeNoteModal();
+
+    const noteData = { 
+        date: dateStr, 
+        title, 
+        content, 
+        category,
+        done_date: null // 新增或編輯時，預設為未完成
+    };
+
+    if (!editingId) {
+        await saveNoteToDB(noteData);
+    } else {
+        // 從快取中找到舊記事，保留 order_index
+        const oldNote = allUserNotesCache.find(n => n.id === editingId);
+        if (oldNote) {
+            noteData.done_date = oldNote.done_date || null; // 保留完成狀態
+            noteData.order_index = oldNote.order_index;
+            await saveNoteToDB(noteData, editingId);
+        }
+    }
+    closeNoteModal();
+}
+
+
+/* =============================    月曆相關 (無變更) ============================= */
+function renderCalendar() {
+    const grid = document.getElementById("calendarGrid");
+    grid.innerHTML = "";
+
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    document.getElementById("calTitle").textContent = `${year} 年 ${month + 1} 月`;
+
+    const firstDay = new Date(year, month, 1);
+    const firstWeekday = firstDay.getDay();
+    const nextMonthFirst = new Date(year, month + 1, 1);
+    const daysInMonth = new Date(nextMonthFirst - 1).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const selectedDateStr = getCurrentDateStr();
+    const todayStr = formatDate(new Date());
+
+    for (let i = 0; i < 42; i++) {
+        const cell = document.createElement("div");
+        cell.className = "calendar-cell";
+        const inner = document.createElement("div");
+        inner.className = "calendar-cell-inner";
+
+        let dateNum, offset;
+        if (i < firstWeekday) {
+            dateNum = daysInPrevMonth - firstWeekday + 1 + i;
+            offset = -1;
+            cell.classList.add("other-month");
+        } else if (i >= firstWeekday + daysInMonth) {
+            dateNum = i - (firstWeekday + daysInMonth) + 1;
+            offset = 1;
+            cell.classList.add("other-month");
+        } else {
+            dateNum = i - firstWeekday + 1;
+            offset = 0;
+        }
+
+        const cellDate = new Date(year, month + offset, dateNum);
+        const cellDateStr = formatDate(cellDate);
+
+        inner.textContent = dateNum;
+        if (cellDateStr === todayStr) cell.classList.add("today");
+        
+        // 檢查是否有記事
+        if (noteDateSet.has(cellDateStr)) {
+            cell.classList.add("has-note");
+            // 檢查是否有未完成記事 (為了顯示點點)
+            const hasUndone = allUserNotesCache.some(n => n.date === cellDateStr && !n.done_date);
+            if (hasUndone) {
+                inner.innerHTML += '<div class="calendar-dot"></div>';
+            }
+        }
+        
+        if (cellDateStr === selectedDateStr) cell.classList.add("selected");
+
+        cell.dataset.date = cellDateStr;
+        cell.onclick = () => {
+            setCurrentDateStr(cellDateStr);
+            loadNotesForCurrentDate();
+            closeCalendarModal();
+        };
+
+        cell.appendChild(inner);
+        grid.appendChild(cell);
+    }
+}
+
+function openCalendarModal() {
+    document.getElementById("calendarModal").style.display = "flex";
+    renderCalendar();
+}
+function closeCalendarModal() {
+    document.getElementById("calendarModal").style.display = "none";
+}
+function shiftCalendarMonth(offset) {
+    calendarMonth.setMonth(calendarMonth.getMonth() + offset);
+    renderCalendar();
+}
+
+/* =============================    onload 全流程啟動 (更新彈窗關閉邏輯) ============================= */
+window.onload = () => {
+    // 分類按鈕事件
+    document.querySelectorAll("#filterBar button").forEach(btn => {
+        btn.onclick = () => {
+            currentFilter = btn.dataset.filter; // "" / 私人 / 工作
+
+            // 標記 active
+            document.querySelectorAll("#filterBar button")
+                .forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            loadNotesForCurrentDate(); // 重新渲染列表
+        };
+    });
+    
+    // 月曆與記事彈窗
+    document.getElementById("dateBar").onclick = openCalendarModal;
+    document.getElementById("calPrev").onclick = () => shiftCalendarMonth(-1);
+    document.getElementById("calNext").onclick = () => shiftCalendarMonth(1);
+    document.getElementById("btnAdd").onclick = () => openNoteModal(null);
+    document.getElementById("noteModalCancel").onclick = closeNoteModal;
+    document.getElementById("noteModalSave").onclick = handleSaveNote;
+    
+    // 日期切換
+    document.getElementById("btnPrevDay").onclick = (e) => {
+        e.stopPropagation();
+        const cur = new Date(getCurrentDateStr());
+        cur.setDate(cur.getDate() - 1);
+        setCurrentDateStr(formatDate(cur));
+        loadNotesForCurrentDate();
+    };
+
+    document.getElementById("btnNextDay").onclick = (e) => {
+        e.stopPropagation();
+        const cur = new Date(getCurrentDateStr());
+        cur.setDate(cur.getDate() + 1);
+        setCurrentDateStr(formatDate(cur));
+        loadNotesForCurrentDate();
+    };  
+    
+    document.getElementById("btnToday").onclick = (ev) => {
+        ev.stopPropagation();          // ← 防止開月曆！！
+        const today = formatDate(new Date());
+        setCurrentDateStr(today);
+        loadNotesForCurrentDate();      // ← 直接更新列表
+    };
+    
+    // 點彈窗外關閉
+    ["noteModal", "calendarModal"].forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener("click", (ev) => {
+                if (ev.target === modal) {
+                    // 如果此時有搜尋表格，要恢復原樣！
+                    const sr = document.getElementById("searchResultArea");
+                    if (sr) sr.remove();
+
+                    // 恢復正常的編輯表單顯示 (新結構)
+                    document.querySelectorAll(".modal-field-label").forEach(el => el.style.display = "");
+                    document.querySelector(".modal-field-row-new").style.display = "flex";
+                    document.getElementById("noteTitleInput").style.display = "";
+                    document.getElementById("noteContentInput").style.display = "";
+                    document.getElementById("noteModalSave").style.display = "";
+                    document.getElementById("noteCategoryTags").style.display = "flex";
+                    // 確保舊的 row 隱藏
+                    const oldRow = document.querySelector(".modal-field-row");
+                    if (oldRow) oldRow.style.display = "none";
+
+                    modal.style.display = "none";
+                }
+            });
+        }
+    });
+};
+
+
+/* =============================    純 JavaScript 搜尋功能 (使用本地快取) - 🔥 邏輯修改區塊 🔥 ============================= */
+document.getElementById("btnSearch").onclick = async () => {
+    if (!currentUserID) return alert("請先登入");
+    const kw = prompt("請輸入搜尋關鍵字：");
+    if (!kw) return;
+
+    // 使用最新的快取資料
+    const notes = allUserNotesCache;
+    const keyword = kw.toLowerCase(); // 轉為小寫以實現不區分大小寫的搜尋
+    
+    // 1. 直接在本地快取陣列上進行過濾
+    const searchResults = notes.filter(note => {
+        const title = (note.title || "").toLowerCase();
+        const content = (note.content || "").toLowerCase();
+        
+        // 判斷標題或內容是否包含關鍵字
+        return title.includes(keyword) || content.includes(keyword);
+    });
+
+    if (searchResults.length === 0) return alert("查無資料！");
+
+    // 2. 轉換結果格式以匹配 showSearchResults 預期的陣列結構
+    // 這裡我們將物件轉換回類似 SQLite.exec() 輸出的二維陣列格式
+    const rows = searchResults.map(n => [
+        n.id, 
+        n.date, 
+        n.title, 
+        n.content, 
+        n.done_date 
+    ]);
+    
+
+    showSearchResults(rows);
+};
+
+//這支 function：顯示搜尋結果在原本的 modal 裡
+function showSearchResults(rows) {
+    const modal = document.getElementById("noteModal");
+    modal.style.display = "flex";
+
+    // ⭐ 修正點：在插入新的搜尋表格前，先移除舊的 ⭐
+    const existingArea = document.getElementById("searchResultArea");
+    if (existingArea) {
+        existingArea.remove();
+    }
+    // ⭐ 修正點結束 ⭐
+
+    // 顯示標題
+    document.getElementById("noteModalHeader").textContent = `搜尋結果（${rows.length}筆）`;
+
+    // 隱藏原本輸入欄位 (新結構)
+    document.querySelectorAll(".modal-field-label").forEach(el => el.style.display = "none");
+    document.getElementById("noteTitleInput").style.display = "none";
+    document.getElementById("noteContentInput").style.display = "none";
+    document.getElementById("noteModalSave").style.display = "none";
+    
+    // 🔥 隱藏新結構的 row 和 tags
+    document.querySelector(".modal-field-row-new").style.display = "none"; 
+    document.getElementById("noteCategoryTags").style.display = "none";
+
+
+    // 中間插入表格（不破壞 footer）
+    const tempArea = document.createElement("div");
+    tempArea.id = "searchResultArea";
+    tempArea.style.maxHeight = "60vh";
+    tempArea.style.overflowY = "auto";
+    
+    // ⭐ 表格設計與欄位調整 (保持不變) ⭐
+    tempArea.innerHTML = `
+        <style>
+            .search-table {
+                width:100%; 
+                border-collapse:separate; 
+                border-spacing: 0 8px; 
+            }
+            .search-table th {
+                font-weight: bold;
+                color: #A0AEC0; 
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 2px solid #E2E8F0;
+                position: sticky; 
+                top: 0;
+                background-color: #fff; 
+                z-index: 10;
+            }
+            .search-row {
+                cursor: pointer;
+                background-color: #F7FAFC; 
+                transition: background-color 0.2s;
+                border-radius: 8px;
+                overflow: hidden; 
+            }
+            .search-row:hover {
+                background-color: #EDF2F7; 
+            }
+            .search-row td {
+                padding: 10px 15px;
+                border-top: 1px solid #E2E8F0;
+            }
+            .search-row:first-child td {
+                border-top: none;
+            }
+            .search-row.completed-row {
+                opacity: 0.6;
+            }
+            .search-title {
+                font-weight: 500;
+            }
+            .search-date {
+                font-size: 0.9em;
+                color: #4A5568;
+            }
+            .search-done {
+                color: #38A169; 
+                font-weight: bold;
+                text-align: center;
+            }
+        </style>
+        <table class="search-table">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>標題</th>
+                    <th style="width: 50px; text-align: center;">完成</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.map(r => {
+                    const id = r[0]; // ID 在索引 0
+                    const date = r[1]; // 日期在索引 1
+                    const title = r[2] || '(無標題)'; // 標題在索引 2
+                    const isDone = r[4]; // 完成狀態在索引 4
+                    
+                    return `
+                        <tr class="search-row ${isDone ? 'completed-row' : ''}" data-id="${id}">
+                            <td class="search-date">${date}</td>
+                            <td class="search-title">${truncateTitle(title)}</td>
+                            <td class="search-done">${isDone ? '✔' : ''}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // 插入在按鈕區上方
+    const modalContent = document.querySelector(".modal-content");
+    const modalFooter = document.querySelector(".modal-footer");
+    modalContent.insertBefore(tempArea, modalFooter);
+
+    // 點表格 → 開原本編輯模式
+    document.querySelectorAll(".search-row").forEach(tr => {
+        tr.onclick = () => {
+            const id = tr.dataset.id;
+            openEditFromSearch(id);
+        };
+    });
+}
+
+//點搜尋結果 → 用原本 modal 編輯記事
+function openEditFromSearch(id) {
+    const note = allUserNotesCache.find(n => n.id === id);
+    if (note) {
+
+        // 👉 先清除搜尋表格
+        const sr = document.getElementById("searchResultArea");
+        if (sr) sr.remove();
+
+        // ✨ 重新顯示輸入欄位 (新結構)
+        document.querySelectorAll(".modal-field-label").forEach(el => el.style.display = "");
+        document.querySelector(".modal-field-row-new").style.display = "flex";
+        document.getElementById("noteTitleInput").style.display = "";
+        document.getElementById("noteContentInput").style.display = "";
+        document.getElementById("noteModalSave").style.display = "";
+        document.getElementById("noteCategoryTags").style.display = "flex";
+
+        openNoteModal(note);    // ← 再打開原編輯模式
+    }
+}
+
+
+/* =============================    拖曳排序 (Sortable.js) - 🌟 優化邏輯 🌟 2px solid============================= */
+let sortable = null;
+function initSortable() {
+    const list = document.getElementById("noteList");
+    
+    // 檢查並銷毀舊的實例
+    if (sortable && typeof sortable.destroy === 'function') sortable.destroy(); 
+
+    // 只有未完成的可以拖曳 (邏輯不變)
+    sortable = new Sortable(list, {
+        animation: 150,
+        ghostClass: "dragging",
+        filter: ".completed",
+        preventOnFilter: false,
+        handle: ".note-category-tag",
+        
+        onEnd: async function (evt) { // 🌟 改成 async 🌟
+            if (evt.oldIndex === evt.newIndex) return;
+
+            const undoneItems = Array.from(list.children)
+                .filter(el => !el.classList.contains("completed"));
+            
+            // 🌟 使用 Promise.all 等待所有 Firestore 更新完成 🌟
+            const updatePromises = undoneItems.map((el, index) => {
+                const id = el.dataset.id;
+                return saveNoteOrder(id, index); 
+            });
+            
+            // 等待所有排序更新完成
+            await Promise.all(updatePromises);
+            
+            // 確保所有更新完成後，才重新獲取快取並渲染
+            await fetchAllNotesForCache(); 
+            loadNotesForCurrentDate();
+        }
+    });
+}
+
+// ==================== 點擊搬移/複製按鈕 → 選擇任意日期 ===================
+let targetNoteForMove = null;
+let targetNoteForCopy = null;
+
+function removeMoveHint() {
+    const hint = document.getElementById("moveHint");
+    if (hint) hint.remove();
+}
+
+// 注意：這裡傳入的 note 是字串 (HTML onlick 傳遞的 JSON 字串)
+function startCopyMode(noteString) {
+    try {
+        targetNoteForCopy = JSON.parse(noteString.replace(/&quot;/g, '"'));
+    } catch (e) {
+        console.error("Error parsing note string for copy mode:", e);
+        return;
+    }
+    targetNoteForMove = null;
+    removeMoveHint();
+
+    openCalendarModal();
+
+    const hint = document.createElement("div");
+    hint.id = "moveHint";
+    hint.textContent = "請選擇要複製到的日期";
+    hint.style.cssText = `
+        position:fixed;top:20px;left:50%;transform:translateX(-50%);
+        background:rgba(0,0,0,0.92);color:#fff;padding:12px 22px;
+        border-radius:30px;z-index:9999;font-size:15px;pointer-events:none;
+        box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    `;
+    document.body.appendChild(hint);
+
+    const cells = document.querySelectorAll("#calendarGrid .calendar-cell");
+    cells.forEach(cell => {
+        cell.style.cursor = "copy";
+        cell.onclick = async function () {
+            const newDate = this.dataset.date;
+            const success = await copyNoteToDate(targetNoteForCopy, newDate);
+            
+            // 清理
+            targetNoteForCopy = null;
+            closeCalendarModal(); 
+            removeMoveHint();
+            // if(success) alert(`已成功複製到 ${newDate}`); // 依要求移除彈窗
+            
+            if (newDate === getCurrentDateStr()) {
+                loadNotesForCurrentDate();
+            }
+        };
+    });
+}    
+
+function startMoveMode(noteId) {
+    targetNoteForMove = { id: noteId };
+    targetNoteForCopy = null;
+    removeMoveHint();
+
+    openCalendarModal();
+
+    const hint = document.createElement("div");
+    hint.id = "moveHint";
+    hint.textContent = "請選擇要搬移的日期";
+    hint.style.cssText = `
+        position:fixed;top:20px;left:50%;transform:translateX(-50%);
+        background:rgba(0,0,0,0.92);color:#fff;padding:12px 22px;
+        border-radius:30px;z-index:9999;font-size:15px;pointer-events:none;
+        box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    `;
+    document.body.appendChild(hint);
+
+    const cells = document.querySelectorAll("#calendarGrid .calendar-cell");
+    cells.forEach(cell => {
+        cell.style.cursor = "pointer";
+
+        cell.onclick = async function () {
+            const newDate = this.dataset.date;
+            const success = await moveNoteToDate(targetNoteForMove.id, newDate);
+            
+            // 清理
+            targetNoteForMove = null;
+            closeCalendarModal();
+            removeMoveHint();
+            // if(success) alert(`已搬移到 ${newDate}`); // 依要求移除彈窗
+        };
+    });
+}
+
+// 完全接管關閉月曆（任何方式關閉都清理乾淨，並恢復日曆原本的點擊行為）
+const originalClose = closeCalendarModal;
+closeCalendarModal = function () {
+    const inMoveOrCopyMode = targetNoteForMove || targetNoteForCopy;
+
+    originalClose(); // 執行原本的關閉動作 (隱藏 modal)
+
+    if (inMoveOrCopyMode) {
+        targetNoteForMove = null;
+        targetNoteForCopy = null;
+        removeMoveHint();
+        
+        // 恢復月曆原本的點擊行為 (重新呼叫 renderCalendar 即可恢復)
+        renderCalendar();
+    }
+};
+</script>
+</body>
+</html>

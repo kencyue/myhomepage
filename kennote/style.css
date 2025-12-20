@@ -1,0 +1,123 @@
+/* ============================================================
+===== 樣式表 (與您提供的一致) =====
+============================================================
+*/
+/* ===== 基本版面 ===== */
+body {
+  margin: 0;
+  font-family: "SF Pro Text","Segoe UI","Microsoft JhengHei",sans-serif;
+  background: #f5f5f7;
+  /* 移除 display: flex; 和 height: 100vh;，讓內容由 JS 決定是否顯示 */
+  min-height: 100vh;
+}
+/* 新增：appContent 容器的樣式 */
+#appContent {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+header {  background: #faf8f6;  padding: 14px 20px;  font-size: 1.3rem;  font-weight: 600;  border-bottom: 1px solid #ddd;  box-shadow: 0 2px 6px rgba(0,0,0,0.04);}
+#main {  flex: 1;  padding: 16px;  overflow-y: auto;}
+
+/* ===== 日期列（點這裡開月曆） ===== */#dateBar {  background: #ffffff;  border-radius: 10px;  padding: 10px 12px;  display: flex;  align-items: center;  justify-content: space-between;     gap: 8px;  box-shadow: 0 2px 8px rgba(0,0,0,0.05);  cursor: pointer;  margin-bottom: 12px;}
+.date-nav-btn {  background: transparent;  border: none;  width: 44px;  height: 44px;  border-radius: 50%;  cursor: pointer;  display: flex;  align-items: center;  justify-content: center;  flex-shrink: 0;                     transition: background 0.2s;}
+.date-nav-btn:hover { background: rgba(0,0,0,0.08); }
+.date-nav-icon {  width: 22px;  height: 22px;  pointer-events: none;}
+#dateCenter {  flex: 1;  display: flex;  align-items: center;  justify-content: center;  gap: 12px;  min-width: 0;                       }
+#currentDateText {  font-weight: 600;  font-size: 1.05rem;}#dateBarIcon {  font-size: 18px;  opacity: 0.7;}
+
+/* ===== 按鈕 ===== */.btn {  border: none;  cursor: pointer;  font-family: inherit;  border-radius: 8px;  padding: 8px 14px;  font-size: 0.95rem;}.btn-blue {  background: #007aff;  color: #ffffff;} .btn-blue:hover {  background: #005ecb;}.btn-ghost {  background: transparent;  color: #555;}
+
+/* ===== 列表（只顯示標題） ===== */#noteList {  margin-top: 12px;}.note-item {  position: relative;       background: #ffffff;  border-radius: 8px;  padding: 8px 10px;  margin-bottom: 6px;  display: flex;  align-items: center;  justify-content: space-between;  box-shadow: 0 1px 3px rgba(0,0,0,0.06);}.note-title {  display: flex;  align-items: center;  justify-content: space-between;     gap: 6px;                           cursor: pointer;  flex: 1;                            }.note-actions {  display: flex;  align-items: center;  gap: 6px;  margin-right: 20px;}.note-actions button {  border: none;  background: transparent;  cursor: pointer;  font-size: 16px;}
+
+/* ===== 通用彈窗遮罩 ===== */.modal-overlay {  position: fixed;  inset: 0;  background: rgba(0,0,0,0.25);  backdrop-filter: blur(4px);  display: none;  align-items: center;  justify-content: center;  z-index: 999;}
+
+/* ===== 記事彈窗 ===== */#noteModal .modal-content {  background: #ffffff;  width: 90%;  max-width: 420px;  max-height: 80vh;  overflow-y: auto;  border-radius: 14px;  padding: 16px 16px 12px;  box-shadow: 0 15px 40px rgba(0,0,0,0.18);  box-sizing: border-box;}.modal-header {  font-size: 1.05rem;  font-weight: 600;  margin-bottom: 10px;}.modal-field-label {  font-size: 0.85rem;  margin-top: 6px;  margin-bottom: 4px;  color: #555;}.modal-input, .modal-textarea {  width: 100%;  box-sizing: border-box;  border-radius: 8px;  border: 1px solid #ccc;  padding: 7px 9px;  font-family: inherit;  font-size: 0.95rem;}.modal-textarea {  min-height: 120px;  resize: vertical;}.modal-footer {  display: flex;  justify-content: flex-end;  gap: 8px;  margin-top: 10px;}
+
+/* ===== 月曆彈窗 ===== */#calendarModal .modal-content {  background: #ffffff;  width: 96%;  max-width: 420px;  max-height: 85vh;  overflow: hidden;  border-radius: 14px;  padding: 12px 12px 10px;  box-shadow: 0 15px 40px rgba(0,0,0,0.18);  box-sizing: border-box;}
+
+/* 月曆頭 */.calendar-header {  display: flex;  justify-content: space-between;  align-items: center;  margin-bottom: 6px;}.calendar-nav-btn {  border: none;  background: transparent;  cursor: pointer;  font-size: 18px;  padding: 4px 6px;}.calendar-title {  font-weight: 600;}
+
+/* 星期列 */.calendar-weekdays {  display: grid;  grid-template-columns: repeat(7, 1fr);  text-align: center;  font-size: 0.75rem;  color: #666;  margin-bottom: 4px;}
+
+/* 日期格 */.calendar-grid {  display: grid;  grid-template-columns: repeat(7, 1fr);  gap: 2px;}.calendar-cell {  height: 42px;  border-radius: 6px;  font-size: 0.85rem;  text-align: center;  padding-top: 4px;  box-sizing: border-box;  cursor: pointer;}.calendar-cell.other-month {  color: #bbb;}.calendar-cell.today {  border: 1px solid #007aff;}.calendar-cell.selected {  background: #007aff;  color: #ffffff;}.calendar-cell.has-note:not(.selected) {  background: #e5f0ff;}.calendar-cell-inner {  display: flex;  flex-direction: column;  align-items: center;}.calendar-dot {  width: 6px;  height: 6px;  border-radius: 50%;  background: #b22222;  margin-top: 2px;}    /* 🔹 備份選單 */.backup-select {  padding: 6px 10px;  font-size: 0.9rem;  border-radius: 6px;  border: 1px solid #ccc;  flex-grow: 1;  max-width: 220px;  margin: 0 20px;}
+
+/* 每個備份 option */.backup-item {  color: #007aff;  font-weight: 500;}
+
+/* 🔴 刪除按鈕 */.btn-red {  background: #ff0000;  color: #ffffff;}
+.btn-ghost {  background: gold;  color: #000;}    .btn-red:hover {  background: #e62820;}
+
+/* 原標題文字 */.title-text {  flex: 1;                       font-size: 16px;  white-space: nowrap;  overflow: hidden;  text-overflow: ellipsis;}
+
+/* 已完成功能：只加刪除線在標題，不影響日期 */.title-text.done {  text-decoration: line-through;  color: #666;}
+
+/* ✔ 日期標籤 */.done-date {  display: block;  font-size: 0.75rem;  color: green;  margin-left: 2px;       margin-top: 2px;        opacity: 0.85;}
+
+/* 標題只打刪除線 */.title-text.done {  text-decoration: line-through;  color: #666;}
+
+.header-flex {  display: flex;  align-items: center;  justify-content: space-between;  white-space: nowrap;}
+
+/* LOGO 區固定高度，圖片自適應 */
+.logo-box {  height: 32px;  margin-left: 10px;    width: 120px;                display: flex;  justify-content: center;  align-items: center;}
+.logo {  height: 100%;  width: auto;  object-fit: contain;}
+
+/* 登出鈕也需要跟 logo-box 同寬 */#btnLogout {  width: 120px;                display: flex;  justify-content: center;  align-items: center;}
+
+/* ===== Notion 風格工具列 ===== */.toolbar {  display: flex;  justify-content: center;     gap: 12px;                   flex-wrap: nowrap;           padding: 12px;}
+
+/* 💡 Notion 基本按鈕風格 */.nt-btn {  padding: 6px 14px;  border: 1px solid #ddd;  border-radius: 6px;  background: #fafafa;  cursor: pointer;  font-size: 0.9rem;  display: flex;                  align-items: center;  gap: 6px;                       transition: 0.15s;}
+
+.nt-btn:hover {  background: #ffffff;  box-shadow: 0 2px 6px rgba(0,0,0,0.08);}
+
+.nt-btn:active {  transform: scale(0.98);}
+
+/* 🔴 危險類 */.nt-danger {  border-color: #ff7575;  color: #cc0000;}.nt-danger:hover {  background: #ffeaea;}
+
+/* Icon 樣式 */.icon-btn img {  width: 18px;  height: 18px;  pointer-events: none;           }
+
+/* 🔵 主要動作（像 Notion 的「Create」） */.nt-primary {  background: #fafafa;  border-color: #ddd;  color: black;}.nt-primary:hover {  background: #e2eef8;}
+
+/* 🔸 幽靈/取消類 */.nt-ghost {  background: transparent;  border-color: transparent;  color: #666;}.nt-ghost:hover {  background: #f0f0f0;  border-color: #ddd;}
+
+/* Icon 按鈕（圖片不會撐爆） */.icon-btn img {  width: 18px;         height: 18px;        vertical-align: middle;     pointer-events: none;       }
+
+/* icon & text 並排 */.icon-btn {  display: flex;  align-items: center;  gap: 6px;}
+
+.date-display {  display: flex;  align-items: center;  gap: 6px;}
+
+.date-display .icon {  width: 18px;  height: 18px;  pointer-events: none;}
+
+/* checkbox 和文字分開一點 */.note-item input[type="checkbox"] {  margin-right: clamp(8px, 1vw, 8px);  flex-shrink: 0;}
+
+
+/* 📱 手機版修正 */@media (max-width: 480px) {
+  header {    padding: 12px 10px;      }
+  .logo-box {    width: 80px;              margin-right: 6px;      }
+  #btnLogout {    width: 80px;              padding: 6px 8px;       font-size: 0.85rem;  }
+  .backup-select {    margin: 0 8px;            max-width: none;          font-size: 0.85rem;      }
+  .header-flex {      white-space: nowrap;    }        .toolbar {    gap: 6px;    padding: 10px;  }  .nt-btn {    font-size: 0.8rem;    padding: 6px 10px;  }    }
+
+
+/* 📱 手機版表格縮排 */@media (max-width: 480px) {  #searchResultArea table {    font-size: 0.8rem;  }  #searchResultArea th,   #searchResultArea td {    padding: 6px;  }}
+
+/* 📱 手機版強制改成垂直排 */@media (max-width: 480px) {  .note-title {    display: flex !important;    flex-direction: column !important;    align-items: flex-start !important;  }
+  .done-date {    display: block;    font-size: 0.7rem;    margin-top: 2px;    margin-left: 0;  }}
+/* 手機優化 */@media (max-width: 480px) {  #dateBar { padding: 8px 10px; }  .date-nav-btn { width: 40px; height: 40px; }  .date-nav-icon { width: 20px; height: 20px; }  #dateCenter { gap: 8px; }  #currentDateText { font-size: 0.95rem; }}
+.add-filter-row {  display: flex;  align-items: center;  gap: 5px;  margin-top: 12px;  padding-bottom: 6px;  border-bottom: 1px solid #eee;  }
+
+/* === Notion Tabs === */
+#filterBar {  display: flex;         gap: 6px;}
+#filterBar button {  background: #f5f5f5;  color: #444;  border: 1px solid #ddd;  border-radius: 6px;  padding: 4px 12px;  font-size: 14px;  transition: all .2s ease;}
+#filterBar button:hover {  background: #eaeaea;  border-color: #ccc;}
+#filterBar .active {  background: #1b1b1b;     color: white;  border-color: #1b1b1b;  box-shadow: 0 2px 4px rgba(0,0,0,0.15);}
+.modal-field-row {  display: flex;  gap: 8px;         align-items: center;}
+.modal-input {  flex: 1;          }
+.modal-select {  padding: 6px 10px;  border-radius: 8px;  border: 1px solid #ccc;  font-size: 14px;  background: #fff;  cursor: pointer;}/* 類別貼紙 → 浮在右上角 */.note-category-tag {  position: absolute;       top: 2px;                 right: 2px;  background: #1b1b1b;  color: white;  padding: 2px 4px;  font-size: 10px;  border-radius: 4px;  opacity: 0.8;             }/* 登入畫面 */#loginScreen {    position: fixed;    inset: 0;    background: #f5f5f7;    display: flex;    flex-direction: column;    align-items: center;    justify-content: center;    z-index: 1000;}
+/* 登入畫面 Logo 樣式 */
+#loginLogo {
+    height: 60px; /* 控制 Logo 大小 */
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 15px; /* 與下方段落的間距 */
+}
+.login-btn {    padding: 12px 24px;    background: #4285f4;    color: white;    border: none;    border-radius: 4px;    font-size: 1.1rem;    cursor: pointer;    box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
