@@ -402,7 +402,7 @@ function addRow(i) {
 // ----------------------------------------------------------------------
 
 async function initData() {
-    const local = localStorage.getItem("bookmarksData");
+    const local = localStorage.getItem("bookmarksData_ken");
     if (local) {
         try {
             const parsed = JSON.parse(local);
@@ -419,7 +419,7 @@ async function initData() {
             const json = await res.json();
             if (json && Array.isArray(json.groups)) {
                 data = json;
-                localStorage.setItem("bookmarksData", JSON.stringify(data));
+                localStorage.setItem("bookmarksData_ken", JSON.stringify(data));
             }
         }
     } catch(err) {
@@ -700,7 +700,7 @@ document.getElementById("saveBtn").onclick = () => {
         currentMainTab = null;
     }
 
-    localStorage.setItem("bookmarksData", JSON.stringify(data));
+    localStorage.setItem("bookmarksData_ken", JSON.stringify(data));
     document.getElementById("modal").style.display = "none";
     document.getElementById("overlay").style.display = "none";
     renderMain();
@@ -748,7 +748,7 @@ document.getElementById("restoreFile").onchange = e => {
             const obj = JSON.parse(ev.target.result);
             if (obj && Array.isArray(obj.groups)) {
                 data = obj;
-                localStorage.setItem("bookmarksData", JSON.stringify(data));
+                localStorage.setItem("bookmarksData_ken", JSON.stringify(data));
                 renderMain();
                 alert("還原成功！");
             } else {
@@ -762,7 +762,7 @@ document.getElementById("restoreFile").onchange = e => {
 
 document.getElementById("resetBtn").onclick = () => {
     if (confirm("確定清除快取？將重新讀取 bookmarks.json")) {
-        localStorage.removeItem("bookmarksData");
+        localStorage.removeItem("bookmarksData_ken");
         location.reload();
     }
 };
