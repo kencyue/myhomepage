@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>繁簡轉換</title>
+    <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            font-family: "Noto Sans TC", serif;
+            font-optical-sizing: auto;
+            font-style: normal;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        textarea {
+            width: 95%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        button {
+            width: 48%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin: 5px 1%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .button-container button {
+            background-color: #2196F3;
+        }
+        .copy-paste {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .clear-button {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>繁體简体轉換器</h1>
+        <textarea id="inputText" rows="20" placeholder="請輸入文字"></textarea>
+
+        <div class="button-container">
+            <button onclick="pasteAndConvertToTraditional()">轉繁體</button>
+            <button onclick="pasteAndConvertToSimplified()">转简体</button>
+        </div>
+<!--
+        <div class="copy-paste">
+            <button onclick="copyText()">複製</button>
+            <button onclick="pasteText()">貼上</button>
+        </div>
+
+        <div class="button-container">
+            <button class="clear-button" onclick="clearText()">清除內容</button>
+        </div>
+    </div>
+-->
+    <script>
+        // 等待 OpenCC 加載完成
+        window.onload = function() {
+            const s2tConverter = OpenCC.Converter({ from: 'cn', to: 'tw' });  // 簡體轉繁體
+            const t2sConverter = OpenCC.Converter({ from: 'tw', to: 'cn' });  // 繁體轉簡體
+
+            // 貼上剪貼簿並轉換為繁體
+            window.pasteAndConvertToTraditional = function() {
+                navigator.clipboard.readText().then(function(text) {
+                    const convertedText = s2tConverter(text);
+                    document.getElementById('inputText').value = convertedText;
+                    copyText();
+                });
+            };
+
+            // 貼上剪貼簿並轉換為簡體
+            window.pasteAndConvertToSimplified = function() {
+                navigator.clipboard.readText().then(function(text) {
+                    const convertedText = t2sConverter(text);
+                    document.getElementById('inputText').value = convertedText;
+                    copyText();
+                });
+            };
+
+            // 複製文字
+            window.copyText = function() {
+                const textArea = document.getElementById('inputText');
+                textArea.select();
+                document.execCommand('copy');
+            };
+
+            // 貼上文字
+            window.pasteText = function() {
+                navigator.clipboard.readText().then(function(text) {
+                    document.getElementById('inputText').value = text;
+                });
+            };
+
+            // 清除內容
+            window.clearText = function() {
+                document.getElementById('inputText').value = '';
+            };
+        };
+    </script>
+</body>
+</html>

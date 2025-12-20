@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>通報搜尋(僅檔名)</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 1rem;
+    }
+    .search-container {
+      display: flex;
+      gap: 0.5rem;
+      max-width: 480px;
+      margin: 0 auto 1rem;
+    }
+    .search-container input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+    }
+    .search-container button {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .search-container button:disabled {
+      background: #aaa;
+      cursor: default;
+    }
+    ul#results {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+    ul#results li {
+      background: #fff;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    ul#results li img {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    ul#results li a {
+      color: #0366d6;
+      text-decoration: none;
+      flex: 1;
+    }
+    ul#results li.error {
+      color: #c00;
+      background: #fee;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center; margin-bottom:1rem; font-size:1.25rem;">
+    通報搜尋 (僅檔名)
+  </h1>
+
+  <div class="search-container">
+    <input id="kw" type="text" placeholder="輸入關鍵字…" autocomplete="off" disabled>
+    <button id="btnSearch" disabled>載入中…</button>
+  </div>
+
+  <ul id="results"></ul>
+
+  <script>
+    const API_KEY = 'AIzaSyCRXbp_I9NWLXfLOyfzwCmOSHvqKGpp2Kg';
+    const ROOT_ID = '1WH9mlAZ0Xen-dsYi8gmjUMZaBeyNaHB7';
+
+    const inputEl   = document.getElementById('kw');
+    const btn       = document.getElementById('btnSearch');
+    const resultsEl = document.getElementById('results');
+    let folderIds = [];
+
+    // 依檔名副檔名回傳對應圖檔路徑
+    function getIconPath(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      switch (ext) {
+        case 'pdf':   return '../images/filetype/pdf.png';
+        case 'doc':
+        case 'docx':  return '../images/filetype/word.png';
+        case 'xls':
+        case 'xlsx':  return '../images/filetype/excel.png';
+        case 'mp4':   return '../images/filetype/video.png';
+        case 'png':   return '../images/filetype/png.png';
+        case 'jpg':
+        case 'jpeg':  return '../images/filetype/jpg.png';
+        case 'gif':   return '../images/filetype/gif.png';
+        default:      return '../images/filetype/document.png';
+      }
+    }
+
+    // 載入所有層級資料夾 ID
+    async function loadAllFolderIds() {
+      const all = new Set([ROOT_ID]);
+      const queue = [ROOT_ID];
+      while (queue.length) {
+        const parent = queue.shift();
+        const params = new URLSearchParams({
+          q: `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          fields: 'files(id)',
+          pageSize: '100',
+          key: API_KEY
+        });
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+        const { files = [] } = await res.json();
+        files.forEach(f => {
+          if (!all.has(f.id)) {
+            all.add(f.id);
+            queue.push(f.id);
+          }
+        });
+      }
+      folderIds = Array.from(all);
+    }
+
+    // 單一資料夾檔名搜尋
+    async function searchInFolder(folderId, term) {
+      const q = [
+        `'${folderId}' in parents`,
+        `trashed=false`,
+        `mimeType!='application/vnd.google-apps.folder'`,
+        `name contains '${term}'`
+      ].join(' and ');
+      const params = new URLSearchParams({
+        q,
+        fields: 'files(id,name,webViewLink)',
+        pageSize: '100',
+        key: API_KEY
+      });
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+      const { files = [] } = await res.json();
+      return files;
+    }
+
+    // 搜尋並合併去重
+    async function doSearch() {
+      const term = inputEl.value.trim();
+      if (!term) {
+        resultsEl.innerHTML = '';
+        return;
+      }
+      resultsEl.innerHTML = '<li>🔄 搜尋中…</li>';
+      try {
+        const nested = await Promise.all(
+          folderIds.map(fid => searchInFolder(fid, term))
+        );
+        const all = nested.flat();
+        const seen = new Set();
+        const results = all.filter(f => {
+          if (seen.has(f.id)) return false;
+          seen.add(f.id);
+          return true;
+        });
+
+        if (!results.length) {
+          resultsEl.innerHTML = '<li>🔍 無符合檔案</li>';
+        } else {
+          resultsEl.innerHTML = results.map(f => {
+            const icon = getIconPath(f.name);
+            return `
+              <li>
+                <img src="${icon}" alt="" />
+                <a href="${f.webViewLink}" target="_blank">${f.name}</a>
+              </li>`;
+          }).join('');
+        }
+      } catch (err) {
+        resultsEl.innerHTML = `<li class="error">錯誤：${err.message}</li>`;
+      }
+    }
+
+    // 初始化
+    (async () => {
+      await loadAllFolderIds();
+      inputEl.disabled = false;
+      btn.textContent = '搜尋';
+      btn.disabled = false;
+      btn.addEventListener('click', doSearch);
+    })();
+  </script>
+</body>
+</html>

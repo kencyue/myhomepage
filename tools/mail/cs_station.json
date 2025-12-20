@@ -1,0 +1,317 @@
+[
+  {
+    "區域": "基隆",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "王志文 8227",
+      "mail": "wang.jrwen@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "東區",
+    "處長": {
+      "name": "曾進昌 8205",
+      "mail": "tseng.chinchang@tw.panasonic.com"
+    },
+    "經理": {
+      "name": "丁主諭 8206",
+      "mail": "ting.chuyu@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "盧炳良 8207",
+      "mail": "lu.biliang@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "北區",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "陳凱傑 8247",
+      "mail": "chen.kaichieh@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "三重",
+    "處長": "",
+    "經理": {
+      "name": "張瑋榮 8236",
+      "mail": "chang.weizone@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "陳金龍8237",
+      "mail": "chen.chinlung@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "宜蘭",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "陳慶鴻 8397",
+      "mail": "chen.chinghung01@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "花蓮",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "蔡清榮 8387",
+      "mail": "tsai.chingjung@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "西區",
+    "處長": "",
+    "經理": {
+      "name": "黃添財 8256",
+      "mail": "huang.tiehtsai@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "謝明哲 8257",
+      "mail": "hsieh.mingche@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "中和",
+    "處長": "",
+    "經理": {
+      "name": "張宏達 8276",
+      "mail": "chang.hongda@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "鄭國輝 8277",
+      "mail": "cheng.kuohui@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "金門",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "黃耿徹 8297",
+      "mail": "huang.kengche@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "",
+      "mail": ""
+    }
+  },
+  {
+    "區域": "桃園",
+    "處長": "",
+    "經理": {
+      "name": "陳和平 8336",
+      "mail": "chen.hoping@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "謝祥汶 8337",
+      "mail": "hsieh.hsiangwen@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "中壢",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "林俊明 8317",
+      "mail": "ling.chunming@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "新竹",
+    "處長": "",
+    "經理": {
+      "name": "謝啟東 8356",
+      "mail": "hsieh.chitung@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "洪俊男 8357",
+      "mail": "hung.chunnan@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "苗栗",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "陳照炎 8377",
+      "mail": "chen.chaoyen@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "台中",
+    "處長": {
+      "name": "劉士毅 8405",
+      "mail": "liu.shihyi@tw.panasonic.com"
+    },
+    "經理": {
+      "name": "張仕政 8406",
+      "mail": "chang.shihcheng@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "陳建元 8407",
+      "mail": "chen.chienyuan@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "清水",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "林哲賢 8457",
+      "mail": "lin.tzahsien@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "豐原",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "葉忠佳 8447",
+      "mail": "yeh.chungchia@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "彰化",
+    "處長": "",
+    "經理": {
+      "name": "楊振隆 8476",
+      "mail": "yang.cl@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "歐哲均 8477",
+      "mail": "ou.chechun@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "草屯",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "吳明峯 8497",
+      "mail": "wu.mingfong@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "",
+      "mail": ""
+    }
+  },
+  {
+    "區域": "嘉義",
+    "處長": "",
+    "經理": {
+      "name": "曾浚祥 8566",
+      "mail": "tseng.chiyih@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "林郁喬 8567",
+      "mail": "lin.yuchiao@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "虎尾",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "鄭洲 8257",
+      "mail": "cheng.chou@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "新營",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "林見男 8667",
+      "mail": "lin.chn@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "台南",
+    "處長": "",
+    "經理": {
+      "name": "沈泉辰 8626",
+      "mail": "shen.chiuanchen@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "林柏翰 8627",
+      "mail": "lin.bohan@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "高北",
+    "處長": {
+      "name": "洪清柳 8705",
+      "mail": "hung.chingliu@tw.panasonic.com"
+    },
+    "經理": {
+      "name": "盧安皇 8706",
+      "mail": "lu.anhung@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "黃瀚德 8707",
+      "mail": "huang.hante@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "高南",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "林柏憲 8737",
+      "mail": "lin.boxian@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "岡山",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "蔡振泰 8767",
+      "mail": "cai.zhentai@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "澎湖",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "王明清 8697",
+      "mail": "wang.mingching@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "屏東",
+    "處長": "",
+    "經理": {
+      "name": "林家德 8976",
+      "mail": "lin.jigde@tw.panasonic.com"
+    },
+    "站長": {
+      "name": "郭廷垣 8977",
+      "mail": "guo.tinghuan@tw.panasonic.com"
+    }
+  },
+  {
+    "區域": "台東",
+    "處長": "",
+    "經理": "",
+    "站長": {
+      "name": "王宗文 8997",
+      "mail": "wang.tsungwen@tw.panasonic.com"
+    }
+  }
+]

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>風速 ➜ 風量換算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow">
+    <h1 class="text-xl font-bold text-center mb-4">風速轉風量計算</h1>
+
+    <!-- 形狀 -->
+    <label class="block mb-2 font-medium">管道形狀</label>
+    <select id="shape" class="w-full p-2 border rounded mb-4">
+      <option value="round">圓管</option>
+      <option value="rect">方管</option>
+    </select>
+
+    <!-- 圓管 -->
+    <div id="roundBox" class="mb-4">
+      <label class="block mb-1 font-medium">直徑</label>
+      <div class="flex gap-2">
+        <input id="diameter" type="number" class="w-1/2 p-2 border rounded" placeholder="數值">
+        <select id="dUnit" class="w-1/2 p-2 border rounded">
+          <option value="mm">毫米（mm）</option>
+          <option value="cm">公分（cm）</option>
+          <option value="m">公尺（m）</option>
+          <option value="inch">英吋（inch）</option>
+          <option value="ft">英尺（ft）</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 方管 -->
+    <div id="rectBox" class="mb-4 hidden">
+      <label class="block mb-1 font-medium">長 × 寬</label>
+      <div class="flex gap-2 mb-2">
+        <input id="length" type="number" class="w-1/2 p-2 border rounded" placeholder="長">
+        <input id="width"  type="number" class="w-1/2 p-2 border rounded" placeholder="寬">
+      </div>
+      <select id="rectUnit" class="w-full p-2 border rounded">
+        <option value="mm">毫米（mm）</option>
+        <option value="cm">公分（cm）</option>
+        <option value="m">公尺（m）</option>
+        <option value="inch">英吋（inch）</option>
+        <option value="ft">英尺（ft）</option>
+      </select>
+    </div>
+
+    <!-- 風速 -->
+    <label class="block mb-1 font-medium">風速</label>
+    <div class="flex gap-2 mb-4">
+      <input id="velocity" type="number" class="w-1/2 p-2 border rounded" placeholder="數值">
+      <select id="vUnit" class="w-1/2 p-2 border rounded">
+        <option value="m/s">公尺/秒（m/s）</option>
+        <option value="ft/s">英尺/秒（ft/s）</option>
+      </select>
+    </div>
+
+    <button onclick="calc()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">計算</button>
+
+    <!-- 結果 -->
+    <div id="out" class="mt-6 text-center text-lg font-semibold text-green-700"></div>
+    <pre id="formula" class="mt-4 text-sm text-gray-600 whitespace-pre-wrap"></pre>
+  </div>
+
+<script>
+const shape = document.getElementById('shape');
+const roundBox = document.getElementById('roundBox');
+const rectBox  = document.getElementById('rectBox');
+const out = document.getElementById('out');
+const formula = document.getElementById('formula');
+
+shape.addEventListener('change', () => {
+  const isRound = shape.value === 'round';
+  roundBox.classList.toggle('hidden', !isRound);
+  rectBox.classList.toggle('hidden', isRound);
+});
+
+const format = (n,d=2)=>n.toFixed(d).replace(/\.0+$/, '').replace(/(\.\d+?)0+$/, '$1');
+const toMeter = (v,u)=>({mm:v/1000,cm:v/100,m:v,inch:v*0.0254,ft:v*0.3048}[u]);
+const toMps   = (v,u)=>u==='ft/s'?v*0.3048:v;
+
+function calc(){
+  const v  = parseFloat(document.getElementById('velocity').value);
+  const vu = document.getElementById('vUnit').value;
+  if(isNaN(v)){alert('請輸入風速');return;}
+  const V = toMps(v,vu);
+
+  let A=0,Atext='';
+  if(shape.value==='round'){
+    const d=parseFloat(document.getElementById('diameter').value);
+    const du=document.getElementById('dUnit').value;
+    if(isNaN(d)){alert('請輸入直徑');return;}
+    const dm=toMeter(d,du);
+    A=Math.PI*Math.pow(dm/2,2);
+    Atext=`π×(${format(dm,4)}÷2)² = ${format(A,6)} m²`;
+  }else{
+    const l=parseFloat(document.getElementById('length').value);
+    const w=parseFloat(document.getElementById('width').value);
+    const ru=document.getElementById('rectUnit').value;
+    if(isNaN(l)||isNaN(w)){alert('請輸入長與寬');return;}
+    const lm=toMeter(l,ru), wm=toMeter(w,ru);
+    A=lm*wm;
+    Atext=`${format(lm,4)}×${format(wm,4)} = ${format(A,6)} m²`;
+  }
+
+  const m3s=V*A, CMM=m3s*60, CMH=m3s*3600;
+
+  out.innerHTML=`風量：<br>📏 <b>${format(CMM)} m³/min</b><br>📏 <b>${format(CMH)} m³/h</b>`;
+  formula.textContent=
+`計算式：
+  風速 = ${format(V,4)} m/s
+  面積 A = ${Atext}
+  流量 = ${format(V,4)}×${format(A,6)} = ${format(m3s,4)} m³/s
+  CMM = ${format(m3s,4)}×60 = ${format(CMM)} m³/min
+  CMH = ${format(m3s,4)}×3600 = ${format(CMH)} m³/h`;
+}
+</script>
+</body>
+</html>

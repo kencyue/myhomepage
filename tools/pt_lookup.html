@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>冷媒飽和 PT 速查(錶壓力)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+<!-- 卡片 -->
+<div class="w-full max-w-sm bg-white shadow-md rounded-xl p-6 space-y-4">
+  <h2 class="text-xl font-bold text-center">冷媒飽和 PT 速查(錶壓力)</h2>
+
+  <!-- 冷媒選擇 -->
+  <div>
+    <label class="block mb-1 text-sm font-medium">冷媒種類</label>
+    <select id="refrig" class="w-full border rounded px-2 py-2">
+      <option value="R32">R32</option>
+      <option value="R410A">R410A(尚未建檔)</option>
+      <option value="R134a">R134a</option>
+      <option value="R600a">R600a</option>
+      <option value="R290">R290(尚未建檔)</option>
+      <option value="R22">R22(尚未建檔)</option>
+    </select>
+  </div>
+
+  <!-- 輸入列（並排） -->
+  <div class="flex gap-2">
+    <input id="inVal" type="number" step="any"
+           class="flex-1 min-w-0 border rounded px-3 py-2"
+           placeholder="輸入數值">
+    <select id="inUnit" class="w-28 border rounded px-2 py-2">
+      <option value="psig">psig</option>
+      <option value="barg">barg</option>
+      <option value="kg">kg/cm²G</option>
+      <option value="C">°C
+        </option>
+    </select>
+  </div>
+
+  <!-- 結果 -->
+  <div id="result" class="space-y-1 text-lg text-center"></div>
+
+  <!-- 狀態 -->
+  <p id="status" class="text-center text-sm text-gray-500"></p>
+</div>
+
+<script>
+/* --- 單位轉換常數 --- */
+const psi2bar = 0.0689476, bar2psi = 1 / psi2bar;
+const bar2kg  = 1.019716 , kg2bar  = 1 / bar2kg;
+
+/* --- 全域變數與檔案對應 --- */
+let PT = [];         // 目前冷媒之 [{T,barg,psig}]
+const files = {
+  R32   : 'R32.csv',
+  R410A : 'R410A.csv',
+  R134a : 'R134a.csv',
+  R600a : 'R600a.csv'
+};
+
+/* --- 載入並解析 CSV --- */
+async function loadCSV(ref) {
+  const status = document.getElementById('status');
+  const result = document.getElementById('result');
+  status.textContent = `正在載入 ${ref}.csv ...`;
+  PT = [];
+  try {
+    const txt = await (await fetch(files[ref])).text();
+    PT = txt.trim().split(/\r?\n/).slice(1)           // 去標題列
+      .map(l => {
+        const [T, barg, psig] = l.split(',').map(Number);
+        return { T, barg, psig };
+      })
+      .filter(d => !isNaN(d.T) && !isNaN(d.barg) && !isNaN(d.psig))
+      .sort((a, b) => a.T - b.T);
+
+    if (!PT.length) {
+      status.textContent = '⚠ PT資料庫尚未建立';
+      result.innerHTML   = '<span class="text-red-600">PT資料庫尚未建立</span>';
+      return;
+    }
+
+    status.textContent = `✓ 已載入 ${ref}.csv`;
+    calc();                                       // 載入成功先算一次
+  } catch (e) {
+    status.textContent = '⚠ 讀檔失敗';
+    result.innerHTML   = '<span class="text-red-600">PT資料庫尚未建立</span>';
+  }
+}
+
+/* --- 線性內插 --- */
+function interp(x, x1, y1, x2, y2) {
+  return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+}
+function interpArr(x, key) {                      // key = 'T' | 'barg'
+  if (!PT.length || x < PT[0][key] || x > PT.at(-1)[key]) return null;
+  for (let i = 1; i < PT.length; i++) {
+    if (x <= PT[i][key]) {
+      const a = PT[i - 1], b = PT[i];
+      return {
+        T   : interp(x, a[key], a.T   , b[key], b.T),
+        barg: interp(x, a[key], a.barg, b[key], b.barg),
+        psig: interp(x, a[key], a.psig, b[key], b.psig)
+      };
+    }
+  }
+}
+
+/* --- 主計算 --- */
+function calc() {
+  const v = parseFloat(document.getElementById('inVal').value);
+  const u = document.getElementById('inUnit').value;
+  const box = document.getElementById('result');
+
+  if (isNaN(v)) { box.innerHTML = ''; return; }
+  if (!PT.length) {
+    box.innerHTML = '<span class="text-red-600">PT資料庫尚未建立</span>';
+    return;
+  }
+
+  let out = null;
+  if (u === 'C') {                               // 已知溫度
+    out = interpArr(v, 'T');
+  } else {                                       // 已知壓力
+    let barg = v;
+    if (u === 'psig') barg = v * psi2bar;
+    if (u === 'kg')   barg = v * kg2bar;
+    out = interpArr(barg, 'barg');
+  }
+
+  if (!out) {
+    box.innerHTML = '<span class="text-red-600">超出資料範圍</span>';
+    return;
+  }
+
+  box.innerHTML = `
+    <div>溫度：<span class="font-semibold">${out.T.toFixed(1)} °C</span></div>
+    <div>壓力：<span class="font-semibold">${out.psig.toFixed(1)} psig</span></div>
+    <div>　　　<span class="font-semibold">${out.barg.toFixed(2)} barg</span></div>
+    <div>　　　<span class="font-semibold">${(out.barg * bar2kg).toFixed(2)} kg/cm²G</span></div>`;
+}
+
+/* --- 監聽 --- */
+['input', 'change'].forEach(ev => {
+  document.getElementById('inVal') .addEventListener(ev, calc);
+  document.getElementById('inUnit').addEventListener(ev, calc);
+});
+document.getElementById('refrig').addEventListener('change',
+  e => loadCSV(e.target.value));
+
+/* --- 初始載入（預設 R32） --- */
+loadCSV('R32');
+</script>
+</body>
+</html>

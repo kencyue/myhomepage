@@ -1,0 +1,2533 @@
+{
+  "lastUpdated": "2025-06-29T15:41:47.205Z",
+  "folderIds": [
+    "1WH9mlAZ0Xen-dsYi8gmjUMZaBeyNaHB7",
+    "1yS85eTaJpUzpV1Qn2pRrTimhaDeef5Iw",
+    "10ouJHmPuHUtjSnwqYl4vdUlx9vL6wf2h",
+    "1oTDiyu0LV1Yr-YnsDyPRye5q5o4XBWAV",
+    "1Pc9uVRH9NpQxFEWLjBn55Yvdplg4bBno",
+    "1z9g9P8M0WBlfM7-yFOU7PZtfmUsq4V5m",
+    "13A2iAj7wNIhlhXyw6QN274dnSvEs6-iM",
+    "1afZIjcuGhTzp9uA0w9RB9eVauNuy2oXW",
+    "1sOycNwgP8GD4WK_S0dFZ_W3V_TbPyZ1Y",
+    "1wA0JUAXeHmiKCMXyLHNcpmoJdxdPMh02",
+    "1QSKpE3eXn2b80wge51onobVrOu3oeo-g",
+    "1XBVglI3SomfmT9-62uwZnHe4h72sYECg"
+  ],
+  "files": [
+    {
+      "id": "11bOqrhM7c8BPJ1zvY3PeweIKDqKw78xT",
+      "name": "智慧定位.ppt",
+      "webViewLink": "https://docs.google.com/presentation/d/11bOqrhM7c8BPJ1zvY3PeweIKDqKw78xT/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "10Dc6eIXKJS7_02ktRHGIPMHp5LfwsIca",
+      "name": "全熱CZ-T003控制0523.pdf",
+      "webViewLink": "https://drive.google.com/file/d/10Dc6eIXKJS7_02ktRHGIPMHp5LfwsIca/view?usp=drivesdk",
+      "description": "全熱RS485"
+    },
+    {
+      "id": "1SwnP05SFevJwpRHVw1bFJfI_DEqkd8lK",
+      "name": "CZ-T003 485通信協定.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1SwnP05SFevJwpRHVw1bFJfI_DEqkd8lK/view?usp=drivesdk",
+      "description": "全熱RS485"
+    },
+    {
+      "id": "1Ub4ditsMqWHg0p78-x1F7mhdtikkSDRV",
+      "name": "2020日立家用技術簡易手冊.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Ub4ditsMqWHg0p78-x1F7mhdtikkSDRV/view?usp=drivesdk",
+      "description": "2020日立小冊子"
+    },
+    {
+      "id": "1dubCSW8xtIN0k5FAt7pPOZXcol_A2lCi",
+      "name": "CZ-T003安裝說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1dubCSW8xtIN0k5FAt7pPOZXcol_A2lCi/view?usp=drivesdk",
+      "description": "全熱交換器訊號轉換器安裝說明書"
+    },
+    {
+      "id": "1LXEaRcn4c-Y7gtzke8-9nf1V-QpaGMMc",
+      "name": "CZ-T003使用說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1LXEaRcn4c-Y7gtzke8-9nf1V-QpaGMMc/view?usp=drivesdk",
+      "description": "全熱交換器訊號轉換器使用說明書"
+    },
+    {
+      "id": "1znAV_4B_bpYUF3E4SVr9yGc2D7GtcXhb",
+      "name": "F-P50HH說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1znAV_4B_bpYUF3E4SVr9yGc2D7GtcXhb/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "17G_QnBIsdwfe2RplJWFUK93NCPq3eY9L",
+      "name": "F-S14KM_0_H_26550.pdf",
+      "webViewLink": "https://drive.google.com/file/d/17G_QnBIsdwfe2RplJWFUK93NCPq3eY9L/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "14uy59508ppY3J_wHlcBNosUcbkSRSwfM",
+      "name": "F-E10HMD_0_H_26740.pdf",
+      "webViewLink": "https://drive.google.com/file/d/14uy59508ppY3J_wHlcBNosUcbkSRSwfM/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1hZjZxaxeQsyiJARgE83P4l6665tUat0B",
+      "name": "CZ-RD806A安裝說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1hZjZxaxeQsyiJARgE83P4l6665tUat0B/view?usp=drivesdk",
+      "description": "八房控制器安裝說明書"
+    },
+    {
+      "id": "1bQBmmJ-8ESmGpXYKKnor7B-BOKiwDJ9l",
+      "name": "FV-40BD1W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1bQBmmJ-8ESmGpXYKKnor7B-BOKiwDJ9l/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1nzK2cgf9r1xdOJi6g7dqiIvfyIy0OhKT",
+      "name": "F-Y32GH.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1nzK2cgf9r1xdOJi6g7dqiIvfyIy0OhKT/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1gMUWOuNv9kiA5m94f1ucnnHEpQQ2jY1e",
+      "name": "CZ-RD803A.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gMUWOuNv9kiA5m94f1ucnnHEpQQ2jY1e/view?usp=drivesdk",
+      "description": "冷氣機有線遙控器說明書"
+    },
+    {
+      "id": "1HLIMwvMAqwdmyCJRmCzIc_QOu5MhwbLO",
+      "name": "1KZY1W853Taiwan-ZY1W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1HLIMwvMAqwdmyCJRmCzIc_QOu5MhwbLO/view?usp=drivesdk",
+      "description": "全熱交換器ZY型說明書"
+    },
+    {
+      "id": "17BAMAVdQ3vZ9-nwRDA6lYAIK9drIc9z5",
+      "name": "F-Y20JH系.pdf",
+      "webViewLink": "https://drive.google.com/file/d/17BAMAVdQ3vZ9-nwRDA6lYAIK9drIc9z5/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1z-mlP693zJXCHfA8bemJbniMHV5kCFDH",
+      "name": "除溼機FY-GX系列.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1z-mlP693zJXCHfA8bemJbniMHV5kCFDH/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1_g7wSlrygHOduzKnSMp-wCbQPS1skAjT",
+      "name": "FV-15CSN1R.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1_g7wSlrygHOduzKnSMp-wCbQPS1skAjT/view?usp=drivesdk",
+      "description": "安裝說明書"
+    },
+    {
+      "id": "18k6MUfCIA5t8nYvct9Ia8EUEAryWzvrL",
+      "name": "FV-40BE3WW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/18k6MUfCIA5t8nYvct9Ia8EUEAryWzvrL/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "13CbuFItByapSOGTJeWd8zT4ydTsofqA3",
+      "name": "FV-40BEN4W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/13CbuFItByapSOGTJeWd8zT4ydTsofqA3/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1IuIVhhsx2Nvj-hcXalDIPzdJvuYA-NGU",
+      "name": "FV-30BY1W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1IuIVhhsx2Nvj-hcXalDIPzdJvuYA-NGU/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1NkgOyhZ1zYaav3-wOwd6tD2boUBzqKkh",
+      "name": "F-YV28NH說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1NkgOyhZ1zYaav3-wOwd6tD2boUBzqKkh/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1yqdbZN8vxhIc0Nj4Q47zei8yWQhBFGhm",
+      "name": "F-Y12EB.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1yqdbZN8vxhIc0Nj4Q47zei8yWQhBFGhm/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1BKWwcOiVYfAigrxot6xAfEPLNKMvIIqa",
+      "name": "F-Y22EN.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1BKWwcOiVYfAigrxot6xAfEPLNKMvIIqa/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1hiWGwRr4qUruYK4jPnbpW5m_zcH3R2gP",
+      "name": "F-P40LH(系).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1hiWGwRr4qUruYK4jPnbpW5m_zcH3R2gP/view?usp=drivesdk",
+      "description": "服務手冊"
+    },
+    {
+      "id": "108MROmpHwRto-Bcz2uefp680UIdUIaBz",
+      "name": "F-Y20-26EH_r0.pdf",
+      "webViewLink": "https://drive.google.com/file/d/108MROmpHwRto-Bcz2uefp680UIdUIaBz/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1sYB3mJ0WuQwNIe2bsoaP_dkEuf_DUzMB",
+      "name": "CZ-T012安裝說明書_r1.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1sYB3mJ0WuQwNIe2bsoaP_dkEuf_DUzMB/view?usp=drivesdk",
+      "description": "全熱交換器wifi模組說明書"
+    },
+    {
+      "id": "144c2Bml1rqixCM8QCYiPQ2VgkKDJ4vNA",
+      "name": "F-PXT7W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/144c2Bml1rqixCM8QCYiPQ2VgkKDJ4vNA/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1LV12ZRAblVQ39cXlJFhv-3AitowCUMG5",
+      "name": "FY-DZ1AW系列(含PM2.5系列).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1LV12ZRAblVQ39cXlJFhv-3AitowCUMG5/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1WymSjsmzl9VfKfRiCUYIDwjPQoxVdnp-",
+      "name": "FY-EB90SRSW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WymSjsmzl9VfKfRiCUYIDwjPQoxVdnp-/view?usp=drivesdk",
+      "description": "全熱交AC型液晶控制器說明書"
+    },
+    {
+      "id": "1pPyWmYyfROU5dFO4CGfUreAYnhZQZI4L",
+      "name": "FY-E15DZ1AW_E15PMAW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pPyWmYyfROU5dFO4CGfUreAYnhZQZI4L/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1y9B5K3RPQ8rqhw2pPQe5umLClVxCpunH",
+      "name": "F-YV32LX系.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1y9B5K3RPQ8rqhw2pPQe5umLClVxCpunH/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1JhZkbCqV62wsU9nYLBWhD7hNkICCwIWF",
+      "name": "RS15ZDP1W853.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1JhZkbCqV62wsU9nYLBWhD7hNkICCwIWF/view?usp=drivesdk",
+      "description": "全熱交換器RS485設備說明書"
+    },
+    {
+      "id": "1rH75m4UXl0G14fXJRsdFdoe7B7Exi3wx",
+      "name": "SW15ZY1WTaiwan-液晶控制器.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1rH75m4UXl0G14fXJRsdFdoe7B7Exi3wx/view?usp=drivesdk",
+      "description": "全熱交換器ZY型液晶控制器說明書"
+    },
+    {
+      "id": "1WbpTTVxLFu4Qugte0wO-QiVSHpdHzYs2",
+      "name": "F-JPU2525W ziaino.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WbpTTVxLFu4Qugte0wO-QiVSHpdHzYs2/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1bY1UcLK68VbbOqx4sMc3sgEMTX9By0V3",
+      "name": "F-H1416LXD-K 說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1bY1UcLK68VbbOqx4sMc3sgEMTX9By0V3/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "1n5INVGpAxmW1oQpbJMhFDq7py4PqWQlx",
+      "name": "F-YD36LX系_C8042-0941_r2.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1n5INVGpAxmW1oQpbJMhFDq7py4PqWQlx/view?usp=drivesdk",
+      "description": "F-YD64LX F-YD36LX 隱藏式除濕機說明書"
+    },
+    {
+      "id": "1qYb9RBS7LfK8jk-D3jwKuIqMflNiuNLQ",
+      "name": "F-P50.60LH.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1qYb9RBS7LfK8jk-D3jwKuIqMflNiuNLQ/view?usp=drivesdk",
+      "description": "說明書"
+    },
+    {
+      "id": "12MrMAXDJS4SW45Jau8dQ73bmmLuj1rAw",
+      "name": "F-P40EH.pdf",
+      "webViewLink": "https://drive.google.com/file/d/12MrMAXDJS4SW45Jau8dQ73bmmLuj1rAw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ehcAoesHJb259iBaR5B3P6DW6orNaCxg",
+      "name": "F-JPU25W(FINAL).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ehcAoesHJb259iBaR5B3P6DW6orNaCxg/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1nlQ6CNXgPoyBC2FLbb7j-jDhFtsl8SUq",
+      "name": "F-P40LH.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1nlQ6CNXgPoyBC2FLbb7j-jDhFtsl8SUq/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1jUcv83jKYk8kspooQTzjEhS6svcpFPOs",
+      "name": "F-VXP70W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1jUcv83jKYk8kspooQTzjEhS6svcpFPOs/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1H5yDsO4Rd4mbHc1A31PLJ16AYZdMJn27",
+      "name": "FV-30BU1R.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1H5yDsO4Rd4mbHc1A31PLJ16AYZdMJn27/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1sYsaxocXEx1ft79yE_s7kMW29oDx-Lwa",
+      "name": "FV-30BU3R.FV-30BU3W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1sYsaxocXEx1ft79yE_s7kMW29oDx-Lwa/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1vpb5wFHfB9kFl5Zgiif4yryKHCFBy1FG",
+      "name": "FV-40BE4W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1vpb5wFHfB9kFl5Zgiif4yryKHCFBy1FG/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1lWcl-iOx4qO0QMO71kL4zfL6iLp3dfMk",
+      "name": "FV-40BF2W.FV-40BF2R.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1lWcl-iOx4qO0QMO71kL4zfL6iLp3dfMk/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "14JQfI5fFlFxY5-mnPcVBbz-n8OBtIIUw",
+      "name": "FV-40BE3WW-已解鎖.pdf",
+      "webViewLink": "https://drive.google.com/file/d/14JQfI5fFlFxY5-mnPcVBbz-n8OBtIIUw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1N4dF3ZRDoNHbg3hcnQqnEqfCUi2RKVHo",
+      "name": "FV-30BD1R(W)說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1N4dF3ZRDoNHbg3hcnQqnEqfCUi2RKVHo/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1nBc_ZqhnAXiyLGY_FY17g-tq4qd-PbyV",
+      "name": "FV-30BDY1R(W)說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1nBc_ZqhnAXiyLGY_FY17g-tq4qd-PbyV/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "16YVbgCng7Yjs34Otvh6IPoR_Kszy5viE",
+      "name": "F-Y12ES.PDF",
+      "webViewLink": "https://drive.google.com/file/d/16YVbgCng7Yjs34Otvh6IPoR_Kszy5viE/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-Z8UM22gUL0SNehnF84p0O2giE1t3QKm",
+      "name": "CZ-T015說明書230118.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1-Z8UM22gUL0SNehnF84p0O2giE1t3QKm/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "17MNGT4Ssulqx2kBcu-449POThiqszwsp",
+      "name": "F-Y908MW-200708.pdf",
+      "webViewLink": "https://drive.google.com/file/d/17MNGT4Ssulqx2kBcu-449POThiqszwsp/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1pjOxQ0eq6yznU5B3n3OnY9xkM1ys4snB",
+      "name": "FV-24JR2W.FV-24JA2W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pjOxQ0eq6yznU5B3n3OnY9xkM1ys4snB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1T0bdoJxjh_Fx-zAJ-9eYsRPC0JviZ5bI",
+      "name": "F-S16LMD.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1T0bdoJxjh_Fx-zAJ-9eYsRPC0JviZ5bI/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "14XAA6Lizn1iI6C6tl5JhVsOhB7xeeDtB",
+      "name": "CZ-T007說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/14XAA6Lizn1iI6C6tl5JhVsOhB7xeeDtB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15MVXeCAYOZjjCaXoQjYQh4oJggEHCk-L",
+      "name": "OI-FVXK70W_201901_T_Chinese_tgREZGzmq0.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15MVXeCAYOZjjCaXoQjYQh4oJggEHCk-L/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1WKUwOjedeljN-TluEnY7UdhdhtS78FKU",
+      "name": "F-JPU25W_依頼6_20210721_質問 提出.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WKUwOjedeljN-TluEnY7UdhdhtS78FKU/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-EitTcN9aIS1_cV2isSJXfjqGpfFL0iE",
+      "name": "F-YZJ90W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1-EitTcN9aIS1_cV2isSJXfjqGpfFL0iE/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1RTd-3QHo1J6CbZjZ0C5oDBlI1xIiRJXL",
+      "name": "F-P25.40LH說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1RTd-3QHo1J6CbZjZ0C5oDBlI1xIiRJXL/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1poOiJDGhVpKWk6wz10zTLJ6RltrjiqxJ",
+      "name": "F-YZD10W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1poOiJDGhVpKWk6wz10zTLJ6RltrjiqxJ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1QruWrG_KGyEj7pKOlHSXhnZ2fCW9cUTp",
+      "name": "CS-UX室外機說明書(高能效).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QruWrG_KGyEj7pKOlHSXhnZ2fCW9cUTp/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1sNpeU506w52EsCaSQgG_juYw4xgZGGry",
+      "name": "CS-UX室外機說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1sNpeU506w52EsCaSQgG_juYw4xgZGGry/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1dc032ySYjeW_If0DlMjI1C-v9ORh4v17",
+      "name": "CU-UX室外機說明書(3077_H_27206).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1dc032ySYjeW_If0DlMjI1C-v9ORh4v17/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1lm3yF18MJTiAI5U1Sr3_RW3-l2GwCBsH",
+      "name": "F-YV32.36.40.MH.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1lm3yF18MJTiAI5U1Sr3_RW3-l2GwCBsH/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gYxQhavyiJXQqrerMt2UjCp69FW8N3WD",
+      "name": "PX高效能.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gYxQhavyiJXQqrerMt2UjCp69FW8N3WD/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Xgfni4wwtTclCmtVzvFyZs1SztGoUXD8",
+      "name": "CZ-RD802HA.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Xgfni4wwtTclCmtVzvFyZs1SztGoUXD8/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "19fiEi6HixKIcz-WnmzVO5rB6f4nwjiCq",
+      "name": "2020_C8041-3332(ECN20-033-B45)GX系列說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/19fiEi6HixKIcz-WnmzVO5rB6f4nwjiCq/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kQ2PAzmhxvLmaNnn0YlkATjW_a19XWTw",
+      "name": "2020_OPERATION MANUAL（F-Y20JH系）：C8041-3570_r2.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kQ2PAzmhxvLmaNnn0YlkATjW_a19XWTw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1E2wTR9A2G5NYBsFzv7w6XC1DPehpMnZ9",
+      "name": "嵌入型四方吹.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1E2wTR9A2G5NYBsFzv7w6XC1DPehpMnZ9/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1K4CBVLolhRE_RTp9zrAFHJuzW7mRM09w",
+      "name": "FV-30BUY3R安裝使用說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1K4CBVLolhRE_RTp9zrAFHJuzW7mRM09w/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1PrG1b_duuOOSwsY9__3kB5S5NOgKZ3ku",
+      "name": "F-VXK70W說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1PrG1b_duuOOSwsY9__3kB5S5NOgKZ3ku/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1XYAEOo4IajPYAnUE2Yy0O5GzW_Wc2uAL",
+      "name": "F-VXP70W說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1XYAEOo4IajPYAnUE2Yy0O5GzW_Wc2uAL/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1mdb5HJ-19D76RT1eW5FbVE_1ySkfMuEP",
+      "name": "FV-40BE2W oi.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1mdb5HJ-19D76RT1eW5FbVE_1ySkfMuEP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "12FOELDx52wqvHmiJP3QGQRCoUwYDaiy_",
+      "name": "FV-47CZ1R.pdf",
+      "webViewLink": "https://drive.google.com/file/d/12FOELDx52wqvHmiJP3QGQRCoUwYDaiy_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "13oeCUdZ0FvKorM4408YgeArBdbd2ZZz1",
+      "name": "FY-大風量ERV.pdf",
+      "webViewLink": "https://drive.google.com/file/d/13oeCUdZ0FvKorM4408YgeArBdbd2ZZz1/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1QE4E4oba8HxkbvFBpNN-lHD_rEKxLFFL",
+      "name": "2016_C8041-2121(F-Y20DHW系)_20161102_r1.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QE4E4oba8HxkbvFBpNN-lHD_rEKxLFFL/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1oZQgAIRlTLyEGHeqf-ZHqWHK9E-w5Ow9",
+      "name": "F-VP70W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1oZQgAIRlTLyEGHeqf-ZHqWHK9E-w5Ow9/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1yOMuLij1wp7D1JWQ94z8losxubQAE3R3",
+      "name": "PX冷氣說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1yOMuLij1wp7D1JWQ94z8losxubQAE3R3/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1VbsxPwtLjypHAQIT6Q7EaXRBnYyGL9qG",
+      "name": "2020_F-Y20JH(系)_服務手冊_r1_201113.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1VbsxPwtLjypHAQIT6Q7EaXRBnYyGL9qG/view?usp=drivesdk",
+      "description": "服務手冊"
+    },
+    {
+      "id": "1dg5te1SsVRMumqpE6ux7j1udTPMg-H_q",
+      "name": "FV-40BE2W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1dg5te1SsVRMumqpE6ux7j1udTPMg-H_q/view?usp=drivesdk",
+      "description": "服務手冊"
+    },
+    {
+      "id": "1UOwEPDx_jPt4pAtWy0okemNPKviu82-r",
+      "name": "FD-A4861-PTW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1UOwEPDx_jPt4pAtWy0okemNPKviu82-r/view?usp=drivesdk",
+      "description": "服務手冊"
+    },
+    {
+      "id": "13dwckchJGO05CZ3FITUmEqMf2g4f8kEP",
+      "name": "F-H16MR服務手冊.pdf",
+      "webViewLink": "https://drive.google.com/file/d/13dwckchJGO05CZ3FITUmEqMf2g4f8kEP/view?usp=drivesdk",
+      "description": "服務手冊"
+    },
+    {
+      "id": "13UpYoG7k1W_ObfODG2zvMq9KzznsT_wn",
+      "name": "F-H14EXD服務手冊.pdf",
+      "webViewLink": "https://drive.google.com/file/d/13UpYoG7k1W_ObfODG2zvMq9KzznsT_wn/view?usp=drivesdk",
+      "description": "服務手冊"
+    },
+    {
+      "id": "1JwKPdxGrHoIaz5bqHwe5KJQPtBuj5O4A",
+      "name": "FV-40BF2R.FV-40BF2W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1JwKPdxGrHoIaz5bqHwe5KJQPtBuj5O4A/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1E8BexHCJ8pB1wzWA68DGTR-PGh4lm4d_",
+      "name": "FV-40BF2W.FV-40BF2R.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1E8BexHCJ8pB1wzWA68DGTR-PGh4lm4d_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1vNWzvUQ7ibYSD5T-FOJp-yPMRtTiKfzw",
+      "name": "F-E10HMD-服務手冊20210412.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1vNWzvUQ7ibYSD5T-FOJp-yPMRtTiKfzw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1fhn9hCXPE6IQZpay4PVUDuF6vXZrn2sH",
+      "name": "台松F-P50HH維修服務手冊20210409.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1fhn9hCXPE6IQZpay4PVUDuF6vXZrn2sH/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1fPs01eULmZaB4oux6pq_u-6LsJMnQePL",
+      "name": "F-PXT70W Service Manual.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1fPs01eULmZaB4oux6pq_u-6LsJMnQePL/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "18jNQeb1mC_UpwHSz0BxIhg_W049-_Mn-",
+      "name": "F-Y32GH_服務手冊-200928.pdf",
+      "webViewLink": "https://drive.google.com/file/d/18jNQeb1mC_UpwHSz0BxIhg_W049-_Mn-/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "16nd2xWqR7AEtC9z7nqFmKqJyF75KaR_-",
+      "name": "F-S14KM_r1.pdf",
+      "webViewLink": "https://drive.google.com/file/d/16nd2xWqR7AEtC9z7nqFmKqJyF75KaR_-/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1UsK5XrfUDSAczZhJMesfdBuTGQJzNvpV",
+      "name": "服務維修手冊FD-A6681-PTW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1UsK5XrfUDSAczZhJMesfdBuTGQJzNvpV/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1RzD3EFJn9egrMNnZezBrEcm1eO-k3j8R",
+      "name": "服務維修手冊FD-A7591-PTW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1RzD3EFJn9egrMNnZezBrEcm1eO-k3j8R/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1o9g9cKP46deSNVy4rVeQRpGbIy9_4NsB",
+      "name": "FV-T2281_維修服務手冊-PTW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1o9g9cKP46deSNVy4rVeQRpGbIy9_4NsB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1YWzF70_RRvPBh8-Ps0AFVHmjs1z7eF6l",
+      "name": "FV-H1681_1691_維修服務手冊-PTW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1YWzF70_RRvPBh8-Ps0AFVHmjs1z7eF6l/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1FCv6wJvWSlN6nHh7HjlEXGFxjqDCU4tu",
+      "name": "台灣向業務用全熱交換器維修手冊.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1FCv6wJvWSlN6nHh7HjlEXGFxjqDCU4tu/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1tZvp0tgbpShrCJHvQfSM1EBG2vifeR60",
+      "name": "2018_FV-40BD1W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1tZvp0tgbpShrCJHvQfSM1EBG2vifeR60/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1SNJkXayPqWydSARHWVMqMA9oPD6_iufO",
+      "name": "台湾向业务用全热交换器维修手册.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1SNJkXayPqWydSARHWVMqMA9oPD6_iufO/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1zVCkVhrJIAWplpPv-vl9zQwpHh1CGCwu",
+      "name": "F-PXM35W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1zVCkVhrJIAWplpPv-vl9zQwpHh1CGCwu/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kIDYoGf86Nxo2snVJVGjC1zhkjBEZERH",
+      "name": "F-Y24-45GX系_服務手冊.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kIDYoGf86Nxo2snVJVGjC1zhkjBEZERH/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1lq93hxL1FthR5l_aQfXSkmfp3vJBTSGz",
+      "name": "C8041-3332(ECN20-033-B45)GX系列說明書.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1lq93hxL1FthR5l_aQfXSkmfp3vJBTSGz/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1_vsd1dmfvIUu-PygBoV0Ag16OkjQD3gZ",
+      "name": "F-H14MR_F-H16MR_OI.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1_vsd1dmfvIUu-PygBoV0Ag16OkjQD3gZ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15XDKFN2QicyelzG9HfRLp1hSZdW1YQ6d",
+      "name": "F-H14GND服務手冊_20190515.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15XDKFN2QicyelzG9HfRLp1hSZdW1YQ6d/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1svJKN-OXrVdoZjYfvNnv-XvrIg2zHvet",
+      "name": "FY-800ZDY3W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1svJKN-OXrVdoZjYfvNnv-XvrIg2zHvet/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1DmuOGG4SrK1aZ0awfYs9kSS5ESRmRmJh",
+      "name": "FY-E15DZ1AW.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1DmuOGG4SrK1aZ0awfYs9kSS5ESRmRmJh/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1mwarFwGbzGPDcGbqujeyeczjeRL_L9eb",
+      "name": "FV-47CZ1R(SM).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1mwarFwGbzGPDcGbqujeyeczjeRL_L9eb/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1vaInQs0ZkmyJF08sogP1z70iM4QzIXUA",
+      "name": "fv-47cz1r.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1vaInQs0ZkmyJF08sogP1z70iM4QzIXUA/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1WDYuMXWua_6ZUzYVL-beLLjMoRL636rl",
+      "name": "FV-40BU1R_1W,FV-40BUY1R_1W.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WDYuMXWua_6ZUzYVL-beLLjMoRL636rl/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1fgkrc4OEPt-mooNaprR2t0hiifWOlgit",
+      "name": "FV-40BE3W.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1fgkrc4OEPt-mooNaprR2t0hiifWOlgit/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1oH0v7hwE-bi_eWJAajaNTJjw6ZD7590K",
+      "name": "FV-40BD2W.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1oH0v7hwE-bi_eWJAajaNTJjw6ZD7590K/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1yXDCBLbptydjoZO2jVwEIcdWvWa_byfh",
+      "name": "QS對策通報FY-113002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1yXDCBLbptydjoZO2jVwEIcdWvWa_byfh/view?usp=drivesdk",
+      "description": "變頻除溼機LX系列不定時故障代碼15"
+    },
+    {
+      "id": "1MJ7_rnJcBRbkeV9Qrk9ezIph7vjkuac0",
+      "name": "QS對策通報NF-109001ver2.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1MJ7_rnJcBRbkeV9Qrk9ezIph7vjkuac0/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1YkVKjXQu6XD1BchIg3zHr4LCGGHdcMUK",
+      "name": "QS對策通報NF-109001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1YkVKjXQu6XD1BchIg3zHr4LCGGHdcMUK/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1QuTZBMnp4RYTyQsPe1ZSxK42kcQMDGab",
+      "name": "QS對策通報NF-109002ver2.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1QuTZBMnp4RYTyQsPe1ZSxK42kcQMDGab/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1nLpbq79gJF6B5n8C-Q_mx3O4OKc9_bBn",
+      "name": "QS對策通報NF-109002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1nLpbq79gJF6B5n8C-Q_mx3O4OKc9_bBn/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1t5TOdZTGRwoJNHuK_ugnJgnKqfJPrt_r",
+      "name": "QS對策通報FY-113003 MH除溼機運轉24小時關機後當機.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1t5TOdZTGRwoJNHuK_ugnJgnKqfJPrt_r/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1zYl00QA9R2p6WQiPEEDl2hrS1RcEr4zm",
+      "name": "QS對策通報FY-110001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1zYl00QA9R2p6WQiPEEDl2hrS1RcEr4zm/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1h2dRNfRMCPDA0JTRV-61R5-VMfH5PNAP",
+      "name": "QS對策通報FY-112001 JH.FH系列除溼機一插電壓縮機即異常啟動.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1h2dRNfRMCPDA0JTRV-61R5-VMfH5PNAP/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1jRt73K1xCM9UlyqFKgMP4nPI6P3j92LJ",
+      "name": "QS對策通報FY-111001old.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1jRt73K1xCM9UlyqFKgMP4nPI6P3j92LJ/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1b866fWNGGyK1vWAQFWCZYo1EQVcWC2Mf",
+      "name": "QS對策通報FY-111001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1b866fWNGGyK1vWAQFWCZYo1EQVcWC2Mf/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1QVkZG2wdEryJNQoPxEsdQOZMQxL0Exz4",
+      "name": "QS對策通報FY-113003 MH除溼機運轉24小時關機後當機.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QVkZG2wdEryJNQoPxEsdQOZMQxL0Exz4/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1VsfiMHJJ587yJYuEq9bB6zm6bRTNwdZp",
+      "name": "QS對策通報FY-111002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1VsfiMHJJ587yJYuEq9bB6zm6bRTNwdZp/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1pHeMHS4tYlK6BywzxtZF4TzGTPB0U6Pl",
+      "name": "QS對策通報FY-111003 F-Y16EN 追加電木片 - 複製.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1pHeMHS4tYlK6BywzxtZF4TzGTPB0U6Pl/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1Gbp18fw2IPoJzZFSKv6J5-54NeVzFDVB",
+      "name": "QS對策通報FY-113001變頻除溼機LX系列不定時故障代碼15.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Gbp18fw2IPoJzZFSKv6J5-54NeVzFDVB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1f_Ha00uR1htF2dcc8gLcK_PdcQxGwcZg",
+      "name": "QS對策通報FY-109002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1f_Ha00uR1htF2dcc8gLcK_PdcQxGwcZg/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1rkEBS0XlJ-segcZbizczD5L7ZciRzWJG",
+      "name": "QS對策通報FY-109001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1rkEBS0XlJ-segcZbizczD5L7ZciRzWJG/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1kh8tXWWx3CM1RgDtcJGiuERVAhlYMrEC",
+      "name": "QS對策通報FY-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kh8tXWWx3CM1RgDtcJGiuERVAhlYMrEC/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ylWzFQ2GM_W6wmJ-cJldxy4AMQHcFl2U",
+      "name": "QS對策通報FA-113002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1ylWzFQ2GM_W6wmJ-cJldxy4AMQHcFl2U/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1FoKtkEswpbZ-oqi33urzoMVXwVMQshET",
+      "name": "QS對策通報FA-112001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1FoKtkEswpbZ-oqi33urzoMVXwVMQshET/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1ps2p_5ZuVeQHaCnnp1qLJUn6DETYtPkX",
+      "name": "QS對策通報FA-113001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1ps2p_5ZuVeQHaCnnp1qLJUn6DETYtPkX/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1xEsfAf05ZKF0uceCHb60SkWiaQcM9vbY",
+      "name": "QS對策通報FA-111001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1xEsfAf05ZKF0uceCHb60SkWiaQcM9vbY/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1f15E1Aclsj1Xy9IsMeKiLqN-anrbRDH3",
+      "name": "QS對策通報FA-112002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1f15E1Aclsj1Xy9IsMeKiLqN-anrbRDH3/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1EeoyLoqnWUD9TLi4Zp-B5B2_aiYJUqOm",
+      "name": "QS對策通報FA-113001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1EeoyLoqnWUD9TLi4Zp-B5B2_aiYJUqOm/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1WKzYVkUObeMB88DZNslx3TU43MoHSZb-",
+      "name": "QS對策通報FA-113002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WKzYVkUObeMB88DZNslx3TU43MoHSZb-/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1bgYYv7JPRfnmRjnVTmKPuWhzP6X-_0ls",
+      "name": "QS對策通報FY-112001 一插電壓縮機即異常啟動.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1bgYYv7JPRfnmRjnVTmKPuWhzP6X-_0ls/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "13-TaZiHoazmmNtkK8haCI2j0yr1OXaYc",
+      "name": "QS對策通報FY-111002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/13-TaZiHoazmmNtkK8haCI2j0yr1OXaYc/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1AMwzF43yDwlOEaaOg4TAL1mT6UMLUyN1",
+      "name": "QS對策通報FA-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1AMwzF43yDwlOEaaOg4TAL1mT6UMLUyN1/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1HTnM6tS_89Azb_hFihtLXvrXOiiqzGRP",
+      "name": "QS對策通報FA-112002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1HTnM6tS_89Azb_hFihtLXvrXOiiqzGRP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1OrRRH4MvkquxUDjZ2Ex_AMz8Z_54z2Rm",
+      "name": "QS對策通報FY-111003 F-Y16EN 追加電木片.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1OrRRH4MvkquxUDjZ2Ex_AMz8Z_54z2Rm/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1u0zFXxQwo568LvwDkae9SAX9FumxxjAr",
+      "name": "FY-111003 F-Y20JH共振聲大.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1u0zFXxQwo568LvwDkae9SAX9FumxxjAr/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1wdy2d1YrS2bATwXdoSdOD9zq6YmiaFOv",
+      "name": "FY-111002 除濕機水箱裂.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1wdy2d1YrS2bATwXdoSdOD9zq6YmiaFOv/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1vKe-qhbXBGxI-LXX-Me4BdQ3PEluYgb3",
+      "name": "QS對策通報FA-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1vKe-qhbXBGxI-LXX-Me4BdQ3PEluYgb3/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1V8kUz0iihwEVRA_Rfl50ycIjf-8CViPk",
+      "name": "QS對策通報FY-110001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1V8kUz0iihwEVRA_Rfl50ycIjf-8CViPk/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1JXAABAATtg4UZBtxYskvQe3QaTtO3LCE",
+      "name": "QS對策通報NF-109002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1JXAABAATtg4UZBtxYskvQe3QaTtO3LCE/view?usp=drivesdk",
+      "description": "F-H14EXD,F-H16EXD"
+    },
+    {
+      "id": "1ihRGcHzniTnEGbJvExapSXgyIyDya8_P",
+      "name": "QS對策通報NF-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ihRGcHzniTnEGbJvExapSXgyIyDya8_P/view?usp=drivesdk",
+      "description": "F-H14EXD,F-H16EXD"
+    },
+    {
+      "id": "1LnP8IAQNt5KV6mBQjtVHcJT5l2PQQW3r",
+      "name": "QS對策通報FY-109002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1LnP8IAQNt5KV6mBQjtVHcJT5l2PQQW3r/view?usp=drivesdk",
+      "description": "F-Y16FH,F-Y20FH,F-Y26FH"
+    },
+    {
+      "id": "1VH7nXMu_BE5SQ9vbsFK8NdV1dK03uWDG",
+      "name": "QS對策通報FY-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1VH7nXMu_BE5SQ9vbsFK8NdV1dK03uWDG/view?usp=drivesdk",
+      "description": "F-Y16EN"
+    },
+    {
+      "id": "1oq4XoBaooMoahVxqxiCNc_YhwRHOx4fN",
+      "name": "QS對策通報FL-108001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1oq4XoBaooMoahVxqxiCNc_YhwRHOx4fN/view?usp=drivesdk",
+      "description": "f-s12dmd,f-s14dmd,f-s16dmd,f-l12cmd,f-l14dmd,f-l16dmd,f-l12cmd,f-l14cmd,f-l16cmd"
+    },
+    {
+      "id": "1kH5psO_5uSVriCTfzTnro5x5u6U2nv9y",
+      "name": "QS對策通報FY-108003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kH5psO_5uSVriCTfzTnro5x5u6U2nv9y/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1vZL8XclrF9joRGMdBArDsS2CvP5y7A1Q",
+      "name": "QS技術通報CO-112002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1vZL8XclrF9joRGMdBArDsS2CvP5y7A1Q/view?usp=drivesdk",
+      "description": "隱藏式超薄型SX系列室內機故障代碼H21"
+    },
+    {
+      "id": "1edxe4iiLzA0tXxgwJRM23O7UaZV92XuN",
+      "name": "QS技術通報F-109002 除濕機按運轉時無法開機(但傾倒時會亮檢查燈).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1edxe4iiLzA0tXxgwJRM23O7UaZV92XuN/view?usp=drivesdk",
+      "description": "除濕機當機無法操作"
+    },
+    {
+      "id": "1RJDl15V-gb1QmQ5UpmfqxLs7EJqnL8lJ",
+      "name": "QS技術通報FV-111001 FY-30BY1WW射頻對碼(非紅外線).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1RJDl15V-gb1QmQ5UpmfqxLs7EJqnL8lJ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1UqZtV5anCc3jAivfzfqHR59fh9HpuOtq",
+      "name": "QS技術通報FV-112001 F-1全熱濾網清潔提醒.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1UqZtV5anCc3jAivfzfqHR59fh9HpuOtq/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ozYiLPUu48llZcKNFQ_3t-kdhugK5v_b",
+      "name": "QS技術通報CO-112003 八房控制器線控不同步.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ozYiLPUu48llZcKNFQ_3t-kdhugK5v_b/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "19hOlPQVhSz5Cb_lhXnbhhC19CPIWJx3u",
+      "name": "QS技術通報FV-112002DC型全熱交換器使用切換開關配線無法控制機器的啟動停止.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/19hOlPQVhSz5Cb_lhXnbhhC19CPIWJx3u/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1VMmB7bZcXM1_Ggn--0lUCSSXc2nMbg-H",
+      "name": "QS技術通報FV-110001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1VMmB7bZcXM1_Ggn--0lUCSSXc2nMbg-H/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "142uHdKWWxgAl-HsHbjoy6tsiM6Iinf9e",
+      "name": "台灣市場浴霸遙控耗電過快回復報告.pdf",
+      "webViewLink": "https://drive.google.com/file/d/142uHdKWWxgAl-HsHbjoy6tsiM6Iinf9e/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1yvYo2PKPiAHbnYycNsZb_PzaTi7zzgfv",
+      "name": "QS技術通報FY-111001c.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1yvYo2PKPiAHbnYycNsZb_PzaTi7zzgfv/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1f-vsyUAiypUIEFcZGFI5XZSdRgpeDCyp",
+      "name": "QS技術通報FY-111004.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1f-vsyUAiypUIEFcZGFI5XZSdRgpeDCyp/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1oXMNJzumjyyBviEwT614YG6sHxFxBw5j",
+      "name": "QS技術通報FY-112003 SAA5轉4轉接線.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1oXMNJzumjyyBviEwT614YG6sHxFxBw5j/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1Jxu6hbc9UegizV_oRD1LzKLfyZLiUFta",
+      "name": "QS技術通報FY-112002 Smart APP耗電量顯示異常.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Jxu6hbc9UegizV_oRD1LzKLfyZLiUFta/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1nExUWHH6yjVoyok-gfPPowgMZ43LOyrh",
+      "name": "QS技術通報FY-113001 連網家電無法連網卡在C6.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1nExUWHH6yjVoyok-gfPPowgMZ43LOyrh/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Gn41A-1x-UBC0MiuvHlIV3MGAHOgo_jJ",
+      "name": "QS技術通報FY-112001變頻除溼機運轉時出風口扣~扣~聲.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Gn41A-1x-UBC0MiuvHlIV3MGAHOgo_jJ/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1Lm5WHvq5a4k1XbCW6hcpqVVxOcrHDnLd",
+      "name": "QS技術通報FY-113001 中華電信全屋通路由器設定.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Lm5WHvq5a4k1XbCW6hcpqVVxOcrHDnLd/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1O2BXqk4i3S9ooPlKed8kZkqfA2jtBe6r",
+      "name": "QS技術通報FY-113002 除溼機故障代碼新增17.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1O2BXqk4i3S9ooPlKed8kZkqfA2jtBe6r/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1XaZ5pmMnJAiiYzjdk-ezIvJlwnMZNWvU",
+      "name": "QS技術通報FY-110003.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1XaZ5pmMnJAiiYzjdk-ezIvJlwnMZNWvU/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1I9YubF-qzYcrKfU2OyAaX3CkG3IXK8PF",
+      "name": "QS技術通報F-109001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1I9YubF-qzYcrKfU2OyAaX3CkG3IXK8PF/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1-hiNlFHWSZqu_6DBPXV8dt3dhnsWQB34",
+      "name": "QS技術通報FY-111002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1-hiNlFHWSZqu_6DBPXV8dt3dhnsWQB34/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1zvWOUtPF90vAk-oCNNZwjdm2iZ8sa7P5",
+      "name": "QS技術通報FY-110001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1zvWOUtPF90vAk-oCNNZwjdm2iZ8sa7P5/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1Hhq03LDcJZy7Nv20pD0XgBzNEr92FXpY",
+      "name": "QS技術通報FY-111006 變頻除溼機智慧節能模式壓縮機啟停條件 - 複製.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Hhq03LDcJZy7Nv20pD0XgBzNEr92FXpY/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1TkshgkWS3yfVRhtNsdNwmVa3apkS9Jwi",
+      "name": "QS技術通報FY-111004M.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1TkshgkWS3yfVRhtNsdNwmVa3apkS9Jwi/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "15Fn-BvJmFoRfs_oEdWnjokzHHfgZnJzk",
+      "name": "QS技術通報FY-111005 活性碳濾網表面有白色晶體生成物.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/15Fn-BvJmFoRfs_oEdWnjokzHHfgZnJzk/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "13wT5ABd2bSPmY2dyLouuIQZ3j6-Qy45W",
+      "name": "QS技術通報FY-111003.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/13wT5ABd2bSPmY2dyLouuIQZ3j6-Qy45W/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1Q2l461n4woYBNkJhpPqXWvNvUOm8uSA5",
+      "name": "QS技術通報FY-110002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Q2l461n4woYBNkJhpPqXWvNvUOm8uSA5/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1mvC4KUpDTWl7cQP3KFA_Zq-fMAhxtLiC",
+      "name": "QS技術通報FY-111001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1mvC4KUpDTWl7cQP3KFA_Zq-fMAhxtLiC/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1m6-Tp5sFjsxsNCbTV98CTleGX6clcIyM",
+      "name": "QS技術通報FY-109002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1m6-Tp5sFjsxsNCbTV98CTleGX6clcIyM/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1hpMxsXBKDF5rxNvvN-VXXuH-r9Xe-57U",
+      "name": "QS技術通報FY-109001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1hpMxsXBKDF5rxNvvN-VXXuH-r9Xe-57U/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1C67ObhQmLi4nHvXIgabpLMFD6H7Ym0ZK",
+      "name": "QS技術通報FY-112003 SAA5轉4轉接線.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1C67ObhQmLi4nHvXIgabpLMFD6H7Ym0ZK/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1l65BxJb_O3om7z2yCrjIUFY8TBzPqnb_",
+      "name": "QS技術通報FY-113002 除溼機故障代碼新增17.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1l65BxJb_O3om7z2yCrjIUFY8TBzPqnb_/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1cb9ZhTtdqTk90ut5iAL0ORgugnXdrtkV",
+      "name": "QS技術通報FY-113003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1cb9ZhTtdqTk90ut5iAL0ORgugnXdrtkV/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1P0VAcv61LGApcBRmAe1o345mbwI3BYEJ",
+      "name": "QS技術通報FV-114001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1P0VAcv61LGApcBRmAe1o345mbwI3BYEJ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1SjK-EgrpjsRy-DixzNfEtuFXH5xi07Zm",
+      "name": "QS技術通報FA-111002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1SjK-EgrpjsRy-DixzNfEtuFXH5xi07Zm/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "16RjHhkQ_yyRUC0CY7nIjyK6iowafvXiL",
+      "name": "QS技術通報FA-112001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/16RjHhkQ_yyRUC0CY7nIjyK6iowafvXiL/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1_C9p_TwLTV-JHDwiBx-cn1F0SAxJqVQw",
+      "name": "QS技術通報FA-110002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1_C9p_TwLTV-JHDwiBx-cn1F0SAxJqVQw/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1DI1AMC0Z4WWrcHWwEOpRp-IF1cCFRCjP",
+      "name": "QS技術通報FA-111001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1DI1AMC0Z4WWrcHWwEOpRp-IF1cCFRCjP/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1pcjJZxKNPprFikI9n5__06L2TguGNTML",
+      "name": "QS技術通報FA-110001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1pcjJZxKNPprFikI9n5__06L2TguGNTML/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1PLVWtdxnHZEr3TOUyfrehfITmWqtc3ul",
+      "name": "QS技術通報FY-112003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1PLVWtdxnHZEr3TOUyfrehfITmWqtc3ul/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1qz5jrhpcHuPNxw6aAI_voF3sIEk1p3bh",
+      "name": "QS技術通報CO-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1qz5jrhpcHuPNxw6aAI_voF3sIEk1p3bh/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1RcVKVywZ34R3_5s_BRraCJSuLBIoSG0G",
+      "name": "QS技術通報FY-112002 Smart APP耗電量顯示異常.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1RcVKVywZ34R3_5s_BRraCJSuLBIoSG0G/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1qnFB1M7zF5l9fMYbiqD923ymQse3YNsk",
+      "name": "QS技術通報NF-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1qnFB1M7zF5l9fMYbiqD923ymQse3YNsk/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1cGMdm179lhpGy-o8wWyDhV2a99_QM1tx",
+      "name": "QS技術通報FY-112001變頻除溼機運轉時出風口扣~扣~聲.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1cGMdm179lhpGy-o8wWyDhV2a99_QM1tx/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1wd7UaUaWu4W2RTafW-NDqcyy1jTGflBs",
+      "name": "QS技術通報FV-112002DC型全熱交換器使用切換開關配線無法控制機器的啟動停止.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1wd7UaUaWu4W2RTafW-NDqcyy1jTGflBs/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1rYO2UHPijvm57MWkHPABaWIlg-vFAkd6",
+      "name": "QS技術通報FA-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1rYO2UHPijvm57MWkHPABaWIlg-vFAkd6/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1IzX3b8ueowtgIpHu7tCrRJH8YMFvwPpJ",
+      "name": "QS技術通報FY-111006 變頻除溼機智慧節能模式壓縮機啟停條件.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1IzX3b8ueowtgIpHu7tCrRJH8YMFvwPpJ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1JhpWBlG210FrTAUeeHu-pKaQjWX9WJWx",
+      "name": "QS技術通報FY-111003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1JhpWBlG210FrTAUeeHu-pKaQjWX9WJWx/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1cyhao5NlM93TxJ_LvNSIupeR8JgR0j0K",
+      "name": "QS技術通報FY-111004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1cyhao5NlM93TxJ_LvNSIupeR8JgR0j0K/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-jClyWNZ2zDbBI8P5LlxR4PKk1SYxLEB",
+      "name": "QS技術通報FY-111005 活性碳濾網表面有白色晶體生成物.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1-jClyWNZ2zDbBI8P5LlxR4PKk1SYxLEB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ms0_jTPNfC2dcArxoCZ8ApRHlpg3u5ri",
+      "name": "QS技術通報FV-111002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ms0_jTPNfC2dcArxoCZ8ApRHlpg3u5ri/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1cFWlfPxR5FOK2caVoWdtBwPbWlwWht7p",
+      "name": "QS技術通報FY-111002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1cFWlfPxR5FOK2caVoWdtBwPbWlwWht7p/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1IKmnmPhcAc-RTA0Hc1e6qjICYCX0iNkD",
+      "name": "QS技術通報FA-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1IKmnmPhcAc-RTA0Hc1e6qjICYCX0iNkD/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "12BP34RAkb_UZaVeGWde7McssmFDbU4hq",
+      "name": "QS技術通報FY-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/12BP34RAkb_UZaVeGWde7McssmFDbU4hq/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1zwI_0IxjD-Tfw8O6qMtR6zLzRfNan4p3",
+      "name": "QS技術通報FY-110003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1zwI_0IxjD-Tfw8O6qMtR6zLzRfNan4p3/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1yYs3JstIe7AEwh4-iK-4Xm1L94gocscn",
+      "name": "QS技術通報FY-110002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1yYs3JstIe7AEwh4-iK-4Xm1L94gocscn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1AgDPJhIpd6gogpF4DqQ_hI-lnjCLk6eA",
+      "name": "QS技術通報FA-110002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1AgDPJhIpd6gogpF4DqQ_hI-lnjCLk6eA/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "19OM6VtuQxKqZ87uZ2I8eEKph494aK7kj",
+      "name": "QS技術通報FV-110001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/19OM6VtuQxKqZ87uZ2I8eEKph494aK7kj/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1aS5H-ZY8f22Ar69bSZn4Qk9JU4JbIN2Z",
+      "name": "QS技術通報FA-110001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1aS5H-ZY8f22Ar69bSZn4Qk9JU4JbIN2Z/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1QbgCDHl9ZqNPnk64Mz7MrfmxTJx7YLip",
+      "name": "QS技術通報FY-110001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QbgCDHl9ZqNPnk64Mz7MrfmxTJx7YLip/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15MgdeJg5EZUQgQbD94tXV2IOPmvZvmPB",
+      "name": "QS對策通報FY-108003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15MgdeJg5EZUQgQbD94tXV2IOPmvZvmPB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15PKeMGd4vCdDZKzPD6NA_o3VtZDyLtpw",
+      "name": "QS技術通報F-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15PKeMGd4vCdDZKzPD6NA_o3VtZDyLtpw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ZWDD9-BkhbGX87uPrYJ2flb_2b_b6lSS",
+      "name": "QS補充版95001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ZWDD9-BkhbGX87uPrYJ2flb_2b_b6lSS/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1jlKNnXs1sUK7p7D_oGAoGkW-rfJ-q17r",
+      "name": "CU-45XHA2對策.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1jlKNnXs1sUK7p7D_oGAoGkW-rfJ-q17r/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "11SkOFsbDZYIvkskZeM0GQJNOZfkwOS6Y",
+      "name": "作業連絡書(95TC-043CU-38YHA電源部結線不良).doc",
+      "webViewLink": "https://docs.google.com/document/d/11SkOFsbDZYIvkskZeM0GQJNOZfkwOS6Y/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "142VlH_Q1X_lSNcnXqKpQIc-FeVRgc5_e",
+      "name": "CS-56XHA2不遙控對策.doc",
+      "webViewLink": "https://docs.google.com/document/d/142VlH_Q1X_lSNcnXqKpQIc-FeVRgc5_e/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1MCwdnPhOONOf-o2k4Dd8_dkrubUlhnKw",
+      "name": "95TC-021冷氣摔碰傷.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1MCwdnPhOONOf-o2k4Dd8_dkrubUlhnKw/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1-Clwbc3WB_7UShyjnCxhvSMPcJ56eD6M",
+      "name": "M40XC2冷媒音對策.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1-Clwbc3WB_7UShyjnCxhvSMPcJ56eD6M/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1VxuZJdXWY7ePRt0BAEKenLW6G2rs-iSn",
+      "name": "QS補充版94001.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1VxuZJdXWY7ePRt0BAEKenLW6G2rs-iSn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Ys2w180POl-cEpvFVz72hAOBpxiVcyrT",
+      "name": "94TC-042-050523.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Ys2w180POl-cEpvFVz72hAOBpxiVcyrT/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1hh0_cvPuRK-Cl5gqmsmmlttZSNYTnA8A",
+      "name": "CU-25,36VCO2服務通報.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1hh0_cvPuRK-Cl5gqmsmmlttZSNYTnA8A/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-322uOCb-ALzj3NvzkNAf4paL0FAkQNs",
+      "name": "91TC-033.doc",
+      "webViewLink": "https://docs.google.com/document/d/1-322uOCb-ALzj3NvzkNAf4paL0FAkQNs/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1uyC-Uwc66HMChzmeJtT0OuIbD3SGBDer",
+      "name": "膨脹音對策32.doc",
+      "webViewLink": "https://docs.google.com/document/d/1uyC-Uwc66HMChzmeJtT0OuIbD3SGBDer/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "176qiOROonB_3XFcAXiQT9ExpjaM8HCp5",
+      "name": "CS-20系膨脹音.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/176qiOROonB_3XFcAXiQT9ExpjaM8HCp5/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1BO3Md-o9xtZma9n9ugtqCfQdfWrFEfrY",
+      "name": "QS對策通報FA-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1BO3Md-o9xtZma9n9ugtqCfQdfWrFEfrY/view?usp=drivesdk",
+      "description": "F-P50HH異味燈號顯示異常"
+    },
+    {
+      "id": "11MqQtf1HHA5XBbjsj2Pxd4lqaO0nJbmn",
+      "name": "QS對策通報FY-111002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/11MqQtf1HHA5XBbjsj2Pxd4lqaO0nJbmn/view?usp=drivesdk",
+      "description": "除溼機JH,GX系列水箱破裂"
+    },
+    {
+      "id": "1UUUvWKJJUz7W3TIGYwSxIoytpjxb9Qfq",
+      "name": "QS對策通報FA-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1UUUvWKJJUz7W3TIGYwSxIoytpjxb9Qfq/view?usp=drivesdk",
+      "description": "F-PXT70W nanoe閃爍"
+    },
+    {
+      "id": "1hC04hxcM5v1rieHpHt0tOVm9z_d5IleI",
+      "name": "QS對策通報CO-114001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1hC04hxcM5v1rieHpHt0tOVm9z_d5IleI/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": "CS-UX71以上機種面板上升不順"
+    },
+    {
+      "id": "1R2JKGAlWEoMAVRVViuWefvaOc6jCMwWX",
+      "name": "QS對策通報CO-111006.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1R2JKGAlWEoMAVRVViuWefvaOc6jCMwWX/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": "CS-RXJA異常關機"
+    },
+    {
+      "id": "1p8Jk0wXq10tf9cRz6WJFZR6pmRHrVRcZ",
+      "name": "QS對策通報FY-111003 .pdf",
+      "webViewLink": "https://drive.google.com/file/d/1p8Jk0wXq10tf9cRz6WJFZR6pmRHrVRcZ/view?usp=drivesdk",
+      "description": "F-Y16EN 追加電木片"
+    },
+    {
+      "id": "1_XX8GLGDMAXe-qq5_1xQdVi7xa40LuiI",
+      "name": "QS對策通報FY-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1_XX8GLGDMAXe-qq5_1xQdVi7xa40LuiI/view?usp=drivesdk",
+      "description": "除溼機一插電壓縮機即異常啟動"
+    },
+    {
+      "id": "1nzvI6g4u4zPIrcFsmQSJFAyz86dwIOjL",
+      "name": "QS對策通報CO-114001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1nzvI6g4u4zPIrcFsmQSJFAyz86dwIOjL/view?usp=drivesdk",
+      "description": "CS-UX71以上機種面板上升不順"
+    },
+    {
+      "id": "1_R63pMWIefithjzO20QsZCmMxaSLndHA",
+      "name": "QS對策通報CD-17001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1_R63pMWIefithjzO20QsZCmMxaSLndHA/view?usp=drivesdk",
+      "description": "F-Y24CXW共振聲大對策包處理"
+    },
+    {
+      "id": "1qJrQqzFZwUgfJ5tMtFNxSmQv0W-43knj",
+      "name": "QS對策通報CO-11001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1qJrQqzFZwUgfJ5tMtFNxSmQv0W-43knj/view?usp=drivesdk",
+      "description": "CS-G71CA2, CS-G71HA2遙控器接收距離變短(小於4m)"
+    },
+    {
+      "id": "1V-VPtgRE0b9GkBWG1iKnRUUzMZcZRw8-",
+      "name": "QS對策通報CO-11005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1V-VPtgRE0b9GkBWG1iKnRUUzMZcZRw8-/view?usp=drivesdk",
+      "description": "CU-C/E/G22HA2,C/E/G25HA2,C/G32HA2,C/G38HA2,C/G45HA2 F11"
+    },
+    {
+      "id": "1rBz3RtniTMppr22b83fdTNkflWFslkSg",
+      "name": "QS對策通報CO-11002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1rBz3RtniTMppr22b83fdTNkflWFslkSg/view?usp=drivesdk",
+      "description": " CU-GX20CA2,CU-GX25CA2壓縮機內部會出現(拉-拉-拉)異音及室內側有相同音質"
+    },
+    {
+      "id": "1k4PdiVrEuZEaUHhwLtSbI_wAgiMit9Pv",
+      "name": "QS對策通報CO-114003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1k4PdiVrEuZEaUHhwLtSbI_wAgiMit9Pv/view?usp=drivesdk",
+      "description": "窗型CW-R系列顯示溫度不準對策方法"
+    },
+    {
+      "id": "1rky9AHe74q39G7XM41TOlgngOtHL0hE1",
+      "name": "QS對策通報CO-11003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1rky9AHe74q39G7XM41TOlgngOtHL0hE1/view?usp=drivesdk",
+      "description": "CS-C22~63HA2/CA2 [99年製],CS-E系列室內機PCB板無電源"
+    },
+    {
+      "id": "1mWmQxDKvvTYaENu_WPHa6J0hVt6ixDdz",
+      "name": "QS對策通報CO-14001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1mWmQxDKvvTYaENu_WPHa6J0hVt6ixDdz/view?usp=drivesdk",
+      "description": "2014年7月份前生產之K28,J28以下機種F95"
+    },
+    {
+      "id": "1GofHrr3rFsKPhviJlvLUKBYVJ5MX_Epq",
+      "name": "QS對策通報CO_15001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1GofHrr3rFsKPhviJlvLUKBYVJ5MX_Epq/view?usp=drivesdk",
+      "description": "2014年7月份前生產之K28,J28以下機種F95"
+    },
+    {
+      "id": "1gy9BWTBerJIYpSeA_eLDZfKBEeNcTKuW",
+      "name": "QS對策通報CO-15003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gy9BWTBerJIYpSeA_eLDZfKBEeNcTKuW/view?usp=drivesdk",
+      "description": "2015年7月前生產LJ80/90,J80/90系列故障代碼F91"
+    },
+    {
+      "id": "1LJXVx56wwQ22jlGnEl8BTmCuP6lIFFY6",
+      "name": "(附件一)統一說詞.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1LJXVx56wwQ22jlGnEl8BTmCuP6lIFFY6/view?usp=drivesdk",
+      "description": "電風扇擺頭不良統一說詞"
+    },
+    {
+      "id": "1QPUv6OEtH1KAeJP-ZoLoNEfMtJ-nhRtp",
+      "name": "QS對策通報NF-105001_擺頭馬達(20161104補充).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QPUv6OEtH1KAeJP-ZoLoNEfMtJ-nhRtp/view?usp=drivesdk",
+      "description": "電風扇擺頭不良"
+    },
+    {
+      "id": "1AtaqFFPrEK3vE_cZALN3PPQkbJTRDEBc",
+      "name": "QS對策通報NF-105001_擺頭馬達.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1AtaqFFPrEK3vE_cZALN3PPQkbJTRDEBc/view?usp=drivesdk",
+      "description": "電風扇擺頭不良"
+    },
+    {
+      "id": "1WM64SBOTZ8a-hHA3tvsV0gJfI3Yjb5sF",
+      "name": "QS對策通報CO-99006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WM64SBOTZ8a-hHA3tvsV0gJfI3Yjb5sF/view?usp=drivesdk",
+      "description": "CU-BD70HA2,CU-BD81HA2,CU-BD85HA2,CU-CD61HA2,CU-CD81HA2,CU-CD85HA2 H11"
+    },
+    {
+      "id": "1umfQ6sTPcV6LBoVmnRhbqzEoGrJ65vC0",
+      "name": "QS對策通報CO-112002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1umfQ6sTPcV6LBoVmnRhbqzEoGrJ65vC0/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1FSv2o61KKGXPw-lzlHWy1pumI3etsAtw",
+      "name": "對策技術通報form.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1FSv2o61KKGXPw-lzlHWy1pumI3etsAtw/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1rebEz4HMUeLakPYl3fKVgTfGbg7J1oMA",
+      "name": "QS對策通報CO-112001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1rebEz4HMUeLakPYl3fKVgTfGbg7J1oMA/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1TBSpe_LbhMJXbSZQip-Zo8lakyoSTqwL",
+      "name": "QS對策通報CO-113002.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1TBSpe_LbhMJXbSZQip-Zo8lakyoSTqwL/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1-aHd7x-WGj3pl4d_272EDw_jTfRqYXwM",
+      "name": "對策通報CO-113001.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1-aHd7x-WGj3pl4d_272EDw_jTfRqYXwM/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1GsyAcdChoiE3Alp9v-6ogw5UxiJgE7mm",
+      "name": "通報CO-112003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1GsyAcdChoiE3Alp9v-6ogw5UxiJgE7mm/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1v0a0k5tXM3y7aiPeSTptRLMGC1c-ETYG",
+      "name": "QS對策通報CO-113002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1v0a0k5tXM3y7aiPeSTptRLMGC1c-ETYG/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1LtMZJ1i1wFaoz4vAg9wly7lbSBep828P",
+      "name": "對策通報CO-113001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1LtMZJ1i1wFaoz4vAg9wly7lbSBep828P/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1qALemRtpWjJOIhZXiRmdr2CvdCaQ60eb",
+      "name": "QS對策通報CO-112003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1qALemRtpWjJOIhZXiRmdr2CvdCaQ60eb/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1V4K7AGz3lLLUd7b095ofokm2juLaDlNj",
+      "name": "QS對策通報CO-112002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1V4K7AGz3lLLUd7b095ofokm2juLaDlNj/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1exnvtR8S57DrkFcvxLJro7yUof7iRdR1",
+      "name": "QS對策通報CO-111005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1exnvtR8S57DrkFcvxLJro7yUof7iRdR1/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ylAPXUgLa6Fc0aFiuuvLfZBefG2a_P9v",
+      "name": "QS對策通報CO-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ylAPXUgLa6Fc0aFiuuvLfZBefG2a_P9v/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1aiaSq1UmLUkx1wuoqaHoyoOxckDxDpnL",
+      "name": "QS對策通報CO-111002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1aiaSq1UmLUkx1wuoqaHoyoOxckDxDpnL/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gqg1SFDXVb83spVl-L7O-Jo97MbdirHn",
+      "name": "QS對策通報CO-111003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gqg1SFDXVb83spVl-L7O-Jo97MbdirHn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1xxjZw90KGmqrGdSs8O8DeuygzTw_xjW4",
+      "name": "QS對策通報CO-111004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1xxjZw90KGmqrGdSs8O8DeuygzTw_xjW4/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1tVX9MHWigDfzvWeXJ_Mh_9pI_9TmJu8z",
+      "name": "QS對策通報CO-111006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1tVX9MHWigDfzvWeXJ_Mh_9pI_9TmJu8z/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-MH_Wsyc810LLJjEN169NtLuFQJHlkZZ",
+      "name": "QS對策通報CO-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1-MH_Wsyc810LLJjEN169NtLuFQJHlkZZ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1LJjqna3IozUQYLOK3LDnP-GvFJxHygoP",
+      "name": "QS對策通報FA-112002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1LJjqna3IozUQYLOK3LDnP-GvFJxHygoP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1iPNhg1Dv_a-c-dqd7kyEwDdjx1Kf5UXZ",
+      "name": "QS對策通報FY-111001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1iPNhg1Dv_a-c-dqd7kyEwDdjx1Kf5UXZ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "12JveitctVqlE9Ngd6jol1n7ZvZfHQLqk",
+      "name": "QS對策通報FY-110001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/12JveitctVqlE9Ngd6jol1n7ZvZfHQLqk/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1VCNXBAEC08d-P6BsTibPRh2rgtxkOgvl",
+      "name": "QS對策通報CO-15002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1VCNXBAEC08d-P6BsTibPRh2rgtxkOgvl/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1854n1KyYxw8cB0xoSBjvhyFGmlaIRuqz",
+      "name": "QS對策通報CO-15004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1854n1KyYxw8cB0xoSBjvhyFGmlaIRuqz/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1GNHdpWRet_RusFSBsyqG4M8TuRPgGtiH",
+      "name": "QS對策通報CO-15005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1GNHdpWRet_RusFSBsyqG4M8TuRPgGtiH/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gF6nP85aK4VJa7D43fKNhLHF-AmeJtl_",
+      "name": "QS對策通報CO-106001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gF6nP85aK4VJa7D43fKNhLHF-AmeJtl_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1_LKPh5oHBeLffuWTM3pXt8qubps-Hu2W",
+      "name": "QS對策通報CO-106002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1_LKPh5oHBeLffuWTM3pXt8qubps-Hu2W/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1O2AXI1TpeGkFgPUI7m-LIPRnmxTO4ZeP",
+      "name": "QS對策通報CO-106003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1O2AXI1TpeGkFgPUI7m-LIPRnmxTO4ZeP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1pc1bR6p65wcymS5DeHAR2D6kj7voqI2p",
+      "name": "QS對策通報CO-106004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pc1bR6p65wcymS5DeHAR2D6kj7voqI2p/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1jlzElxe3CStRB8Rfldzcvpv2TNBWTdd_",
+      "name": "QS對策通報CO-107001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1jlzElxe3CStRB8Rfldzcvpv2TNBWTdd_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1fUOliLgqntsBsWsWDU94d4i-uvQb_Uyg",
+      "name": "QS對策通報CO-108001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1fUOliLgqntsBsWsWDU94d4i-uvQb_Uyg/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kuPth5jeneeL16lP8d6PhBlWBMs3n4zw",
+      "name": "QS技術通報CO-108014.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kuPth5jeneeL16lP8d6PhBlWBMs3n4zw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1828HXNJe9KIxkEY97oTlHInsjNCu4iJM",
+      "name": "QS對策通報CO-108002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1828HXNJe9KIxkEY97oTlHInsjNCu4iJM/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1yRHvMoPhMEenZjyJSYb37EtfqMKi1XsT",
+      "name": "QS對策通報CO-108004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1yRHvMoPhMEenZjyJSYb37EtfqMKi1XsT/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1oRBYtkzhQzCiWtaH2SjsN_CRlyUG2fg9",
+      "name": "QS對策通報CO-109002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1oRBYtkzhQzCiWtaH2SjsN_CRlyUG2fg9/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1di6OILnivNSahDx11wL6928Z_uo4GiEW",
+      "name": "QS對策通報CO-109004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1di6OILnivNSahDx11wL6928Z_uo4GiEW/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1NHNoZa2-MGw5Rx35a43UbajL8njRFIaB",
+      "name": "QS對策通報CO-109005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1NHNoZa2-MGw5Rx35a43UbajL8njRFIaB/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1KWV8Wmt44Iyo8XerXd6-WlM26h80Bv6E",
+      "name": "QS對策通報CO-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1KWV8Wmt44Iyo8XerXd6-WlM26h80Bv6E/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ERR-6B9MVQuV4exfUaIqFFK8AonIMRzT",
+      "name": "QS對策通報CO-109003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ERR-6B9MVQuV4exfUaIqFFK8AonIMRzT/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1bC--JDh5TKj9RZv53-jrqMBENo-n8pl9",
+      "name": "QS對策通報CO-109007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1bC--JDh5TKj9RZv53-jrqMBENo-n8pl9/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1pJ4iWt9HoHP-BH9h_9Kolcqg1rsLqMqn",
+      "name": "QS對策通報CO-108003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pJ4iWt9HoHP-BH9h_9Kolcqg1rsLqMqn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1EIh4iMCA2oGpfOypWIOBprp6bnE-jFbv",
+      "name": "QS對策通報CO-110006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1EIh4iMCA2oGpfOypWIOBprp6bnE-jFbv/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1d5Yc8IbQ8f1hgg66hCqQ0DMJmxiHyNjM",
+      "name": "QS對策通報NF-109002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1d5Yc8IbQ8f1hgg66hCqQ0DMJmxiHyNjM/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1sWN5-0fZSZdhcwOimeOq5HXpWKQjruL3",
+      "name": "QS對策通報NF-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1sWN5-0fZSZdhcwOimeOq5HXpWKQjruL3/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Tfvh7N4w-CDc6cGIJ6PVjoO2aLJvk5ep",
+      "name": "QS對策通報FY-108003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Tfvh7N4w-CDc6cGIJ6PVjoO2aLJvk5ep/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1oMuWX6Hu1T43Qgkf0gQG8bysrXJEDqol",
+      "name": "QS對策通報FL-108001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1oMuWX6Hu1T43Qgkf0gQG8bysrXJEDqol/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1yzbbSZKTa7c3RNpSyrRX2gZb9GJRYB3H",
+      "name": "QS對策通報FY-109002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1yzbbSZKTa7c3RNpSyrRX2gZb9GJRYB3H/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1sMPVpBIW-LVCmq4moZjoKNLHUQgt9uN_",
+      "name": "QS對策通報FY-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1sMPVpBIW-LVCmq4moZjoKNLHUQgt9uN_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1M3j9ia2YNtxcQGGyGGvy_eHaCUGcd9r_",
+      "name": "(附件三)專用箱外貼紙.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1M3j9ia2YNtxcQGGyGGvy_eHaCUGcd9r_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ntr_XoT3kpNNJHqYUEiekf7e4zRWJhKU",
+      "name": "(附件二)簽收管理表格.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ntr_XoT3kpNNJHqYUEiekf7e4zRWJhKU/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1jwgWLv2cbaWXFbdxNbaL91DwAF-IfeKM",
+      "name": "QS對策通報CO-16001(CU-G45C2轉速變慢).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1jwgWLv2cbaWXFbdxNbaL91DwAF-IfeKM/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1xlXkMcDKLGZr28PzmTA-ZyLAEuv701_6",
+      "name": "(附件一)異味點檢表.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1xlXkMcDKLGZr28PzmTA-ZyLAEuv701_6/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1DVB3sP8ojkJ0ox_UtXl8Z7zys1Lr_Kvt",
+      "name": "QS對策通報EH-15001(吹風機電熱絲接法更改).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1DVB3sP8ojkJ0ox_UtXl8Z7zys1Lr_Kvt/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1R8RKD8B7Tpl-0CivgIaQ6lHc3s6D3wro",
+      "name": "QS對策通報CO-15005(窗型進水).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1R8RKD8B7Tpl-0CivgIaQ6lHc3s6D3wro/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "102DjH6qcLydMkjwaXzMeSXV0MyChsGfw",
+      "name": "QS對策通報CO-15004(電抗器).pdf",
+      "webViewLink": "https://drive.google.com/file/d/102DjH6qcLydMkjwaXzMeSXV0MyChsGfw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1pzYX50vw2lZQ3tMwc_mtCuIdZtoFQUiQ",
+      "name": "QS對策通報CO-15002(壓縮機包覆材).pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pzYX50vw2lZQ3tMwc_mtCuIdZtoFQUiQ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1IPZLzA3usnz1oMbE-Ja-8kKQN1AbKbKK",
+      "name": "QS對策通報CO-14002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1IPZLzA3usnz1oMbE-Ja-8kKQN1AbKbKK/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1t1Vz0nHClBeKfDDWU3MX3ADsH98iMOPs",
+      "name": "QS對策通報CO-13002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1t1Vz0nHClBeKfDDWU3MX3ADsH98iMOPs/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1z3IfAtH_42VqN6vZeKMlyXKEw_tFrnGM",
+      "name": "QS對策通報CO-13001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1z3IfAtH_42VqN6vZeKMlyXKEw_tFrnGM/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kQ5XhNXp5zMPvTNKahlD1P6tH9eCGhm1",
+      "name": "QS對策通報CO-12003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kQ5XhNXp5zMPvTNKahlD1P6tH9eCGhm1/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15850PnVFCp4vORqfRBROGRP1GJev2EL1",
+      "name": "QS對策通報CO-12002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15850PnVFCp4vORqfRBROGRP1GJev2EL1/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1QjzYabw2tE4K7FnyMYkZKen5TRWLaw-b",
+      "name": "QS對策通報CO-12001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QjzYabw2tE4K7FnyMYkZKen5TRWLaw-b/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1MqEXjZAaqz1Qp-G3xRnDfl3wAoQqFEZj",
+      "name": "QS對策通報CO-11004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1MqEXjZAaqz1Qp-G3xRnDfl3wAoQqFEZj/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1cdD-tF3StmTYJbWpV8gF_mDtnBP58w_S",
+      "name": "QS對策通報CO-99007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1cdD-tF3StmTYJbWpV8gF_mDtnBP58w_S/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1sLrfEyceoRY6Pxfd7XSGBW8gffdrynd-",
+      "name": "QS對策通報CO-99005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1sLrfEyceoRY6Pxfd7XSGBW8gffdrynd-/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "14Z9krKbUdhcHWs561Ry9Zt6OyeUfDCMT",
+      "name": "QS對策通報CO-99004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/14Z9krKbUdhcHWs561Ry9Zt6OyeUfDCMT/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1nN0-mjLlHkWMYROFRu3jwXqLEmFWlmTR",
+      "name": "QS對策通報CO-99001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1nN0-mjLlHkWMYROFRu3jwXqLEmFWlmTR/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1DebWoWinEnnnxVyg-cJe3BVG_jKfldzl",
+      "name": "QS對策通報CO-99003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1DebWoWinEnnnxVyg-cJe3BVG_jKfldzl/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gjm2zfJhwmAawXa9iFzBDlgw93jZEc9G",
+      "name": "QS對策通報CO-99002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gjm2zfJhwmAawXa9iFzBDlgw93jZEc9G/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15V1jgDc4bnC2gjlvnPjfQNAZaHX-CbMm",
+      "name": "QS對策通報CO-98003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15V1jgDc4bnC2gjlvnPjfQNAZaHX-CbMm/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "18BF7kQIpSVGTG3iLY_sNOsbYP8OHu6E_",
+      "name": "QS對策通報CO-98002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/18BF7kQIpSVGTG3iLY_sNOsbYP8OHu6E_/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kJbSXyQDZOIQAXua6PmDoedR1RY8U0BA",
+      "name": "QS對策通報CO-98001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kJbSXyQDZOIQAXua6PmDoedR1RY8U0BA/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1hT2i73p9sMPFEEacsk0WBBYG4EGVD9Zb",
+      "name": "QS對策通報CO-95002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1hT2i73p9sMPFEEacsk0WBBYG4EGVD9Zb/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1t38tE8U25ZkzNiuAPI6yMUcTfXzxh-1h",
+      "name": "QS對策通報CO-95001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1t38tE8U25ZkzNiuAPI6yMUcTfXzxh-1h/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1QrbaI6VPN8Iu9DiqgeTym0CQQmvMtGc7",
+      "name": "QS對策通報CO-94004.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1QrbaI6VPN8Iu9DiqgeTym0CQQmvMtGc7/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15JSpUcBzeDAbw7u30rnQn9F14AAAIplX",
+      "name": "QS對策通報CO-94003.PDF",
+      "webViewLink": "https://drive.google.com/file/d/15JSpUcBzeDAbw7u30rnQn9F14AAAIplX/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1FhxSzlMdPSj1eb60wBgXfR8cbGW_LvZW",
+      "name": "QS對策通報CO-93006.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1FhxSzlMdPSj1eb60wBgXfR8cbGW_LvZW/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1I9KOOYj6S9XZO5p4xp-d0gCBPGMaL0Z6",
+      "name": "QS對策通報CO-94002.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1I9KOOYj6S9XZO5p4xp-d0gCBPGMaL0Z6/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1EXbUwniGxcdHmnP3slZXV2RAKq24h-IR",
+      "name": "QS對策通報CO-94001.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1EXbUwniGxcdHmnP3slZXV2RAKq24h-IR/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1_nXL-xy6ciZ25jB4H9_IuWU6eIQW2w_C",
+      "name": "QS對策通報CO-93005.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1_nXL-xy6ciZ25jB4H9_IuWU6eIQW2w_C/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1uQH3nmgIdFj2SqUScJhITQOhFzQswdA6",
+      "name": "QS對策通報CO-92001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1uQH3nmgIdFj2SqUScJhITQOhFzQswdA6/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1IUqRZ_gKxeeBwB42WEGc_SeOBjLbElVh",
+      "name": "QS技術通報CO-106005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1IUqRZ_gKxeeBwB42WEGc_SeOBjLbElVh/view?usp=drivesdk",
+      "description": "CU-C22CA2,CU-C25CA2故障代碼F95電容器不良"
+    },
+    {
+      "id": "1n0h02TBFZ8pK3UZHYNsoOMFTutOn-4d7",
+      "name": "QS技術通報CO-99003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1n0h02TBFZ8pK3UZHYNsoOMFTutOn-4d7/view?usp=drivesdk",
+      "description": "CU-2E52HA/CA2,CU-2E63HA/CA2,CU-2E83HA/CA2,CU-3E90HA/CA2,CU-4E92HA/CA2 配線錯誤故障代碼H39配線適正(F17)"
+    },
+    {
+      "id": "1CoaxMOxJ6UuZ4_v5Pd_P-JSFDrP9FFRQ",
+      "name": "技術通報CO-113004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1CoaxMOxJ6UuZ4_v5Pd_P-JSFDrP9FFRQ/view?usp=drivesdk",
+      "description": "全系列變頻冷氣機 H97"
+    },
+    {
+      "id": "1ySNpS_5oRgG4PLKHcRWsBx3s-jQ8pKld",
+      "name": "QS技術通報CO-11003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ySNpS_5oRgG4PLKHcRWsBx3s-jQ8pKld/view?usp=drivesdk",
+      "description": "冷氣機變頻全系列H33"
+    },
+    {
+      "id": "1ex3HnZyUghPuNhjMXzXji88peuzGJMGl",
+      "name": "QS技術通報CO-98002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ex3HnZyUghPuNhjMXzXji88peuzGJMGl/view?usp=drivesdk",
+      "description": "CS-BD45HA2+CS-BD25HA2 / CU-BD70HA2,CS-BD56HA2+CS-BD25HA2 / CU-BD81HA2 不定時故障代碼H30"
+    },
+    {
+      "id": "1lcw3yQduQrV2h8VHwQAwO0eQAYLu6VSu",
+      "name": "QS技術通報CO-99005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1lcw3yQduQrV2h8VHwQAwO0eQAYLu6VSu/view?usp=drivesdk",
+      "description": "CU-BD85HA2 H11"
+    },
+    {
+      "id": "1T-6RZXvocX22ud1-UpMngzwCm4TSDPGh",
+      "name": "QS技術通報CO-105013 配管溫不良顯示故障代碼F11.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1T-6RZXvocX22ud1-UpMngzwCm4TSDPGh/view?usp=drivesdk",
+      "description": "F11"
+    },
+    {
+      "id": "1CfQ36byheuvgsc1gVursCE7DMfonbuj8",
+      "name": "QS技術通報CO-11005  CS-GX20A2,GX25A2,GX32A2,GX36A2,GX45A2,GX56A2故障代碼F11.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1CfQ36byheuvgsc1gVursCE7DMfonbuj8/view?usp=drivesdk",
+      "description": "F11"
+    },
+    {
+      "id": "1PRBUImaSRL8rks1nY2rfN1aoZGpyMFwV",
+      "name": "QS技術通報CO-106008 2017年變頻分離式冷氣機K、LJ、LX、PX系列 F11.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1PRBUImaSRL8rks1nY2rfN1aoZGpyMFwV/view?usp=drivesdk",
+      "description": "F11"
+    },
+    {
+      "id": "1Tdxia77CYM_QePZ69I1ZwwG0xgvefqjm",
+      "name": "QS技術通報CO-11004 變頻機種故障代碼F11.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Tdxia77CYM_QePZ69I1ZwwG0xgvefqjm/view?usp=drivesdk",
+      "description": "F11"
+    },
+    {
+      "id": "1h3RcDq_8ky5g-8HvSeBdjCVqdEuL5_W2",
+      "name": "QS技術通報CO-91005 冷氣機膨脹音.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1h3RcDq_8ky5g-8HvSeBdjCVqdEuL5_W2/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1O5eq2t3fYpYn3zL8n5DcrUnQmxNo4F-F",
+      "name": "QS技術通報CO-91004 冷氣機無法遙控.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1O5eq2t3fYpYn3zL8n5DcrUnQmxNo4F-F/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1WDAN2cMoTwSxOUgljeuOaD10TEoQVjIj",
+      "name": "QS技術通報CO-91001  CU-D81RC2\r\n機體震動大.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1WDAN2cMoTwSxOUgljeuOaD10TEoQVjIj/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "13cLss4xDcwk5DfrXySc8g0Dkcg-lz1ev",
+      "name": "QS技術通報CO-90002  N系列送風馬達轉速強，弱，微其中一速不轉.PDF",
+      "webViewLink": "https://drive.google.com/file/d/13cLss4xDcwk5DfrXySc8g0Dkcg-lz1ev/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1okxxQ3MuYjDIaNRxdnCPTDTEe14rjBdi",
+      "name": "QS技術通報CO-90001 電話遙控冷氣機無法開機或關機.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1okxxQ3MuYjDIaNRxdnCPTDTEe14rjBdi/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1QlW_29GPiaZl4Uc2Dc_Iu-HIJLA1wpFs",
+      "name": "QS技術通報CO-12005 隱藏式冷暖氣機 CS-J 系列 來電自動復歸設定.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1QlW_29GPiaZl4Uc2Dc_Iu-HIJLA1wpFs/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Nlh0WhcOVb9EdmR-VqqlkUa0_oiBlJ4D",
+      "name": "QS技術通報CO-12004 隱藏式冷暖氣機 CS-J 系列 靜壓查詢及設定.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Nlh0WhcOVb9EdmR-VqqlkUa0_oiBlJ4D/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1IxbaW72YpbGG8W0slpyL4TSc1z_HsPrA",
+      "name": "QS技術通報CO-12003 2011年GX系列室內機(A及B版次)無法搭配一對多外機CU-2J/3J/\r\n 4J系列機種.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1IxbaW72YpbGG8W0slpyL4TSc1z_HsPrA/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1v3aMqZ9QecyDP9zSofWdyLyTWg0qAITC",
+      "name": "QS技術通報CO-12002 電線接續間電線走火.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1v3aMqZ9QecyDP9zSofWdyLyTWg0qAITC/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1eZcq-5-XeXUoRjazZ3svftKBsFF3zs1T",
+      "name": "QS技術通報CO-12001 CS-J20~63HA2/CA2 [101年製] 及CS-C,E系列 機體自行開機送風運轉.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1eZcq-5-XeXUoRjazZ3svftKBsFF3zs1T/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1pODL10WEPrN3VR6BtuInLCI_WU71tTKE",
+      "name": "QS技術通報CO-11002 遙控器接收距離變短或無法接收.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pODL10WEPrN3VR6BtuInLCI_WU71tTKE/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1x-5sWpHoduJst1Bk5KP-_9GKnoRw73Ac",
+      "name": "QS技術通報CO-11001 GX動向感應功能失效.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1x-5sWpHoduJst1Bk5KP-_9GKnoRw73Ac/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "10tSAqfVLKEiHi98LQCsckEJ7Ou6Vuec-",
+      "name": "QS技術通報CO-108022(J、K系列AB碼設定).pdf",
+      "webViewLink": "https://drive.google.com/file/d/10tSAqfVLKEiHi98LQCsckEJ7Ou6Vuec-/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1FB-Rc-Ki43iKkC14QvdlIfXWcl2shX1C",
+      "name": "CO-113003 顯示--配線錯誤.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1FB-Rc-Ki43iKkC14QvdlIfXWcl2shX1C/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1oX4bLXS_4bx8uFhT2odi81etBnhzptvq",
+      "name": "QS技術通報CO-114001 CS-PU71~125BUA2 升降面板.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1oX4bLXS_4bx8uFhT2odi81etBnhzptvq/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1v9R8n1TUGze3IAf3XkiIauw4gZXC7bvg",
+      "name": "QS技術通報CO-114002 膨脹音貼附手順.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1v9R8n1TUGze3IAf3XkiIauw4gZXC7bvg/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "10U3X8SuxKP03UkrNkqulAq4OfcgGf4m7",
+      "name": "QS技術通報CO-112004.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/10U3X8SuxKP03UkrNkqulAq4OfcgGf4m7/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1w8iJRuZqhiD2rVr38-FN8rbin984Gjzj",
+      "name": "QS技術通報CO-112001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1w8iJRuZqhiD2rVr38-FN8rbin984Gjzj/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1Ajg3uBlId40cb2SLcX12LkPmk9ODjHqG",
+      "name": "QS技術通報CO-114001.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Ajg3uBlId40cb2SLcX12LkPmk9ODjHqG/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "17tZK4EBOr2t0HXYMD5nfOYgZbu5f-DNY",
+      "name": "QS技術通報CO-112003.xlsx",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/17tZK4EBOr2t0HXYMD5nfOYgZbu5f-DNY/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1eYNm-TE4mN1KQmzO_JePvlm8w44_Qblt",
+      "name": "QS技術通報CO-112004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1eYNm-TE4mN1KQmzO_JePvlm8w44_Qblt/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1emrAHaI5DrOzL1HursdMBlVgIr2jhOWv",
+      "name": "QS技術通報CO-112003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1emrAHaI5DrOzL1HursdMBlVgIr2jhOWv/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kOPqCMThFBXkfmk40ojs8NNctiA6rei6",
+      "name": "QS技術通報CO-112001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kOPqCMThFBXkfmk40ojs8NNctiA6rei6/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1i0ZcV9WkDjfRn-URiiiGctMTU8_RZhtq",
+      "name": "QS技術通報CO-105005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1i0ZcV9WkDjfRn-URiiiGctMTU8_RZhtq/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "18g-Z72IB_IVALMGYyudx-sEBCcB0ApKL",
+      "name": "QS技術通報CO-105004(SMART APP無法連線).pdf",
+      "webViewLink": "https://drive.google.com/file/d/18g-Z72IB_IVALMGYyudx-sEBCcB0ApKL/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-l6L-tZVPEXbNzMC_P4-vWxrbN-vPneF",
+      "name": "QS技術通報CO-105012 2017年內外機尺寸與銅管變更.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1-l6L-tZVPEXbNzMC_P4-vWxrbN-vPneF/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Vql_YbOX1C0tzUnqoFJVgYlzU9oiBQ63",
+      "name": "QS技術通報CO-106002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Vql_YbOX1C0tzUnqoFJVgYlzU9oiBQ63/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "11p3BrUAGE2NQjY4jd3INkv9QBD44o3un",
+      "name": "QS技術通報CO-106004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/11p3BrUAGE2NQjY4jd3INkv9QBD44o3un/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1aFMtkA9pYt06a2ExtT7xVWThU8wy2k6I",
+      "name": "QS技術通報CO-106003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1aFMtkA9pYt06a2ExtT7xVWThU8wy2k6I/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15OjPacmuEtDGsxe1i0YDIRJzSzo3yImb",
+      "name": "QS技術通報CO-106007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15OjPacmuEtDGsxe1i0YDIRJzSzo3yImb/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1lJVRD1-DIg9Tt8m74lyyILG-XrecX2zN",
+      "name": "QS技術通報CO-106006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1lJVRD1-DIg9Tt8m74lyyILG-XrecX2zN/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "11uwFfbqVj9mKbCVC0mrtboib5EhxUQVR",
+      "name": "QS技術通報CO-107001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/11uwFfbqVj9mKbCVC0mrtboib5EhxUQVR/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1eKzFtUQ0hAAg3EHMbun5UNTaVZNIQNfP",
+      "name": "QS技術通報CO-107002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1eKzFtUQ0hAAg3EHMbun5UNTaVZNIQNfP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1TtX-lTSJfgqAKX801HJWtSdSjCZw82bx",
+      "name": "QS技術通報CO-108002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1TtX-lTSJfgqAKX801HJWtSdSjCZw82bx/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1hYQ8UNU4-GcUA92F1YhseI3pBjcuWCFn",
+      "name": "QS技術通報CO-108003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1hYQ8UNU4-GcUA92F1YhseI3pBjcuWCFn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1iPhC7PMiKccsUBvTFETk8ePGChYwnESS",
+      "name": "QS技術通報CO-108005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1iPhC7PMiKccsUBvTFETk8ePGChYwnESS/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1agDRuHumP3SwZFxYF_QzxR5Ahq0cflJP",
+      "name": "QS技術通報CO-108004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1agDRuHumP3SwZFxYF_QzxR5Ahq0cflJP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Uh0nvVBmQ5_uYzP0N0iJQPtTVbKwdKU8",
+      "name": "QS技術通報CO-108009.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Uh0nvVBmQ5_uYzP0N0iJQPtTVbKwdKU8/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1vfbId0xBPwOcpHNFy8PUw9QhJ79MQFuo",
+      "name": "QS技術通報CO-108010.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1vfbId0xBPwOcpHNFy8PUw9QhJ79MQFuo/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "13zIOywX_wlHJNfFuy7LPmhHqFIyvmHag",
+      "name": "QS技術通報CO-108011.pdf",
+      "webViewLink": "https://drive.google.com/file/d/13zIOywX_wlHJNfFuy7LPmhHqFIyvmHag/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1O70xRQ2m0be5j74v-XCq9SIDjO8J6GnT",
+      "name": "QS技術通報CO-108012.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1O70xRQ2m0be5j74v-XCq9SIDjO8J6GnT/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ZNqfqu5UT5RZWeNU2yyABqGMoHCi8SOv",
+      "name": "QS技術通報CO-108017.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ZNqfqu5UT5RZWeNU2yyABqGMoHCi8SOv/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1zvQBSK02qY6ssKhCE4_14_Xy9M0N7RBS",
+      "name": "QS技術通報CO-108018.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1zvQBSK02qY6ssKhCE4_14_Xy9M0N7RBS/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1W89UOPmmV1qY1wiM9SyNVpUbGIAsiVlu",
+      "name": "QS技術通報CO-105009.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1W89UOPmmV1qY1wiM9SyNVpUbGIAsiVlu/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1kv9jlht27k7kCbFlTnh1avvlb7n2BaIx",
+      "name": "QS技術通報CO-108007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1kv9jlht27k7kCbFlTnh1avvlb7n2BaIx/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1jjSRzIcxxtScI9wFR1jb7dLW76icTdwp",
+      "name": "QS技術通報CO-108013.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1jjSRzIcxxtScI9wFR1jb7dLW76icTdwp/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1loN24K1eICyPz7bV_J6Fq8Xo_0Al4g0Q",
+      "name": "QS技術通報CO-108016.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1loN24K1eICyPz7bV_J6Fq8Xo_0Al4g0Q/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1C20Wsz0galDZ8Igu05t3cy--0W-vE4LR",
+      "name": "QS技術通報CO-108023.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1C20Wsz0galDZ8Igu05t3cy--0W-vE4LR/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gMt68puw9Cw_GmTJtM6Vw4C0Ki4vZL8T",
+      "name": "QS技術通報-AB系列來電復歸設定.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gMt68puw9Cw_GmTJtM6Vw4C0Ki4vZL8T/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1BqD-myGztovDyq3SKEwtoXmczL1Le70o",
+      "name": "QS技術通報CO-109002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1BqD-myGztovDyq3SKEwtoXmczL1Le70o/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1_NGuRTW84sdYkmJiFg1cMjHmF44rQUlD",
+      "name": "QS技術通報CO-109004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1_NGuRTW84sdYkmJiFg1cMjHmF44rQUlD/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1y0RUWQwxRiPFOlkU7AZN98R0xIouMS3E",
+      "name": "QS技術通報CO-109001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1y0RUWQwxRiPFOlkU7AZN98R0xIouMS3E/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1X9JqD5E3qbdM3n7TjKDHV5MOh7ez05NJ",
+      "name": "QS技術通報CO-109006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1X9JqD5E3qbdM3n7TjKDHV5MOh7ez05NJ/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1h2Im0KBUIEO0mfxevi8FtJC4XlifRKBE",
+      "name": "QS技術通報CO-109005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1h2Im0KBUIEO0mfxevi8FtJC4XlifRKBE/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1w54wrbun9QObcd36x8J_CoIvEIZEsqcf",
+      "name": "QS技術通報CO-109008.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1w54wrbun9QObcd36x8J_CoIvEIZEsqcf/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "182cIL4AY_L0ErcFaya3gHv9ZM6C1pkko",
+      "name": "QS技術通報CO-109007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/182cIL4AY_L0ErcFaya3gHv9ZM6C1pkko/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gPWCBbbGn7YO8TFFJsKLTkMdGZ8_YiTP",
+      "name": "QS技術通報CO-109012.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gPWCBbbGn7YO8TFFJsKLTkMdGZ8_YiTP/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1poWah6vBkj-pU18wNpk3RayoRmYSdgHI",
+      "name": "QS技術通報CO-109011.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1poWah6vBkj-pU18wNpk3RayoRmYSdgHI/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1umRr_Zf2PkRMAUx1nuxDzsMabY3a1rUn",
+      "name": "QS技術通報CO-109010.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1umRr_Zf2PkRMAUx1nuxDzsMabY3a1rUn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1WwYVboAseHzcDjrDAqGvb_rdSRatvu0s",
+      "name": "QS技術通報CO-109009.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1WwYVboAseHzcDjrDAqGvb_rdSRatvu0s/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1CbDkKGIacc2hh3sZizAiEdx4pTj6s_Ta",
+      "name": "QS技術通報CO-109014.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1CbDkKGIacc2hh3sZizAiEdx4pTj6s_Ta/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1KQ2b2eCzEXvgBn2ysqOTEnzMzm9RU2rV",
+      "name": "QS技術通報CO-104001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1KQ2b2eCzEXvgBn2ysqOTEnzMzm9RU2rV/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1FJyZyyo_XMnrcOx99lQvwH4JIip4Ezc9",
+      "name": "QS技術通報CO-99004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1FJyZyyo_XMnrcOx99lQvwH4JIip4Ezc9/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1zv67gx5fM39L5PUimkmMiaSmfk-jGX9e",
+      "name": "QS技術通報CO-99001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1zv67gx5fM39L5PUimkmMiaSmfk-jGX9e/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1J2murrwOo5ZTvCloXnwtC-Dj3zg44fG7",
+      "name": "QS技術通報CO-99002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1J2murrwOo5ZTvCloXnwtC-Dj3zg44fG7/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "19Ol5lBQcPbptrOTT8rynTVMKk-VHbATa",
+      "name": "QS技術通報CO-98011.pdf",
+      "webViewLink": "https://drive.google.com/file/d/19Ol5lBQcPbptrOTT8rynTVMKk-VHbATa/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1GNG6VWsA66FPC2Lk10AFRKlXNdFzdaGx",
+      "name": "QS技術通報CO-98010.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1GNG6VWsA66FPC2Lk10AFRKlXNdFzdaGx/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1GOraM__yyTTi2DiRd13oC656l1OBrcKM",
+      "name": "QS技術通報CO-98009.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1GOraM__yyTTi2DiRd13oC656l1OBrcKM/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1SFhh2DfhMKOGrFjio_raYQP5EjPwLGhN",
+      "name": "QS技術通報CO-98008.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1SFhh2DfhMKOGrFjio_raYQP5EjPwLGhN/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "15fbZRjoLyk37vXDlgJ-I5pzJfUr7TW3B",
+      "name": "QS技術通報CO-98006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/15fbZRjoLyk37vXDlgJ-I5pzJfUr7TW3B/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1NOop6PAqIu2Z2CQpxRefX9AqZ4mKTPG4",
+      "name": "QS技術通報CO-98007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1NOop6PAqIu2Z2CQpxRefX9AqZ4mKTPG4/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "10HKMwyR2KTTpSqv5J10kfubc0rh-QL1O",
+      "name": "QS技術通報CO-98005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/10HKMwyR2KTTpSqv5J10kfubc0rh-QL1O/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1gU-wv2AMkGZwqIt4PxXoDjmD1JWRckYn",
+      "name": "QS技術通報CO-98004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1gU-wv2AMkGZwqIt4PxXoDjmD1JWRckYn/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1cnfSi8e_uZdcAoP5FA5q4AF7GWFbZ6-8",
+      "name": "QS技術通報CO-98003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1cnfSi8e_uZdcAoP5FA5q4AF7GWFbZ6-8/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1RLMBKNLIok56NFM6rvXOGIvRHOeZzdI1",
+      "name": "QS技術通報CO-98001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1RLMBKNLIok56NFM6rvXOGIvRHOeZzdI1/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1-WHC6klOTWl9QlI6Zhq_FRjiqYrqMBBp",
+      "name": "QS技術通報CO-97003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1-WHC6klOTWl9QlI6Zhq_FRjiqYrqMBBp/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1ufLvwLZ-FxiLPtdjIU67BFreR5AWvrV7",
+      "name": "QS技術通報CO-97002.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1ufLvwLZ-FxiLPtdjIU67BFreR5AWvrV7/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Hc6srgw8RuAgvyHVF7D6OCg3HSCMB3NU",
+      "name": "QS技術通報CO-97001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1Hc6srgw8RuAgvyHVF7D6OCg3HSCMB3NU/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "11aDggrrtGluZ8GLCynBUmxk1zOlxtmFT",
+      "name": "QS技術通報CO-96001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/11aDggrrtGluZ8GLCynBUmxk1zOlxtmFT/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1FQcljOzNh_K3e-Miq6d1A48o5R058Hw-",
+      "name": "QS技術通報CO-95007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1FQcljOzNh_K3e-Miq6d1A48o5R058Hw-/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1DTnwU-roXiTSpAkNSfJiGPctLdKvTPJw",
+      "name": "QS技術通報CO-95006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1DTnwU-roXiTSpAkNSfJiGPctLdKvTPJw/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1jE3pIFqoUPvOoeG4EiWiwd_LIWxXmvjr",
+      "name": "QS技術通報CO-95005.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1jE3pIFqoUPvOoeG4EiWiwd_LIWxXmvjr/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1pJSx9Ztz8n0ygTqkGmwP74bAWuuG-vt9",
+      "name": "QS技術通報CO-95004.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1pJSx9Ztz8n0ygTqkGmwP74bAWuuG-vt9/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1wYtZsr9myKg0MR__UQsjj8sKxrXOQ46H",
+      "name": "QS技術通報CO-95003.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1wYtZsr9myKg0MR__UQsjj8sKxrXOQ46H/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "19SAnaPI3u09VCBjkYlDBa4BFw1zCxZkY",
+      "name": "QS技術通報CO-95002.PDF",
+      "webViewLink": "https://drive.google.com/file/d/19SAnaPI3u09VCBjkYlDBa4BFw1zCxZkY/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1AX1egGq9OKQCu3t-W1VdopLv7WVK9meI",
+      "name": "QS技術通報CO-95001.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1AX1egGq9OKQCu3t-W1VdopLv7WVK9meI/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1EKmUnLbmlWj_tq4Zmsr21oeLbsFf5ZgC",
+      "name": "QS技術通報CO-93010.PDF",
+      "webViewLink": "https://drive.google.com/file/d/1EKmUnLbmlWj_tq4Zmsr21oeLbsFf5ZgC/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1Is1lgGXvOgqD8f2PxgVAuKGe_bAKWoZs",
+      "name": "QS技術通報CO-93010.xls",
+      "webViewLink": "https://docs.google.com/spreadsheets/d/1Is1lgGXvOgqD8f2PxgVAuKGe_bAKWoZs/edit?usp=drivesdk&ouid=0&rtpof=true&sd=true",
+      "description": ""
+    },
+    {
+      "id": "1VGlBTvURTlglt_QKlkZJKXR9zo4UvC9D",
+      "name": "QS技術通報CO-92007.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1VGlBTvURTlglt_QKlkZJKXR9zo4UvC9D/view?usp=drivesdk",
+      "description": ""
+    },
+    {
+      "id": "1eRl7x8rEMYnkUiDIwy4gNrDx_JPzvu6-",
+      "name": "QS技術通報CO-92006.pdf",
+      "webViewLink": "https://drive.google.com/file/d/1eRl7x8rEMYnkUiDIwy4gNrDx_JPzvu6-/view?usp=drivesdk",
+      "description": ""
+    }
+  ]
+}

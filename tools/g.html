@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>通報搜尋（強化中英文模糊搜尋）</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 1rem;
+    }
+    .search-container {
+      display: flex;
+      gap: 0.5rem;
+      max-width: 480px;
+      margin: 0 auto 1rem;
+    }
+    .search-container input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+    }
+    .search-container button {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .search-container button:disabled {
+      background: #aaa;
+      cursor: default;
+    }
+    ul#results {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+    ul#results li {
+      background: #fff;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      word-break: break-word;
+    }
+    ul#results li a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    ul#results li small {
+      display: block;
+      color: #666;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+    }
+    ul#results li.error {
+      color: #c00;
+      background: #fee;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center; margin-bottom:1rem; font-size:1.25rem;">通報搜尋</h1>
+  <div class="search-container">
+    <input id="kw" type="text" placeholder="輸入部分關鍵字…" autocomplete="off" disabled>
+    <button id="btnSearch" disabled>載入中…</button>
+  </div>
+  <ul id="results"></ul>
+
+  <script>
+    const API_KEY = 'AIzaSyCRXbp_I9NWLXfLOyfzwCmOSHvqKGpp2Kg';
+    const ROOT_ID = '1WH9mlAZ0Xen-dsYi8gmjUMZaBeyNaHB7';
+    const inputEl   = document.getElementById('kw');
+    const btn       = document.getElementById('btnSearch');
+    const resultsEl = document.getElementById('results');
+    let folderIds = [];
+
+    async function loadAllFolderIds() {
+      const all = new Set([ROOT_ID]);
+      const queue = [ROOT_ID];
+      while (queue.length) {
+        const parent = queue.shift();
+        const params = new URLSearchParams({
+          q: `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          fields: 'files(id)',
+          pageSize: '100',
+          key: API_KEY
+        });
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+        const { files = [] } = await res.json();
+        files.forEach(f => {
+          if (!all.has(f.id)) {
+            all.add(f.id);
+            queue.push(f.id);
+          }
+        });
+      }
+      folderIds = Array.from(all);
+    }
+
+    async function searchInFolder(folderId, rawTerm) {
+      const term = rawTerm.trim();
+      if (!term) return [];
+
+      // 如果有中文字符，直接用原始 term 做 substring
+      const hasChinese = /[\u4e00-\u9fff]/.test(term);
+
+      let contentQ;
+      if (hasChinese) {
+        // 直接用原始 term 搜檔名、說明（中文 substring）
+        contentQ = `( name contains '${term}' or description contains '${term}' )`;
+      } else {
+        // 英數拆 token
+        const tokens = term
+          .toLowerCase()
+          .replace(/[^0-9a-z]+/g, ' ')
+          .split(/\s+/)
+          .filter(t => t);
+        const nameQs = tokens.map(t => `name contains '${t}'`);
+        const fullQs = tokens.map(t => `fullText contains '${t}'`);
+        const descQs = tokens.map(t => `description contains '${t}'`);
+        contentQ = `( ${nameQs.join(' and ')} or ${fullQs.join(' and ')} or ${descQs.join(' and ')} )`;
+      }
+
+      const q = [
+        `'${folderId}' in parents`,
+        `trashed=false`,
+        `mimeType!='application/vnd.google-apps.folder'`,
+        contentQ
+      ].join(' and ');
+
+      const params = new URLSearchParams({
+        q,
+        fields: 'files(id,name,description,webViewLink)',
+        pageSize: '100',
+        key: API_KEY
+      });
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+      const { files = [] } = await res.json();
+      return files;
+    }
+
+    async function doSearch() {
+      const term = inputEl.value;
+      if (!term.trim()) {
+        resultsEl.innerHTML = '';
+        return;
+      }
+      resultsEl.innerHTML = '<li>🔄 搜尋中…</li>';
+      try {
+        const nested = await Promise.all(
+          folderIds.map(fid => searchInFolder(fid, term))
+        );
+        const all = nested.flat();
+        const seen = new Set();
+        const results = all.filter(f => {
+          if (seen.has(f.id)) return false;
+          seen.add(f.id);
+          return true;
+        });
+
+        if (!results.length) {
+          resultsEl.innerHTML = '<li>🔍 無符合檔案或內容</li>';
+        } else {
+          resultsEl.innerHTML = results
+            .map(f =>
+              `<li>📄 <a href="${f.webViewLink}" target="_blank">${f.name}</a>`
+              + (f.description ? `<small>${f.description}</small>` : '')
+              + `</li>`
+            ).join('');
+        }
+      } catch (err) {
+        resultsEl.innerHTML = `<li class="error">錯誤：${err.message}</li>`;
+      }
+    }
+
+    (async () => {
+      await loadAllFolderIds();
+      inputEl.disabled = false;
+      btn.textContent = '搜尋';
+      btn.disabled = false;
+      btn.addEventListener('click', doSearch);
+    })();
+  </script>
+</body>
+</html>

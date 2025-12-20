@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modbus RS‑485 指令產生器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 flex flex-col items-center">
+  <h1 class="text-2xl font-bold mb-4">Modbus RS‑485 指令產生器(測試)</h1>
+
+  <!-- 📌 設定區 -->
+  <div class="w-full max-w-md bg-white rounded-xl shadow p-4 space-y-4">
+    <div class="flex flex-col gap-2">
+      <label class="font-medium" for="slave">裝置位址 (Slave ID)</label>
+      <input id="slave" type="number" min="1" max="247" value="1" class="border rounded p-2 w-full" />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="font-medium" for="fc">功能碼 (Function Code)</label>
+      <select id="fc" class="border rounded p-2 w-full">
+        <option value="03">03 讀取保持暫存器 (Read Holding Registers)</option>
+        <option value="06">06 寫入單暫存器 (Write Single Register)</option>
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="font-medium" for="reg">寄存器位址</label>
+      <select id="reg" class="border rounded p-2 w-full">
+        <option value="0001">0x0001 開關狀態</option>
+        <option value="0002">0x0002 運轉模式</option>
+        <option value="0003">0x0003 風量模式</option>
+        <option value="000D">0x000D OA 濃度值</option>
+        <option value="000E">0x000E 換氣風量級別</option>
+        <option value="0011">0x0011 定時啟動 (時)</option>
+        <option value="0012">0x0012 定時啟動 (分)</option>
+        <option value="0016">0x0016 每週排程 (日)</option>
+        <option value="0017">0x0017 每週排程 (一)</option>
+        <option value="001A">0x001A 單元位址設定</option>
+      </select>
+    </div>
+
+    <!-- 數值或筆數輸入 -->
+    <div id="valueBlock" class="flex flex-col gap-2">
+      <label class="font-medium" for="value">寫入數值 (十六進位或十進位皆可)</label>
+      <input id="value" type="text" placeholder="例如 0x01 或 1" class="border rounded p-2 w-full" />
+    </div>
+
+    <div id="quantityBlock" class="hidden flex flex-col gap-2">
+      <label class="font-medium" for="qty">讀取筆數 (Quantity)</label>
+      <input id="qty" type="number" min="1" max="125" value="1" class="border rounded p-2 w-full" />
+    </div>
+
+    <button id="gen" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded p-2">產生指令</button>
+  </div>
+
+  <!-- 📋 輸出區 -->
+  <div class="w-full max-w-md mt-6">
+    <label class="font-medium">輸出 (HEX 字串)：</label>
+    <textarea id="output" rows="3" readonly class="border rounded p-2 w-full mt-2 font-mono"></textarea>
+  </div>
+
+<script>
+// CRC‑16/Modbus (poly 0xA001, init 0xFFFF)
+function crc16(buf) {
+  let crc = 0xFFFF;
+  for (let b of buf) {
+    crc ^= b;
+    for (let i = 0; i < 8; i++) {
+      const carry = crc & 0x0001;
+      crc >>= 1;
+      if (carry) crc ^= 0xA001;
+    }
+  }
+  return crc;
+}
+
+function hex(n, len = 2) {
+  return n.toString(16).toUpperCase().padStart(len, '0');
+}
+
+function generate() {
+  const slave = parseInt(document.getElementById('slave').value);
+  const fc    = parseInt(document.getElementById('fc').value, 10);
+  const reg   = parseInt(document.getElementById('reg').value, 16);
+
+  let frame = [slave, fc, reg >> 8, reg & 0xFF];
+
+  if (fc === 3) { // 讀取保持暫存器
+    const qty = parseInt(document.getElementById('qty').value);
+    frame.push(qty >> 8, qty & 0xFF);
+  } else if (fc === 6) { // 寫入單暫存器
+    let valRaw = document.getElementById('value').value.trim();
+    if (valRaw.startsWith('0x') || valRaw.startsWith('0X')) {
+      valRaw = parseInt(valRaw, 16);
+    } else {
+      valRaw = parseInt(valRaw, 10);
+    }
+    frame.push(valRaw >> 8, valRaw & 0xFF);
+  }
+
+  const crc = crc16(frame);
+  frame.push(crc & 0xFF, crc >> 8); // 低位在前
+
+  const out = frame.map(b => hex(b)).join(' ');
+  document.getElementById('output').value = out;
+}
+
+document.getElementById('gen').addEventListener('click', generate);
+
+// 切換輸入區顯示
+function toggleInput() {
+  const fc = parseInt(document.getElementById('fc').value, 10);
+  if (fc === 3) {
+    document.getElementById('quantityBlock').classList.remove('hidden');
+    document.getElementById('valueBlock').classList.add('hidden');
+  } else {
+    document.getElementById('quantityBlock').classList.add('hidden');
+    document.getElementById('valueBlock').classList.remove('hidden');
+  }
+}
+
+document.getElementById('fc').addEventListener('change', toggleInput);
+// 初始狀態
+toggleInput();
+</script>
+</body>
+</html>

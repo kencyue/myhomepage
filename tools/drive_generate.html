@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>生成索引</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      padding: 1rem;
+      text-align: center;
+    }
+    button {
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: default;
+    }
+    #status {
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="font-size:1.25rem; margin-bottom:1rem;">生成 Google Drive 索引</h1>
+  <button id="btnGenerate" disabled>載入中…</button>
+  <div id="status"></div>
+
+  <script>
+    const API_KEY = 'AIzaSyCRXbp_I9NWLXfLOyfzwCmOSHvqKGpp2Kg';
+    const ROOT_ID = '1WH9mlAZ0Xen-dsYi8gmjUMZaBeyNaHB7';
+    const statusEl = document.getElementById('status');
+    const btnGenerate = document.getElementById('btnGenerate');
+
+    // 遍歷所有資料夾，收集資料夾 ID
+    async function loadAllFolderIds() {
+      const folderIds = new Set([ROOT_ID]);
+      const queue = [ROOT_ID];
+      while (queue.length) {
+        const parent = queue.shift();
+        const params = new URLSearchParams({
+          q: `'${parent}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          fields: 'files(id)',
+          pageSize: '100',
+          key: API_KEY
+        });
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+        const { files = [] } = await res.json();
+        files.forEach(f => {
+          if (!folderIds.has(f.id)) {
+            folderIds.add(f.id);
+            queue.push(f.id);
+          }
+        });
+      }
+      return Array.from(folderIds);
+    }
+
+    // 收集單一資料夾中的檔案，包含說明欄位
+    async function getFilesInFolder(folderId) {
+      const q = `'${folderId}' in parents and trashed=false and mimeType!='application/vnd.google-apps.folder'`;
+      const params = new URLSearchParams({
+        q,
+        fields: 'files(id,name,webViewLink,description)', // 新增 description 欄位
+        pageSize: '100',
+        key: API_KEY
+      });
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+      const { files = [] } = await res.json();
+      return files;
+    }
+
+    // 生成索引
+    async function generateIndex() {
+      statusEl.textContent = '正在生成索引…';
+      btnGenerate.disabled = true;
+      try {
+        const folderIds = await loadAllFolderIds();
+        const allFiles = [];
+        for (const folderId of folderIds) {
+          const files = await getFilesInFolder(folderId);
+          allFiles.push(...files);
+        }
+        // 去重
+        const seen = new Set();
+        const uniqueFiles = allFiles.filter(f => {
+          if (seen.has(f.id)) return false;
+          seen.add(f.id);
+          return true;
+        });
+        // 儲存索引，包含最後更新時間
+        const index = {
+          lastUpdated: new Date().toISOString(),
+          folderIds,
+          files: uniqueFiles.map(f => ({
+            id: f.id,
+            name: f.name,
+            webViewLink: f.webViewLink,
+            description: f.description || '' // 確保即使無 description 也設為空字串
+          }))
+        };
+        const blob = new Blob([JSON.stringify(index, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'drive_index.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        statusEl.textContent = `索引生成完成，共 ${uniqueFiles.length} 個檔案`;
+      } catch (err) {
+        console.error('Generate index error:', err);
+        statusEl.textContent = `錯誤：${err.message}`;
+      }
+      btnGenerate.textContent = '重新生成索引';
+      btnGenerate.disabled = false;
+    }
+
+    // 初始化
+    (async () => {
+      btnGenerate.textContent = '生成索引';
+      btnGenerate.disabled = false;
+      btnGenerate.addEventListener('click', generateIndex);
+    })();
+  </script>
+</body>
+</html>

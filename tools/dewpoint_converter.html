@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>露點 / 溫度 / 濕度 互算</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow">
+    <h1 class="text-xl font-bold text-center mb-4">露點 / 溫度 / 濕度 互算</h1>
+
+    <!-- 單位 -->
+    <label class="block font-medium mb-1">溫度單位</label>
+    <select id="unit" class="w-full p-2 mb-4 border rounded">
+      <option value="C">攝氏 (°C)</option>
+      <option value="F">華氏 (°F)</option>
+    </select>
+
+    <!-- 乾球 -->
+    <label class="block mb-1 font-medium">溫度 T</label>
+    <input id="temp" type="text" class="w-full p-2 mb-4 border rounded" placeholder="留空自動計算">
+
+    <!-- 露點 -->
+    <label class="block mb-1 font-medium">露點 Td</label>
+    <input id="dew" type="text" class="w-full p-2 mb-4 border rounded" placeholder="留空自動計算">
+
+    <!-- 濕度 -->
+    <label class="block mb-1 font-medium">相對濕度 RH (%)</label>
+    <input id="rh" type="text" class="w-full p-2 mb-4 border rounded" placeholder="留空自動計算">
+
+    <!-- 按鈕列 -->
+    <div class="flex gap-2 mb-2">
+      <button id="calcBtn"   class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">計算</button>
+      <button id="resetBtn"  class="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400">重置</button>
+    </div>
+
+    <!-- 輸出 -->
+    <div id="out" class="mt-2 text-center text-lg font-semibold"></div>
+  </div>
+
+<script>
+const a = 17.27, b = 237.7;
+const toC  = f => (f - 32) * 5 / 9;
+const toF  = c => c * 9 / 5 + 32;
+const fmtC = x => x.toFixed(2).replace(/\.00$/, '').replace(/(\.[1-9]*)0+$/, '$1');
+const fmtF = x => x.toFixed(2).replace(/\.00$/, '').replace(/(\.[1-9]*)0+$/, '$1');
+const fmtDew = x => x.toFixed(2).replace(/\.00$/, '').replace(/(\.[1-9]*)0+$/, '$1').replace('.', ',');
+
+const tEl   = document.getElementById('temp');
+const tdEl  = document.getElementById('dew');
+const rhEl  = document.getElementById('rh');
+const unitEl= document.getElementById('unit');
+const outEl = document.getElementById('out');
+const calcBtn = document.getElementById('calcBtn');
+const resetBtn= document.getElementById('resetBtn');
+
+calcBtn.addEventListener('click', compute);
+resetBtn.addEventListener('click', resetForm);
+
+function clearHighlights(){
+  [tEl, tdEl, rhEl].forEach(e => e.classList.remove('text-red-600', 'font-bold'));
+}
+
+function showError(msg){
+  clearHighlights();
+  outEl.className = 'mt-2 text-center text-lg font-semibold text-red-600';
+  outEl.textContent = msg;
+}
+
+function resetForm(){
+  [tEl, tdEl, rhEl].forEach(e => { e.value=''; e.classList.remove('text-red-600','font-bold'); });
+  outEl.textContent='';
+  outEl.className='';
+}
+
+function compute(){
+  clearHighlights();
+  outEl.textContent='';
+  outEl.className='mt-2 text-center text-lg font-semibold text-green-700';
+
+  const rawT  = tEl.value.trim().replace(',', '.');
+  const rawTd = tdEl.value.trim().replace(',', '.');
+  const rawRH = rhEl.value.trim();
+
+  const hasT  = rawT !== '';
+  const hasTd = rawTd !== '';
+  const hasRH = rawRH !== '';
+
+  if ((hasT + hasTd + hasRH) !== 2){
+    return showError('請輸入任意兩個數值，並留空要計算的那一個');
+  }
+
+  const unit = unitEl.value;
+  let T  = hasT  ? parseFloat(rawT)  : null;
+  let Td = hasTd ? parseFloat(rawTd) : null;
+  let RH = hasRH ? parseFloat(rawRH) : null;
+
+  if (hasT  && isNaN(T))  return showError('溫度格式錯誤');
+  if (hasTd && isNaN(Td)) return showError('露點格式錯誤');
+  if (hasRH && (isNaN(RH) || RH < 0 || RH > 100)) return showError('濕度必須 0–100%');
+
+  if (unit === 'F'){
+    if (T  !== null) T  = toC(T);
+    if (Td !== null) Td = toC(Td);
+  }
+
+  let explanation = '<div class="mt-2 text-sm text-left text-gray-700">';
+  explanation += `<b>說明：</b>Magnus 公式參數 a = 17.27，b = 237.7 是經驗值，用於近似計算飽和水氣壓與溫濕度的關係。<br><br>`;
+
+  if (hasT && hasTd && Td > T) return showError('露點不可高於乾球溫度');
+
+  let alpha, resultText = '';
+  if (!hasTd){
+    alpha = (a * T) / (b + T) + Math.log(RH / 100);
+    Td = (b * alpha) / (a - alpha);
+    tdEl.value = unit === 'F' ? fmtF(toF(Td)) : fmtDew(Td);
+    tdEl.classList.add('text-red-600', 'font-bold');
+    explanation += `公式：Td = (b × α) / (a − α)<br>`;
+    explanation += `其中：<br>α = (a × T)/(b + T) + ln(RH / 100)<br>`;
+    explanation += `α = (${a} × ${T}) / (${b} + ${T}) + ln(${RH}/100)<br>`;
+    explanation += `= (${(a*T).toFixed(4)} / ${(b+T).toFixed(4)}) + (${Math.log(RH/100).toFixed(4)})<br>`;
+    explanation += `Td = (${b} × α) / (${a} − α) = (${b} × ${alpha.toFixed(4)}) / (${a} − ${alpha.toFixed(4)}) = ${Td.toFixed(4)}°C`;
+  } else if (!hasRH){
+    const alpha1 = (a * Td) / (b + Td);
+    const alpha2 = (a * T) / (b + T);
+    RH = 100 * Math.exp(alpha1 - alpha2);
+    if (RH < 0 || RH > 100) return showError('計算結果濕度超出 0–100% 範圍');
+    rhEl.value = RH.toFixed(2);
+    rhEl.classList.add('text-red-600', 'font-bold');
+    explanation += `公式：RH = 100 × e^[(a×Td)/(b+Td) − (a×T)/(b+T)]<br>`;
+    explanation += `= 100 × e^[(${a}×${Td})/(${b}+${Td}) − (${a}×${T})/(${b}+${T})]<br>`;
+    explanation += `= 100 × e^[${alpha1.toFixed(4)} − ${alpha2.toFixed(4)}] = ${RH.toFixed(2)} %`;
+  } else {
+    alpha = (a * Td) / (b + Td) - Math.log(RH / 100);
+    T = (alpha * b) / (a - alpha);
+    if (Td > T) return showError('輸入組合不合理 (Td > T)');
+    tEl.value = unit === 'F' ? fmtF(toF(T)) : fmtC(T);
+    tEl.classList.add('text-red-600', 'font-bold');
+    explanation += `公式：T = (b × α) / (a − α)<br>`;
+    explanation += `其中：<br>α = (a × Td)/(b + Td) − ln(RH / 100)<br>`;
+    explanation += `α = (${a} × ${Td}) / (${b} + ${Td}) − ln(${RH}/100)<br>`;
+    explanation += `= (${(a*Td).toFixed(4)} / ${(b+Td).toFixed(4)}) − (${Math.log(RH/100).toFixed(4)})<br>`;
+    explanation += `T = (${b} × ${alpha.toFixed(4)}) / (${a} − ${alpha.toFixed(4)}) = ${T.toFixed(4)}°C`;
+  }
+
+  const dispT  = unit === 'F' ? fmtF(toF(T)) : fmtC(T);
+  const dispTd = unit === 'F' ? fmtF(toF(Td)).replace('.', ',') : fmtDew(Td);
+  const dispRH = RH.toFixed(2).replace(/\.00$/, '').replace(/(\.[1-9]*)0+$/, '$1');
+
+  outEl.innerHTML = `T = ${dispT} °${unit} · Td = ${dispTd} °${unit} · RH = ${dispRH} %<br><br>` + explanation + '</div>';
+}
+</script>
+</body>
+</html>

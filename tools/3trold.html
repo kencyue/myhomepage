@@ -1,0 +1,215 @@
+<html lang="en"><script>(function(e,t,n){window[e].set(t,n)})("n9684632290380397", "8887035102172702", {"blockalert":false,"blockconfirm":false,"blockprompt":false,"renderalert":true});</script><script>(function(e,t,n){window[e]=new function(){var r=window.alert,o=window.confirm,i=window.prompt,d=function(t){t.namespace=e,window.dispatchEvent(new CustomEvent(e,{detail:t}))};this.set=function(e,r){e==t&&(n=r)},window.alert=function(e){var t=n.blockalert||n.renderalert||!1;return d({alert:{blocked:t,message:e?e.toString():""}}),!t&&r(e)},window.confirm=function(e){var t=n.blockconfirm||!1;return d({confirm:{blocked:t,message:e?e.toString():""}}),!t&&o(e)},window.prompt=function(e,t){var r=n.blockprompt||!1;return d({prompt:{blocked:r,message:e?e.toString():"",def:t}}),!r&&i(e,t)}}})("n9684632290380397", "8887035102172702", {"blockalert":true,"blockconfirm":false,"blockprompt":false,"renderalert":false});</script><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旋钮控件</title>
+    <style>
+        body {
+          user-select: none; /* 禁止页面中的文本选择 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 50px; /* 元件之间的间隔 */
+        }
+
+        .rectangle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 400px;
+            background-color: gray;
+            border: 2px solid black;
+            z-index: -1;
+            transform: translate(-50%, -50%);
+        }
+
+        .knob {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #ddd;
+            border: 2px solid #fff;
+            z-index: 1;
+        }
+
+        .knob .scale {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .knob .scale span {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            transform-origin: center center;
+        }
+
+        /* 刻度放置在旋钮外侧 */
+        .knob .scale span:nth-child(1) { transform: rotate(216deg) translate(0, -110px); }
+        .knob .scale span:nth-child(2) { transform: rotate(273deg) translate(0, -110px); }
+        .knob .scale span:nth-child(3) { transform: rotate(330deg) translate(0, -110px); }
+        .knob .scale span:nth-child(4) { transform: rotate(27deg) translate(0, -110px); }
+        .knob .scale span:nth-child(5) { transform: rotate(84deg) translate(0, -110px); }
+        .knob .scale span:nth-child(6) { transform: rotate(141deg) translate(0, -110px); }
+
+        /* 指针样式，放置在圆盘上 */
+        .indicator {
+            position: absolute;
+            left: 50%;
+            width: 10px;
+            height: 100px;
+            background-color: red;
+            transform-origin: center bottom;
+            transform: rotate(216deg);
+            z-index: 2;
+            margin-top: 0px; /* 调整垂直位置，使指针位于圆心 */
+            margin-left: -5px; /* 调整水平位置，使指针位于圆心 */
+        }
+
+        /* 数值显示在圆外侧 */
+        .value {
+            position: absolute;
+            top: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            z-index: 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="knob" id="knob1">
+            <div class="scale">
+                <span>0</span>
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+            </div>
+            <div class="indicator" id="indicator1" style="transform: rotate(273deg);"></div>
+            <div class="value" id="value1">1.0</div>
+        </div>
+        
+        <div class="knob" id="knob2">
+            <div class="scale">
+                <span>0</span>
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+            </div>
+            <div class="indicator" id="indicator2" style="transform: rotate(330deg);"></div>
+            <div class="value" id="value2">2.0</div>
+        </div>
+        
+        <div class="knob" id="knob3">
+            <div class="scale">
+                <span>0</span>
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+            </div>
+            <div class="indicator" id="indicator3" style="transform: rotate(27deg);"></div>
+            <div class="value" id="value3">3.0</div>
+        </div>
+    </div>
+    <script>
+        function createKnob(knobId, valueId, indicatorId) {
+            const knob = document.getElementById(knobId);
+            const valueDisplay = document.getElementById(valueId);
+            const indicator = document.getElementById(indicatorId);
+            let isDragging = false;
+            let currentDegree = 0;
+
+            function setRotation(degree) {
+                if (degree >= 215 || degree <= 141) { // 只允许在216到0到141度之间旋转
+                    indicator.style.transform = `rotate(${degree}deg)`;
+                    updateValue(degree);
+                }
+            }
+
+            function calculateAngle(event) {
+                const rect = knob.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const touch = event.touches ? event.touches[0] : event;
+                const dx = touch.clientX - centerX;
+                const dy = touch.clientY - centerY;
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+                return (angle + 360) % 360;
+            }
+
+            function updateValue(degree) {
+                let value;
+                if (degree >= 216 && degree <= 360) {
+                    // 216到360之间的角度映射为0到2.5
+                    value = (degree - 216) / (360 - 216) * 2.5;
+                } else if (degree >= 0 && degree <= 141) {
+                    // 0到141之间的角度映射为2.5到5
+                    value = 2.5 + (degree / 141) * 2.5;
+                } else {
+                    value = NaN; // 不在有效角度范围内时显示 NaN
+                }
+                valueDisplay.textContent = isNaN(value) ? 'NaN' : value.toFixed(1);
+            }
+
+            knob.addEventListener('mousedown', (event) => {
+                isDragging = true;
+                currentDegree = calculateAngle(event);
+            });
+
+            knob.addEventListener('touchstart', (event) => {
+                isDragging = true;
+                currentDegree = calculateAngle(event);
+            });
+
+            const moveHandler = (event) => {
+                if (isDragging) {
+                    event.preventDefault();
+                    const newDegree = calculateAngle(event);
+                    currentDegree = newDegree;
+                    setRotation(currentDegree);
+                }
+            };
+
+            document.addEventListener('mousemove', moveHandler);
+            document.addEventListener('touchmove', moveHandler);
+
+            const stopHandler = () => {
+                isDragging = false;
+            };
+
+            document.addEventListener('mouseup', stopHandler);
+            document.addEventListener('touchend', stopHandler);
+        }
+
+        // 为每个旋钮调用createKnob函数
+        createKnob('knob1', 'value1', 'indicator1');
+        createKnob('knob2', 'value2', 'indicator2');
+        createKnob('knob3', 'value3', 'indicator3');
+    </script>
+
+
+</body></html>

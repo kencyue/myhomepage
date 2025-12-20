@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>檔案查詢</title>
+  <style>
+    :root {
+  --primary: #0052cc; /* 更深的藍色，專業感更強 */
+  --bg: #f6f8fc; /* 更柔和的背景色 */
+  --card-bg: #ffffff;
+  --text: #1f2a44; /* 更深的文字色，提升對比 */
+  --border: #e4e7eb; /* 更柔和的邊框色 */
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 更明顯的陰影 */
+  --input-focus: #e6f0ff; /* 聚焦時的背景色 */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 1.5rem; /* 增加內距 */
+}
+
+h1 {
+  text-align: center;
+  font-size: 1.5rem; /* 字體稍大 */
+  font-weight: 700; /* 更粗的字重 */
+  margin-bottom: 1.5rem;
+  color: var(--text);
+  letter-spacing: -0.02em; /* 字距微調 */
+}
+
+.search-container {
+  max-width: 600px; /* 限制最大寬度，桌面端更集中 */
+  margin: 0 auto 1.5rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--card-bg);
+  border-radius: 12px; /* 更圓潤的邊角 */
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s ease;
+}
+
+.search-container:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); /* 懸停時增強陰影 */
+}
+
+.search-container input {
+  width: 100%;
+  padding: 0.9rem 0.9rem 0.9rem 3rem; /* 增加左側內距以容納圖標 */
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  background: transparent; /* 移除背景，讓容器控制 */
+  color: var(--text);
+  transition: background 0.3s ease;
+}
+
+.search-container input:focus {
+  outline: none;
+  background: var(--input-focus); /* 聚焦時背景變淺 */
+  box-shadow: none; /* 移除聚焦時的額外陰影 */
+}
+
+.search-container::before {
+  content: '🔍';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.search-container input:focus + ::before {
+  opacity: 0.8; /* 聚焦時圖標更顯眼 */
+}
+
+.results-container {
+  max-width: 800px; /* 限制表格最大寬度 */
+  margin: 0 auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+
+th,
+td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: #fafbfc; /* 更柔和的表頭背景 */
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+td {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+tr:hover {
+  background: #f5f7fa; /* 懸停背景更柔和 */
+}
+
+td.icon {
+  width: 40px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+td.icon img {
+  width: 24px; /* 圖標稍大 */
+  height: 24px;
+  vertical-align: middle;
+}
+
+td.name {
+  word-break: break-all;
+  white-space: normal;
+}
+
+td.description {
+  word-break: break-all;
+  white-space: normal;
+  color: #5f6b7a; /* 描述文字更柔和 */
+}
+
+td a {
+  color: var(--primary);
+  text-decoration: none;
+  display: block;
+  transition: color 0.2s ease;
+}
+
+td a:hover {
+  color: #003d99; /* 懸停時顏色變深 */
+  text-decoration: none; /* 移除下底線，保持乾淨 */
+}
+
+.message {
+  padding: 1rem;
+  text-align: center;
+  font-weight: 500;
+  color: #5f6b7a;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.message.error {
+  color: #d32f2f;
+  background: #fff0f0;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+  }
+  h1 {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .search-container {
+    max-width: 100%;
+  }
+  .search-container input {
+    padding: 0.8rem 0.8rem 0.8rem 2.8rem;
+    font-size: 0.95rem;
+  }
+  .search-container::before {
+    left: 0.8rem;
+    font-size: 1.1rem;
+  }
+  th,
+  td {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  td.icon {
+    width: 36px;
+  }
+  td.icon img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 0.75rem;
+  }
+  h1 {
+    font-size: 1.1rem;
+  }
+  .search-container input {
+    padding: 0.7rem 0.7rem 0.7rem 2.5rem;
+    font-size: 0.9rem;
+  }
+  .search-container::before {
+    left: 0.7rem;
+    font-size: 1rem;
+  }
+  th,
+  td {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  td.icon {
+    width: 32px;
+  }
+  td.icon img {
+    width: 18px;
+    height: 18px;
+  }
+}   
+  </style>
+</head>
+<body>
+  <h1>檔案查詢(檔名或描述模糊比對)</h1>
+
+  <div class="search-container">
+    <input id="kw" type="text" placeholder="輸入關鍵字…" autocomplete="off" disabled>
+  </div>
+
+  <div class="results-container" id="results"></div>
+
+  <script>
+    const inputEl = document.getElementById('kw');
+    const resultsEl = document.getElementById('results');
+    let index = null;
+
+    function getIconPath(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      switch (ext) {
+        case 'pdf':   return '../images/filetype/pdf.png';
+        case 'doc':
+        case 'docx':  return '../images/filetype/word.png';
+        case 'xls':
+        case 'xlsx':  return '../images/filetype/excel.png';
+        case 'mp4':   return '../images/filetype/video.png';
+        case 'png':   return '../images/filetype/png.png';
+        case 'jpg':
+        case 'jpeg':  return '../images/filetype/jpg.png';
+        case 'gif':   return '../images/filetype/gif.png';
+        default:      return '../images/filetype/document.png';
+      }
+    }
+
+    function fuzzyMatch(file, terms) {
+      const lowerName = file.name.toLowerCase();
+      const lowerDesc = (file.description || '').toLowerCase();
+      // Split by spaces, filter out empty terms
+      const keywords = terms.trim().toLowerCase().split(/\s+/).filter(t => t);
+      // All keywords must match in either name or description (AND condition)
+      return keywords.every(keyword => {
+        // Escape special regex characters and match the exact keyword
+        const pattern = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(pattern).test(lowerName) || new RegExp(pattern).test(lowerDesc);
+      });
+    }
+
+    function doSearch(term) {
+      resultsEl.innerHTML = '<div class="message">🔄 搜尋中…</div>';
+      
+      if (!term.trim()) {
+        resultsEl.innerHTML = '';
+        return;
+      }
+
+      try {
+        const results = index.files.filter(f => fuzzyMatch(f, term));
+        if (!results.length) {
+          resultsEl.innerHTML = '<div class="message">🔍 無符合檔案</div>';
+        } else {
+          resultsEl.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 40px;"></th>
+                  <th>檔案名稱</th>
+                  <th>描述</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${results.map(f => `
+                  <tr>
+                    <td class="icon"><img src="${getIconPath(f.name)}" alt=""></td>
+                    <td class="name"><a href="${f.webViewLink}" target="_blank">${f.name}</a></td>
+                    <td class="description">${f.description || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      } catch (err) {
+        resultsEl.innerHTML = `<div class="message error">錯誤：${err.message}</div>`;
+      }
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    (async () => {
+      try {
+        const res = await fetch('drive_index.json');
+        index = await res.json();
+        inputEl.disabled = false;
+        inputEl.focus();
+        
+        const debouncedSearch = debounce(doSearch, 300);
+        inputEl.addEventListener('input', (e) => {
+          debouncedSearch(e.target.value);
+        });
+      } catch (err) {
+        resultsEl.innerHTML = `<div class="message error">錯誤：無法載入索引 (${err.message})</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

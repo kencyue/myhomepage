@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>區網掃描器</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+#results a { display: block; margin: 5px 0; }
+#progress { margin: 10px 0; font-weight: bold; }
+</style>
+</head>
+<body>
+<h2>區網設備掃描</h2>
+<label>你的區網 IP: <input type="text" id="myIP" value="192.168.1.100"></label><br>
+<label>端口: <input type="number" id="port" value="57223"></label><br>
+<button onclick="scan()">開始掃描</button>
+
+<div id="progress"></div>
+<h3>掃描結果：</h3>
+<div id="results"></div>
+
+<script>
+async function checkDevice(ip, port) {
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 1000);
+        await fetch(`http://${ip}:${port}/device.xml`, { method: 'GET', mode: 'no-cors', signal: controller.signal });
+        clearTimeout(timeout);
+        return true; 
+    } catch {
+        return false;
+    }
+}
+
+async function scan() {
+    const myIP = document.getElementById('myIP').value;
+    const port = document.getElementById('port').value;
+    const base = myIP.split('.').slice(0,3).join('.');
+    const results = document.getElementById('results');
+    const progress = document.getElementById('progress');
+    results.innerHTML = "";
+    progress.textContent = "開始掃描...";
+
+    const total = 254;
+    let done = 0, found = 0;
+    const concurrency = 20;
+
+    const tasks = Array.from({length: total}, (_, i) => `${base}.${i+1}`);
+    let pool = [];
+
+    async function worker(ip) {
+        const ok = await checkDevice(ip, port);
+        done++;
+        if (ok) {
+            found++;
+            let url = `http://${ip}:${port}/device.xml`;
+            let link = document.createElement('a');
+            link.href = url;
+            link.textContent = url;
+            link.target = "_blank";
+            results.appendChild(link);
+        }
+        progress.textContent = `已掃描 ${done}/${total}，找到 ${found} 台設備`;
+    }
+
+    for (let ip of tasks) {
+        let p = worker(ip);
+        pool.push(p);
+        if (pool.length >= concurrency) {
+            await Promise.race(pool);
+            pool = pool.filter(x => x !== p);
+        }
+    }
+    await Promise.all(pool);
+    progress.textContent += " —— 掃描完成";
+}
+</script>
+</body>
+</html>

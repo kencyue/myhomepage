@@ -1,0 +1,186 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>備份光碟檢索系統</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+    }
+    h1 {
+      text-align: center;
+    }
+    #searchText {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    #buttonContainer {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .button {
+      flex: 1;
+      padding: 10px;
+      margin: 0 5px;
+      box-sizing: border-box;
+    }
+    #status {
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 14px;
+        padding: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>備份光碟檢索系統</h1>
+  <p>輸入要查找的內容：</p>
+  <input type="text" id="searchText" placeholder="請輸入搜索內容">
+  <div id="buttonContainer">
+    <button id="analyzeButton" class="button">搜索</button>
+    <button id="showAllButton" class="button">顯示所有資料</button>
+  </div>
+  <p id="status"></p>
+  <div id="result"></div>
+
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1VB2-MVIXHeCkMt1SwXXLN--YRwTPprsQb5IoSqcMgdg/gviz/tq?tqx=out:csv";
+
+    const removeQuotes = text => text.replace(/"/g, "");
+
+    document.getElementById("analyzeButton").addEventListener("click", async () => {
+      const searchText = document.getElementById("searchText").value.trim();
+      const statusElement = document.getElementById("status");
+      const resultElement = document.getElementById("result");
+
+      statusElement.innerText = "";
+      resultElement.innerText = "";
+
+      if (!searchText) {
+        statusElement.innerText = "請輸入搜索內容！";
+        return;
+      }
+
+      try {
+        statusElement.innerText = "正在抓取數據，請稍候...";
+
+        const response = await fetch(sheetUrl);
+        if (!response.ok) {
+          throw new Error("無法獲取表格數據。可能是權限問題或鏈接錯誤。");
+        }
+
+        const csvText = removeQuotes(await response.text());
+        statusElement.innerText = "數據抓取成功，正在搜索...";
+
+        const rows = csvText.split("\n").map(row => row.split(","));
+        let found = false;
+        let resultHTML = `搜索結果：<br>`;
+        rows.forEach(row => {
+          row.forEach((cell, colIndex) => {
+            if (cell.includes(searchText)) {
+              found = true;
+              const encodedSearchText = encodeURIComponent(cell.trim());
+              const googleSearchUrl = `https://www.google.com/search?q=${encodedSearchText}`;
+              resultHTML += `
+                第${row[0]}片備份光碟，找到：
+                <a href="${googleSearchUrl}" target="_blank" rel="noopener noreferrer">
+                  ${cell}
+                </a>
+                <br>`;
+            }
+          });
+        });
+
+        if (!found) {
+          resultHTML = `沒有找到包含 "${searchText}" 的內容。`;
+        }
+
+        resultElement.innerHTML = resultHTML;
+        statusElement.innerText = "搜索完成！";
+      } catch (error) {
+        statusElement.innerText = `錯誤：${error.message}`;
+        resultElement.innerText = "請檢查鏈接或表格權限是否正確。";
+      }
+    });
+
+    document.getElementById("showAllButton").addEventListener("click", async () => {
+      const statusElement = document.getElementById("status");
+      const resultElement = document.getElementById("result");
+
+      if (resultElement.innerHTML) {
+        resultElement.innerHTML = "";
+        statusElement.innerText = "";
+        return;
+      }
+
+      statusElement.innerText = "正在抓取數據，請稍候...";
+
+      try {
+        const response = await fetch(sheetUrl);
+        if (!response.ok) {
+          throw new Error("無法獲取表格數據。可能是權限問題或鏈接錯誤。");
+        }
+
+        const csvText = removeQuotes(await response.text());
+        statusElement.innerText = "數據抓取成功，正在搜索...";
+
+        const rows = csvText.split("\n").map(row => row.split(","));
+        let resultHTML = `<table border="1"><tr>`;
+
+        // 表頭處理
+        rows[0].forEach(header => {
+          resultHTML += `<th>${header}</th>`;
+        });
+        resultHTML += `</tr>`;
+
+        // 表格資料處理
+        rows.slice(1).forEach(row => {
+          resultHTML += `<tr>`;
+          row.forEach((cell, colIndex) => {
+            if (colIndex === 0) {
+              resultHTML += `<td>${cell}</td>`;
+            } else {
+              const encodedSearchText = encodeURIComponent(cell.trim());
+              const googleSearchUrl = `https://www.google.com/search?q=${encodedSearchText}`;
+              resultHTML += `
+                <td>
+                  <a href="${googleSearchUrl}" target="_blank" rel="noopener noreferrer">
+                    ${cell}
+                  </a>
+                </td>`;
+            }
+          });
+          resultHTML += `</tr>`;
+        });
+
+        resultHTML += `</table>`;
+        resultElement.innerHTML = resultHTML;
+        statusElement.innerText = "搜索完成！";
+      } catch (error) {
+        statusElement.innerText = `錯誤：${error.message}`;
+        resultElement.innerText = "請檢查鏈接或表格權限是否正確。";
+      }
+    });
+  </script>
+
+</body>
+</html>

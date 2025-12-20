@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>真空度轉換</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
+    <h2 class="text-2xl font-semibold text-center mb-4">真空度轉換</h2>
+
+    <!-- 數值 + 單位：手機直向時垂直排列，橫向或螢幕較寬時並排 -->
+    <div class="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0 mb-4">
+      <input id="vacValue"
+             type="number" step="any" placeholder="輸入數值"
+             class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring" />
+
+      <select id="unitIn"
+              class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring">
+        <option value="Pa">Pa（帕斯卡）</option>
+        <option value="kPa">kPa（千帕）</option>
+        <option value="mbar">mbar（毫巴）</option>
+        <option value="μmHg">μmHg（微米汞柱，Micron）</option>
+        <option value="mmHg">mmHg（毫米汞柱，Torr）</option>
+        <option value="cmHg">cmHg（厘米汞柱）</option>
+        <option value="inHg">inHg（英吋汞柱）</option>
+      </select>
+    </div>
+
+    <button onclick="convertVac()"
+            class="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
+      轉換
+    </button>
+
+    <div id="vac-result" class="mt-4 text-left space-y-1 text-base"></div>
+  </div>
+
+  <script>
+    // 轉 Pa 係數
+    const factors = {
+      Pa:   1,
+      kPa:  1e3,
+      mbar: 1e2,
+      mmHg: 133.322,
+      μmHg: 133.322e-3,
+      cmHg: 133.322e1,
+      inHg: 3386.39
+    };
+
+    // 顯示用中文名稱
+    const names = {
+      Pa:   'Pa（帕斯卡）',
+      kPa:  'kPa（千帕）',
+      mbar: 'mbar（毫巴）',
+      μmHg: 'μmHg（微米汞柱，Micron）',
+      mmHg: 'mmHg（毫米汞柱，Torr）',
+      cmHg: 'cmHg（厘米汞柱）',
+      inHg: 'inHg（英吋汞柱）'
+    };
+
+    function convertVac() {
+      const val     = parseFloat(document.getElementById('vacValue').value);
+      const inUnit  = document.getElementById('unitIn').value;
+      const resultEl = document.getElementById('vac-result');
+
+      if (isNaN(val)) {
+        resultEl.innerText = '請輸入有效數值';
+        return;
+      }
+
+      // 先轉成 Pa
+      const paValue = val * factors[inUnit];
+
+      // 顯示所有單位
+      let html = '';
+      for (const [unit, factor] of Object.entries(factors)) {
+        const converted = paValue / factor;
+        html += `<div>${converted.toFixed(3)} <span class="font-medium">${names[unit]}</span></div>`;
+      }
+      resultEl.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

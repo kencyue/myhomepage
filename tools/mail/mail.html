@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📧 Panasonic 聯絡信箱快速複製 (最終穩定版)</title>
+<style>
+/* ... CSS 樣式與前一版本保持一致 ... */
+body {
+    font-family: "微軟正黑體", sans-serif;
+    background: #eef2f5;
+    margin: 0; padding: 20px;
+    color: #333;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 14px;
+    font-size: 1.3rem;
+}
+
+#tableWrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* =====================================
+    ★ 頁籤樣式 (Tabs)
+===================================== */
+.tab-container {
+    max-width: 1000px;
+    margin: 0 auto 10px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.tab-buttons {
+    display: flex;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab-button {
+    background-color: #f1f1f1;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 20px;
+    transition: 0.3s;
+    font-size: 1rem;
+    color: #555;
+}
+
+.tab-button:hover {
+    background-color: #ddd;
+}
+
+.tab-button.active {
+    background-color: white;
+    border-top: 3px solid #0078d7;
+    border-bottom: none;
+    font-weight: bold;
+    color: #0078d7;
+}
+
+/* 內容區塊 */
+.tab-content {
+    display: none;
+    padding: 10px 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* =====================================
+    超薄版 Table（不捲軸）
+===================================== */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    font-size: 18px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 2px 4px;
+    height: 22px;
+    white-space: nowrap;
+    text-align: center;
+    user-select: none;
+    cursor: default;
+}
+
+th {
+    background: #0078d7;
+    color: #fff;
+    font-size: 13px;
+    padding: 6px 4px;
+    cursor: pointer;
+}
+th:hover { background: #005ea6; }
+
+/* =====================================
+    td 整格「按鈕化」
+===================================== */
+td {
+    background: #f8f9fc;
+    transition: 0.15s;
+}
+
+/* 可點擊選取多項的欄位 (單位, 部門, 區域) */
+td[data-unit], td[data-dept], td[data-area] {
+    cursor: pointer;
+    background: #f1f1f1;
+}
+td[data-unit]:hover, td[data-dept]:hover, td[data-area]:hover {
+    background: #e0f0ff;
+}
+
+/* 可點擊選取單項的欄位 (人名/mail) */
+td[data-mail] {
+    cursor: pointer;
+    background: #f8f9fc;
+}
+td[data-mail]:hover {
+    background: #e4efff;
+}
+
+/* 不可點擊欄位 (分機, 或無數據的格子) */
+td:not([data-mail]):not([data-unit]):not([data-dept]):not([data-area]) {
+    cursor: default;
+    background: #f1f1f1;
+}
+
+td.selected {
+    background: #0078d7 !important;
+    color: white !important;
+    font-weight: bold;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
+}
+
+/* =====================================
+    狀態列
+===================================== */
+.status {
+    text-align: center;
+    margin-top: 10px;
+    color: #0078d7;
+    font-size: 13px;
+    min-height: 1.2em;
+}
+</style>
+</head>
+<body>
+
+<h2>📧 Panasonic 聯絡信箱快速複製</h2>
+
+<div class="tab-container">
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="openTab('station', this)">服務站</button>
+        <button class="tab-button" onclick="openTab('domain', this)">服務本部</button>
+        <button class="tab-button" onclick="openTab('ptw', this)">PTW</button>
+    </div>
+
+    <div id="station" class="tab-content active">
+        <div id="tableWrapper">
+            <table class="mailTable" data-json="cs_station.json" data-type="station"></table>
+        </div>
+        <div class="status">（未選取）</div>
+    </div>
+
+    <div id="domain" class="tab-content">
+        <div id="tableWrapper">
+            <table class="mailTable" data-json="cs_domain.json" data-type="domain"></table>
+        </div>
+        <div class="status">（未選取）</div>
+    </div>
+
+    <div id="ptw" class="tab-content">
+        <div id="tableWrapper">
+            <table class="mailTable" data-json="PTW.json" data-type="ptw"></table>
+        </div>
+        <div class="status">（未選取）</div>
+    </div>
+</div>
+
+
+<script type="module">
+let selectedMailsMap = new Map();
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadTabContent('station');
+});
+
+// =====================================
+// ★ 頁籤切換邏輯
+// =====================================
+window.openTab = function(tabId, buttonElement) {
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    document.getElementById(tabId).classList.add('active');
+    buttonElement.classList.add('active');
+
+    loadTabContent(tabId);
+}
+
+function loadTabContent(tabId) {
+    const tabContent = document.getElementById(tabId);
+    const table = tabContent.querySelector('.mailTable');
+
+    if (table.rows.length > 0) {
+        return;
+    }
+
+    const jsonFile = table.dataset.json;
+    const tableType = table.dataset.type;
+
+    selectedMailsMap.set(tabId, new Set());
+
+    table.addEventListener("click", e => {
+        const td = e.target.closest("td");
+        const th = e.target.closest("th");
+
+        // 優先處理 TH (表頭)
+        if (th && th.dataset.role) {
+            handleHeader(th.dataset.role, table, tabId);
+            return;
+        }
+        
+        // 處理 TD (表格內容)
+        if (!td) return;
+        
+        // 優先級 1: 點擊人名單元格 (最精確的點擊)
+        if (td.dataset.mail) {
+             handleCellClick(td, tabId); 
+        } 
+        // 優先級 2: 點擊部門單元格 (僅適用於部門列，人名儲存格已被上一個條件排除)
+        else if (td.dataset.dept && tableType !== "station") {
+            handleDeptClick(td, tabId); 
+        } 
+        // 優先級 3: 點擊單位/區域單元格 (最寬泛的點擊)
+        else if (td.dataset.area) { 
+            if (tableType === "station") {
+                handleAreaClick(td, tabId); 
+            } else {
+                handleUnitClick(td, tabId); 
+            }
+        }
+    });
+
+    loadMails(table, jsonFile, tableType, tabId);
+}
+
+// =====================================
+// ★ 載入資料並建立表格
+// =====================================
+async function loadMails(table, jsonFile, tableType, tabId) {
+    let data = [];
+    try {
+        const res = await fetch(jsonFile);
+        if (!res.ok) {
+            throw new Error(`Failed to load ${jsonFile}: ${res.statusText}`);
+        }
+        data = await res.json();
+    } catch (error) {
+        const statusElement = document.getElementById(tabId).querySelector(".status");
+        statusElement.textContent = `❌ 資料載入失敗: ${error.message}`;
+        console.error("Fetch error:", error);
+        return;
+    }
+
+    if (!data.length) return;
+
+    const headerRow = document.createElement("tr");
+
+    let columns;
+    let mainColumnKey;
+    let roles;
+
+    if (tableType === "station") {
+        columns = ["區域", "處長", "經理", "站長"];
+        mainColumnKey = "區域";
+        roles = { "區域": "ALL", "處長": "處長", "經理": "經理", "站長": "站長" };
+    } else { // domain 或 ptw
+        columns = ["單位", "部門", "人名", "分機"];
+        mainColumnKey = "單位";
+        roles = { "單位": "ALL", "部門": "", "人名": "人名", "分機": "" };
+    }
+
+    columns.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col;
+        th.dataset.role = roles[col] || ""; 
+        headerRow.appendChild(th);
+    });
+    table.appendChild(headerRow);
+
+
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const mainCell = document.createElement("td");
+        mainCell.textContent = row[mainColumnKey];
+        mainCell.dataset.area = row[mainColumnKey]; 
+        
+        if (tableType !== "station" && row[mainColumnKey]) {
+            mainCell.dataset.unit = row[mainColumnKey];
+        }
+        tr.appendChild(mainCell);
+
+        columns.slice(1).forEach(colName => {
+            const cellData = row[colName];
+            const td = document.createElement("td");
+
+            if (tableType === "station") {
+                if (cellData && cellData.mail) {
+                    td.dataset.mail = cellData.mail.trim();
+                    td.textContent = cellData.name || "";
+                    td.dataset.role = colName; 
+                } else {
+                    td.textContent = "";
+                }
+            } else { 
+                if (colName === "部門") {
+                    td.textContent = cellData || "";
+                    if (cellData) {
+                       td.dataset.dept = cellData;
+                       if (row["單位"]) td.dataset.unit = row["單位"];
+                    }
+                } else if (colName === "人名") {
+                    if (cellData && cellData.mail) {
+                        td.dataset.mail = cellData.mail.trim();
+                        td.textContent = cellData.name || "";
+                        if (row["單位"]) td.dataset.unit = row["單位"];
+                        if (row["部門"]) td.dataset.dept = row["部門"];
+                    } else {
+                        td.textContent = "";
+                    }
+                } else if (colName === "分機") {
+                    const nameData = row["人名"];
+                    td.textContent = (nameData && nameData.ext) || "";
+                }
+            }
+            tr.appendChild(td);
+        });
+
+        table.appendChild(tr);
+    });
+}
+
+
+// =====================================
+// ★ 核心選取邏輯 (只影響 selectedMails 集合)
+// =====================================
+
+function toggleSelect(td, select, selectedMails) {
+    const mail = td.dataset.mail;
+    if (!mail) return;
+
+    if (select) {
+        td.classList.add("selected");
+        selectedMails.add(mail);
+    } else {
+        td.classList.remove("selected");
+        selectedMails.delete(mail);
+    }
+}
+
+// =====================================
+// ★ 視覺同步工具函式 (只影響 classList)
+// =====================================
+
+function syncVisualState(table, selectedMails) {
+    // 同步所有單位和部門格的視覺狀態
+    table.querySelectorAll('td[data-unit], td[data-dept]').forEach(cell => {
+        const unitValue = cell.dataset.unit;
+        const deptValue = cell.dataset.dept;
+        let mailCells;
+        
+        if (unitValue) {
+            mailCells = Array.from(table.querySelectorAll(`td[data-mail][data-unit="${unitValue}"]`));
+        } else if (deptValue) {
+            mailCells = Array.from(table.querySelectorAll(`td[data-mail][data-dept="${deptValue}"]`));
+        } else {
+            return;
+        }
+
+        if (mailCells.length > 0) {
+            const allSelected = mailCells.every(c => c.classList.contains("selected"));
+            cell.classList.toggle("selected", allSelected);
+        }
+    });
+
+    // 額外處理服務站的 Area 視覺狀態
+    const tableType = table.dataset.type;
+    if (tableType === "station") {
+        table.querySelectorAll('td[data-area]').forEach(cell => {
+            const tr = cell.parentElement;
+            const mailCells = Array.from(tr.querySelectorAll("td[data-mail]"));
+            if (mailCells.length > 0) {
+                const allSelected = mailCells.every(c => c.classList.contains("selected"));
+                cell.classList.toggle("selected", allSelected);
+            }
+        });
+    }
+}
+
+
+// =====================================
+// ★ 點擊處理函式
+// =====================================
+
+/** 處理點擊「區域」欄位 (服務站專用：選取單列所有郵件) */
+function handleAreaClick(td, tabId) {
+    const selectedMails = selectedMailsMap.get(tabId);
+    const tr = td.parentElement;
+    const mailCells = Array.from(tr.querySelectorAll("td[data-mail]"));
+    const allSelected = mailCells.every(c => c.classList.contains("selected"));
+
+    mailCells.forEach(cell => {
+        toggleSelect(cell, !allSelected, selectedMails);
+    });
+    
+    // 視覺同步
+    td.classList.toggle("selected", !allSelected);
+
+    copyMails(tabId);
+}
+
+/** 處理點擊「單位」欄位 (服務本部/PTW：選取所有相同單位的郵件) */
+function handleUnitClick(td, tabId) {
+    const selectedMails = selectedMailsMap.get(tabId);
+    const table = td.closest('table');
+    const unitValue = td.dataset.unit;
+
+    if (!unitValue) return;
+
+    const unitMailCells = Array.from(table.querySelectorAll(`td[data-mail][data-unit="${unitValue}"]`));
+    const allSelected = unitMailCells.every(c => c.classList.contains("selected"));
+
+    unitMailCells.forEach(cell => {
+        toggleSelect(cell, !allSelected, selectedMails);
+    });
+
+    // 視覺同步
+    syncVisualState(table, selectedMails);
+    
+    copyMails(tabId);
+}
+
+
+/** 處理點擊「部門」欄位 (同部門全選/反選) */
+function handleDeptClick(td, tabId) {
+    const selectedMails = selectedMailsMap.get(tabId);
+    const table = td.closest('table');
+    const deptValue = td.dataset.dept;
+
+    if (!deptValue) return;
+
+    const deptMailCells = Array.from(table.querySelectorAll(`td[data-mail][data-dept="${deptValue}"]`));
+    const allSelected = deptMailCells.every(c => c.classList.contains("selected"));
+
+    deptMailCells.forEach(cell => {
+        toggleSelect(cell, !allSelected, selectedMails);
+    });
+
+    // 視覺同步
+    syncVisualState(table, selectedMails);
+
+    copyMails(tabId);
+}
+
+/** ★ 處理點擊「人名」欄位 (只選取單格) - 終極隔離版本 */
+function handleCellClick(td, tabId) {
+    const selectedMails = selectedMailsMap.get(tabId);
+    const mail = td.dataset.mail;
+
+    if (!mail) return;
+
+    const isSelecting = !td.classList.contains("selected");
+    
+    // 1. 隔離：只針對被點擊的 TD 執行選取/反選操作
+    //    這不會影響任何其他 TD 的 selectedMails 狀態
+    toggleSelect(td, isSelecting, selectedMails);
+
+    // 2. [重要] 移除所有視覺同步邏輯
+    //    我們將單位/部門的視覺狀態更新，交由用戶點擊單位/部門時才觸發。
+    //    這消除了點擊人名時，連鎖反應導致單位/部門高亮的可能性。
+    //    (如果需要，您可以手動點擊單位/部門來更新視覺狀態)
+
+    copyMails(tabId);
+}
+
+/** 處理點擊表頭 (單欄選取/反選) */
+function handleHeader(role, table, tabId) {
+    const selectedMails = selectedMailsMap.get(tabId);
+    const rows = Array.from(table.querySelectorAll("tr")).slice(1);
+    const headers = Array.from(table.querySelectorAll("th"));
+
+    let targetTds;
+    
+    // 服務站單一角色選取 (處長, 經理, 站長)
+    if (role === "處長" || role === "經理" || role === "站長") {
+        const index = headers.findIndex(th => th.dataset.role === role);
+        if (index < 0) return;
+
+        // 篩選出該角色欄位中所有帶有 mail 的儲存格
+        targetTds = rows.map(r => r.children[index]).filter(td => td.dataset.mail);
+        
+    } else if (role === "ALL" || role === "人名") {
+        // 全選 (區域/單位或人名表頭)
+        targetTds = table.querySelectorAll("td[data-mail]");
+        
+    } else {
+        return;
+    }
+    
+    const allSelected = Array.from(targetTds).every(td => td.classList.contains("selected"));
+
+    // 執行選取/反選操作
+    targetTds.forEach(td => toggleSelect(td, !allSelected, selectedMails));
+
+    // 同步視覺狀態
+    syncVisualState(table, selectedMails);
+    
+    // 額外處理 TH 本身的視覺狀態
+    const th = headers.find(h => h.dataset.role === role);
+    if (th) th.classList.toggle("selected", !allSelected);
+
+
+    copyMails(tabId);
+}
+
+
+// =====================================
+// ★ 複製及狀態更新
+// =====================================
+function copyMails(tabId) {
+    const selectedMails = selectedMailsMap.get(tabId);
+    if (!selectedMails) return;
+
+    const arr = Array.from(selectedMails);
+    const statusElement = document.getElementById(tabId).querySelector(".status");
+
+    if (!arr.length) {
+        statusElement.textContent = "（未選取）";
+        return;
+    }
+
+    navigator.clipboard.writeText(arr.join("; ")).then(() => {
+        statusElement.textContent = `✔ 已複製 ${arr.length} 個`;
+    });
+}
+</script>
+
+</body>
+</html>

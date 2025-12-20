@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>冷氣機 Modbus RTU 產生器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: 'Inter', sans-serif; color: #1f2a44; }
+    h1 { margin-bottom: 16px; font-size: 1.5rem; font-weight: 700; }
+    .card { width: 100%; max-width: 480px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #4a5568; }
+    select, input[type="number"], button { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: .9rem; margin-bottom: 12px; }
+    button { background: #3b82f6; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #2563eb; }
+    .output-field { position: relative; margin-bottom: 16px; }
+    .output-field input { 
+      width: 100%; padding: 8px; 
+      border: 1px solid #e2e8f0; border-radius: 6px; 
+      font-family: monospace; background: #f7fafc; 
+      cursor: pointer; /* 提示可點擊 */
+    }
+    .output-field input:hover {
+      background: #edf2f7; /* 滑鼠懸停時背景變色 */
+    }
+    .toast { position: fixed; bottom: 16px; right: 16px; background: #10b981; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: .85rem; opacity: 0; transition: all .3s; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <h1>冷氣機 Modbus RTU 產生器</h1>
+
+  <div class="card">
+    <label for="slave">Slave ID</label>
+    <input id="slave" type="number" min="0" max="247" value="1">
+
+    <label for="operation">操作</label>
+    <select id="operation">
+      <option value="power_on">開機</option>
+      <option value="power_off">關機</option>
+      <option value="set_mode">設定運轉模式</option>
+      <option value="set_fan">設定風速</option>
+      <option value="set_temp">設定溫度</option>
+      <option value="read_status">讀取狀態</option>
+      <option value="schedule_on">預約開機</option>
+      <option value="schedule_off">預約關機</option>
+      <option value="broadcast_on">全體開啟</option>
+      <option value="broadcast_off">全體關閉</option>
+    </select>
+
+    <div id="param-area"></div>
+    <button id="gen">生成指令</button>
+  </div>
+
+  <div class="card">
+    <div class="output-field">
+      <label>RTU 幀 (HEX)</label>
+      <input id="frame" type="text" readonly placeholder="點生成後顯示">
+    </div>
+    <div class="output-field">
+      <label>Modbus Monitor</label>
+      <input id="monitor" type="text" readonly placeholder="點生成後顯示">
+    </div>
+  </div>
+
+  <div id="toast" class="toast">已複製！</div>
+
+<script>
+// 操作對應設定
+const ops = {
+  power_on:    {fc:5,  addr:1,     val:1},
+  power_off:   {fc:5,  addr:1,     val:0},
+  set_mode:    {fc:6,  addr:40001, prompt:'運轉模式 (0=冷氣,1=除濕,3=自動,4=暖氣)'},
+  set_fan:     {fc:6,  addr:40002, prompt:'風速 (0=自動,1~5)'},
+  set_temp:    {fc:6,  addr:40005, prompt:'溫度 (16~30)'},
+  read_status: {fc:3,  addr:40001, count:3},
+  schedule_on: {fc:6,  addr:40006, prompt:'預約開機 (分鐘 1~1440)'},
+  schedule_off:{fc:6,  addr:40007, prompt:'預約關機 (分鐘 1~1440)'},
+  broadcast_on:{fc:5,  addr:1,     val:1, broadcast:true},
+  broadcast_off:{fc:5, addr:1,     val:0, broadcast:true}
+};
+
+const selOp    = document.getElementById('operation');
+const paramArea= document.getElementById('param-area');
+const slaveEl  = document.getElementById('slave');
+const frameEl  = document.getElementById('frame');
+const monEl    = document.getElementById('monitor');
+const toast    = document.getElementById('toast');
+
+// 動態參數區
+function renderParams(){
+  paramArea.innerHTML = '';
+  const op = ops[selOp.value];
+  if(op.prompt){
+    const lbl = document.createElement('label'); lbl.textContent = op.prompt;
+    const inp = document.createElement('input'); inp.id='param'; inp.type='number'; inp.placeholder=op.prompt;
+    paramArea.append(lbl, inp);
+  }
+}
+selOp.addEventListener('change', renderParams);
+renderParams();
+
+// CRC16 計算
+function crc16(buf){
+  let crc=0xFFFF;
+  buf.forEach(b=>{
+    crc ^= b;
+    for(let i=0;i<8;i++){
+      crc = (crc & 1) ? ((crc >> 1) ^ 0xA001) : (crc >> 1);
+    }
+  });
+  return [crc & 0xFF, crc >> 8];
+}
+
+// 生成
+document.getElementById('gen').addEventListener('click', ()=>{
+  let slave = parseInt(slaveEl.value) || 0;
+  const op = ops[selOp.value];
+  if(op.broadcast) slave = 0;
+
+  let fc    = op.fc;
+  let addr  = op.addr;
+  let count = op.count;
+  let val   = op.val!==undefined ? op.val : 0;
+  if(op.prompt){
+    val = parseInt(document.getElementById('param').value)||0;
+  }
+
+  // 地址偏移
+  if(addr >= 40001) addr -= 40001;
+  else if(addr >= 1) addr -= 1;
+
+  // PDU
+  let pdu = [slave, fc, (addr>>8)&0xFF, addr&0xFF];
+  if(fc === 3)        pdu.push((count>>8)&0xFF, count&0xFF);
+  else if(fc === 5)   pdu.push(val===1?0xFF:0x00, val===1?0x00:0x00);
+  else if(fc === 6)   pdu.push((val>>8)&0xFF, val&0xFF);
+
+  // CRC + frame
+  const crc = crc16(pdu);
+  const frame = [...pdu, ...crc];
+  const hex = frame.map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+  frameEl.value = hex;
+
+  // Modbus Monitor
+  let mon = '';
+  if(fc === 5)    mon = (addr+1).toString().padStart(6,'0')+`*${val}`;
+  else if(fc === 6) mon = (400000+(addr+1)).toString().padStart(6,'0')+`*${val}`;
+  else if(fc === 3) mon = (400000+(addr+1)).toString().padStart(6,'0') + (count>1?`#${count}`:'');
+  monEl.value = mon;
+});
+
+// 點擊輸入框複製內容
+[frameEl, monEl].forEach(input => {
+  input.addEventListener('click', () => {
+    if (input.value) { // 確保輸入框有內容
+      navigator.clipboard.writeText(input.value).then(() => {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1000);
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CADR ↔ 坪數換算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
+    <h1 class="text-xl font-bold text-center mb-4">CADR 與坪數/面積換算</h1>
+
+    <!-- 模式切換 -->
+    <label class="block font-medium mb-1">選擇計算模式</label>
+    <select id="mode" class="w-full p-2 mb-4 border rounded">
+      <option value="cadrToArea">➤ 輸入 CADR ➜ 計算適合面積</option>
+      <option value="areaToCadr">➤ 輸入坪數或平方公尺 ➜ 計算所需 CADR</option>
+    </select>
+
+    <!-- 標準輸入欄位 -->
+    <div class="flex gap-2 mb-4">
+      <div class="flex-1">
+        <label class="block text-sm font-medium">樓高 (m)</label>
+        <input id="height" type="number" class="w-full p-2 border rounded" placeholder="例：2.8">
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium">循環次數</label>
+        <input id="ach" type="number" class="w-full p-2 border rounded" placeholder="例：3">
+      </div>
+    </div>
+
+    <!-- CADR ➜ 面積 -->
+    <div id="sectionCadrToArea" class="mb-4">
+      <label class="block text-sm font-medium">CADR (m³/h)</label>
+      <input id="cadrInput" type="number" class="w-full p-2 border rounded mb-2" placeholder="例：300">
+    </div>
+
+    <!-- 面積 ➜ CADR -->
+    <div id="sectionAreaToCadr" class="mb-4 hidden">
+      <label class="block text-sm font-medium">輸入面積（請擇一）</label>
+      <div class="flex gap-2 mb-2">
+        <input id="areaM2"   type="number" class="w-1/2 p-2 border rounded" placeholder="平方公尺">
+        <input id="areaPing" type="number" class="w-1/2 p-2 border rounded" placeholder="坪">
+      </div>
+    </div>
+
+    <!-- 按鈕 -->
+    <div class="flex gap-2 mb-2">
+      <button onclick="calculate()" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">計算</button>
+      <button onclick="resetAll()"  class="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400">重置</button>
+    </div>
+
+    <!-- 輸出 -->
+    <div id="output"  class="mt-4 text-center text-lg font-semibold"></div>
+    <div id="formula" class="mt-2 text-center text-sm text-gray-700 whitespace-pre-line font-mono"></div>
+  </div>
+
+<script>
+const modeSelect        = document.getElementById("mode");
+const sectionCadrToArea = document.getElementById("sectionCadrToArea");
+const sectionAreaToCadr = document.getElementById("sectionAreaToCadr");
+const output            = document.getElementById("output");
+const formulaEl         = document.getElementById("formula");
+const areaM2El          = document.getElementById("areaM2");
+const areaPingEl        = document.getElementById("areaPing");
+
+// 切換模式
+modeSelect.addEventListener("change", () => {
+  const mode = modeSelect.value;
+  sectionCadrToArea.classList.toggle("hidden", mode !== "cadrToArea");
+  sectionAreaToCadr.classList.toggle("hidden", mode !== "areaToCadr");
+  output.textContent = '';
+  formulaEl.textContent = '';
+});
+
+// 互斥輸入
+areaM2El.addEventListener("input", () => { if (areaM2El.value) areaPingEl.value = ""; });
+areaPingEl.addEventListener("input", () => { if (areaPingEl.value) areaM2El.value = ""; });
+
+// 重置
+function resetAll() {
+  document.querySelectorAll("input").forEach(el => el.value = "");
+  output.textContent = formulaEl.textContent = "";
+  output.className   = "mt-4 text-center text-lg font-semibold";
+}
+
+// 常數：1 坪 = 3.30579 m²
+const PING_TO_M2 = 3.30579;
+
+function calculate() {
+  const mode    = modeSelect.value;
+  const height  = parseFloat(document.getElementById("height").value);
+  const ach     = parseFloat(document.getElementById("ach").value);
+
+  output.className  = "mt-4 text-center text-lg font-semibold";
+  formulaEl.textContent = "";
+
+  if (isNaN(height) || isNaN(ach) || height<=0 || ach<=0) {
+    err("請正確輸入樓高與循環次數"); return;
+  }
+
+  if (mode === "cadrToArea") {
+    const cadr = parseFloat(document.getElementById("cadrInput").value);
+    if (isNaN(cadr) || cadr<=0) { err("請輸入有效的 CADR 數值"); return; }
+
+    const m2   = cadr / (height * ach);
+    const ping = m2 / PING_TO_M2;
+
+    output.classList.replace("text-red-600","text-green-700");
+    output.innerHTML = `✅ 適合面積：約 <b>${m2.toFixed(2)}</b> m² / <b>${ping.toFixed(2)}</b> 坪`;
+
+    formulaEl.textContent =
+`計算式：
+  面積 m²  = CADR ÷ (樓高 × 循環次數)
+           = ${cadr} ÷ (${height} × ${ach})
+           = ${m2.toFixed(2)} m²
+  面積 坪  = m² ÷ 3.30579
+           = ${m2.toFixed(2)} ÷ 3.30579
+           = ${ping.toFixed(2)} 坪`;
+  }
+
+  else { // areaToCadr
+    let m2 = 0;
+    const areaM2  = parseFloat(areaM2El.value);
+    const areaPing= parseFloat(areaPingEl.value);
+
+    if (!isNaN(areaM2) && areaM2>0)       m2 = areaM2;
+    else if (!isNaN(areaPing) && areaPing>0) m2 = areaPing * PING_TO_M2;
+    else { err("請輸入有效的面積（平方公尺或坪）"); return; }
+
+    const cadr = m2 * height * ach;
+
+    output.classList.replace("text-red-600","text-green-700");
+    output.innerHTML = `✅ 建議 CADR：約 <b>${cadr.toFixed(0)}</b> m³/h`;
+
+    const srcTxt = (!isNaN(areaM2) && areaM2>0)
+      ? `已輸入 m² = ${areaM2}`
+      : `坪數 ${areaPing} × 3.30579  = ${m2.toFixed(2)} m²`;
+
+    formulaEl.textContent =
+`計算式：
+  ${srcTxt}
+  CADR = m² × 樓高 × 循環次數
+       = ${m2.toFixed(2)} × ${height} × ${ach}
+       = ${cadr.toFixed(0)} m³/h`;
+  }
+
+  function err(msg){
+    output.classList.replace("text-green-700","text-red-600");
+    output.textContent = "❌ " + msg;
+  }
+}
+</script>
+</body>
+</html>

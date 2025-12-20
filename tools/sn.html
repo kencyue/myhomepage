@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>家用空調機號解析工具 (ZXing)</title>
+<style>
+  body{margin:0;font:16px/1.5 ui-sans-serif,system-ui;background:#f3f4f6;
+       display:flex;justify-content:center;align-items:flex-start;
+       min-height:100vh;padding:40px 10px}
+  .app{background:#fff;width:min(720px,95vw);border-radius:14px;
+       box-shadow:0 6px 20px rgba(0,0,0,.1);padding:24px}
+  h1{margin:0 0 1rem;font-size:1.4rem;color:#1f2937}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=text]{flex:1 1 300px;padding:12px 14px;
+       border:1px solid #d1d5db;border-radius:10px;font-size:1rem}
+  button{background:#3b82f6;color:#fff;border:0;border-radius:10px;
+       padding:12px 16px;font-weight:600;cursor:pointer}
+  button:hover{background:#2563eb}
+  .hint{font-size:.9rem;color:#6b7280;margin-top:6px}
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:.95rem}
+  th,td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+  th{background:#f9fafb;color:#374151}
+  tr:last-child td{border-bottom:0}
+  .error{margin-top:14px;padding:10px 12px;background:#fee2e2;
+       color:#b91c1c;border:1px solid #fca5a5;border-radius:10px}
+  .ok{margin-top:14px;padding:10px 12px;background:#dcfce7;
+       color:#166534;border:1px solid #86efac;border-radius:10px}
+  #reader{margin-top:14px;max-width:480px}
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>家用空調機號解析工具 (ZXing)</h1>
+    <div class="row">
+      <input id="sn" type="text" placeholder="輸入機號，例如 2CQ4120162" />
+      <button id="go">解析</button>
+      <button id="scan-qr">相機掃描QRCODE</button>
+    </div>
+    <div class="hint">12碼＝菲律賓 CW；10碼＝國產 CW / CU / CS。</div>
+
+    <!-- 相機畫面 -->
+    <video id="reader" autoplay muted playsinline style="display:none;width:100%;border-radius:10px;"></video>
+
+    <table id="result" style="display:none">
+      <thead>
+        <tr>
+          <th>機種代號</th>
+          <th>生產年</th>
+          <th>生產月</th>
+          <th>流水號</th>
+          <th>對應型號</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="mcode"></td>
+          <td id="year"></td>
+          <td id="month"></td>
+          <td id="serial"></td>
+          <td id="mapped"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="msg"></div>
+  </div>
+
+<!-- 引入 ZXing -->
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
+<script>
+(function(){
+  const $ = (s)=>document.querySelector(s);
+  const snEl = $('#sn'), msgEl = $('#msg');
+  const tbl = $('#result'), mcode = $('#mcode'), year = $('#year'),
+        month = $('#month'), serial = $('#serial'), mapped=$('#mapped');
+  const scanBtn = $('#scan-qr');
+  const video = $('#reader');
+
+  let modelMap = {};
+  async function loadModelMap(){
+    try{
+      const res = await fetch("sn/sn.json");
+      if(!res.ok) throw new Error("載入 sn.json 失敗");
+      modelMap = await res.json();
+      okHint("機種對照表已載入，共 "+Object.keys(modelMap).length+" 筆");
+    }catch(e){
+      showError("載入對照表失敗: "+e.message);
+    }
+  }
+
+  const now = new Date();
+  const currentYear  = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  function parse(snRaw){
+    const sn = (snRaw||'').trim();
+    msgEl.innerHTML = ''; 
+    msgEl.className = '';
+    tbl.style.display = 'none';
+
+    if(!sn) return showError("機號不能為空白");
+    const len = sn.length;
+    if(len!==10 && len!==12) 
+      return showError(`長度錯誤：收到 ${len} 碼`);
+
+    try{
+      let code, yCode, mm, tail;
+      if(len===12){
+        code  = sn.slice(0,5);
+        yCode = sn.charAt(5);
+        mm    = sn.slice(6,8);
+        tail  = sn.slice(-4);
+      }else{
+        code  = sn.slice(0,3);
+        yCode = sn.charAt(3);
+        mm    = sn.slice(4,6);
+        tail  = sn.slice(-4);
+      }
+
+      if(!/^\d$/.test(yCode)) throw new Error('年份碼不是數字');
+      if(!/^\d{2}$/.test(mm)) throw new Error('月份不是數字');
+      const monthNum = Number(mm);
+      if(monthNum<1 || monthNum>12) throw new Error('月份不在 01–12');
+      if(!/^\d{4}$/.test(tail)) throw new Error('流水號不是數字');
+
+      let yy = 2020 + Number(yCode);
+      while(yy > currentYear){ yy -= 10; }
+      if(yy === currentYear && monthNum > currentMonth){ yy -= 10; }
+
+      const mappedModel = modelMap[code];
+      if(!mappedModel){ 
+        return showError("無此機種");
+      }
+
+      fillTable(code, yy, mm, tail, mappedModel);
+      okHint('解析成功');
+    }catch(e){
+      showError('解析失敗：' + e.message);
+    }
+  }
+
+  function fillTable(code, yy, mm, tail, mappedModel){
+    mcode.textContent = code;
+    year.textContent  = yy;
+    month.textContent = mm;
+    serial.textContent= tail;
+    mapped.textContent= mappedModel;
+    tbl.style.display = '';
+  }
+  function showError(t){
+    msgEl.className='error';
+    msgEl.textContent=t;
+    tbl.style.display='none';
+  }
+  function okHint(t){
+    msgEl.className='ok';
+    msgEl.textContent=t;
+  }
+
+  // ZXing 掃描器
+  let codeReader = null;
+  let stream = null;
+
+  async function toggleQR(){
+    if(codeReader){ 
+      // 停止
+      codeReader.reset();
+      if(stream){
+        stream.getTracks().forEach(track=>track.stop());
+      }
+      video.style.display="none";
+      codeReader = null;
+      scanBtn.textContent="相機掃描QRCODE";
+      return;
+    }
+
+    try{
+      codeReader = new ZXing.BrowserMultiFormatReader();
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:"environment" } });
+      video.srcObject = stream;
+      video.style.display="block";
+
+      scanBtn.textContent="關閉QRCODE";
+
+      codeReader.decodeFromVideoDevice(null, video, (result,err)=>{
+        if(result){
+          toggleQR(); // 掃到一次就自動關閉
+          const text = result.getText();
+          if(text.startsWith("http")){
+            try{
+              const url = new URL(text);
+              const sn = url.searchParams.get("s");
+              if(sn) parse(sn);
+              else showError("QR碼沒有帶 s 參數");
+            }catch(e){
+              showError("無效 QRCode");
+            }
+          }else{
+            parse(text);
+          }
+        }
+      });
+    }catch(e){
+      showError("相機啟動失敗: "+e);
+      codeReader=null;
+      scanBtn.textContent="相機掃描QRCODE";
+    }
+  }
+  
+  
+
+  // 綁定
+  $('#go').addEventListener('click', ()=>parse(snEl.value));
+  snEl.addEventListener('keydown', e=>{ if(e.key==='Enter') parse(snEl.value); });
+  scanBtn.addEventListener('click', toggleQR);
+
+  // 載入對照表
+  loadModelMap();
+})();
+
+</script>
+
+</body>
+</html>

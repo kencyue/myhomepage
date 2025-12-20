@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>通報搜尋與描述編輯</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --border: #e1e4e8;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+
+    .search-container {
+      max-width: 100%;
+      margin: 0 auto 1rem;
+      position: relative;
+    }
+
+    .search-container input {
+      width: 100%;
+      padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 10px;
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    .search-container input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+    }
+
+    .search-container::before {
+      content: '🔍';
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      opacity: 0.5;
+    }
+
+    .results-container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      border-radius: 10px;
+      overflow: hidden;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #444;
+      font-size: 0.85rem;
+    }
+
+    td {
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    tr:hover {
+      background: #f1f3f5;
+    }
+
+    td.icon {
+      width: 40px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    td.icon img {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+    }
+
+    td.name {
+      word-break: break-all;
+      white-space: normal;
+    }
+
+    td.description {
+      word-break: break-all;
+      white-space: normal;
+      color: #666;
+      cursor: pointer;
+    }
+
+    td.description:hover {
+      background: #e9ecef;
+    }
+
+    td.description input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      box-shadow: none;
+      outline: none;
+    }
+
+    .message {
+      padding: 0.75rem;
+      text-align: center;
+      font-weight: 500;
+      color: #666;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .message.error {
+      color: #dc3545;
+      background: #fff5f5;
+    }
+
+    .message.success {
+      color: #28a745;
+      background: #f4fff4;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 0.75rem; }
+      h1 { font-size: 1.1rem; margin-bottom: 1rem; }
+      .search-container input { padding: 0.6rem 0.6rem 0.6rem 2.2rem; font-size: 1rem; }
+      .search-container::before { left: 0.6rem; font-size: 1rem; }
+      th, td { padding: 0.5rem; font-size: 0.8rem; }
+      td.icon { width: 36px; }
+      td.icon img { width: 18px; height: 18px; }
+      td.description input { font-size: 0.8rem; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0.5rem; }
+      h1 { font-size: 1rem; }
+      .search-container input { padding: 0.5rem 0.5rem 0.5rem 2rem; font-size: 0.9rem; }
+      .search-container::before { left: 0.5rem; font-size: 0.9rem; }
+      th, td { padding: 0.4rem; font-size: 0.75rem; }
+      td.icon { width: 32px; }
+      td.icon img { width: 16px; height: 16px; }
+      td.description input { font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>通報搜尋與描述編輯</h1>
+
+  <div class="search-container">
+    <input id="kw" type="text" placeholder="輸入關鍵字…" autocomplete="off" disabled>
+  </div>
+
+  <div class="results-container" id="results"></div>
+
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    const CLIENT_ID = '933448021336-jm9v4m7ge76bhvnttqsrlcrm4ep96plv.apps.googleusercontent.com'; // 替換為你的 Google Cloud Console Client ID
+    const API_KEY = 'AIzaSyCRXbp_I9NWLXfLOyfzwCmOSHvqKGpp2Kg'; // 替換為你的 Google Cloud Console API Key
+    const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+    const SCOPES = 'https://www.googleapis.com/auth/drive';
+
+    const inputEl = document.getElementById('kw');
+    const resultsEl = document.getElementById('results');
+    let index = null;
+    let gapiLoaded = false;
+    let isSignedIn = false;
+
+    function getIconPath(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      switch (ext) {
+        case 'pdf':   return '../images/filetype/pdf.png';
+        case 'doc':
+        case 'docx':  return '../images/filetype/word.png';
+        case 'xls':
+        case 'xlsx':  return '../images/filetype/excel.png';
+        case 'mp4':   return '../images/filetype/video.png';
+        case 'png':   return '../images/filetype/png.png';
+        case 'jpg':
+        case 'jpeg':  return '../images/filetype/jpg.png';
+        case 'gif':   return '../images/filetype/gif.png';
+        default:      return '../images/filetype/document.png';
+      }
+    }
+
+    function fuzzyMatch(file, terms) {
+      const lowerName = file.name.toLowerCase();
+      const lowerDesc = (file.description || '').toLowerCase();
+      const keywords = terms.trim().toLowerCase().split(/\s+/).filter(t => t);
+      return keywords.every(keyword => {
+        const pattern = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(pattern).test(lowerName) || new RegExp(pattern).test(lowerDesc);
+      });
+    }
+
+    async function updateDescription(fileId, newDescription) {
+      if (!isSignedIn) {
+        resultsEl.innerHTML = '<div class="message error">錯誤：請先登入 Google 帳戶</div>';
+        return;
+      }
+
+      try {
+        const response = await gapi.client.drive.files.update({
+          fileId: fileId,
+          resource: {
+            description: newDescription
+          }
+        });
+      } catch (err) {
+        resultsEl.innerHTML = `<div class="message error">錯誤：無法更新描述 (${err.message})</div>`;
+      }
+    }
+
+    function enableEditDescription(td, file) {
+      const originalText = td.textContent;
+      const input = document.createElement('input');
+      input.value = originalText === '-' ? '' : originalText;
+      td.innerHTML = '';
+      td.appendChild(input);
+      input.focus();
+
+      const saveDescription = async () => {
+        const newDescription = input.value.trim();
+        td.innerHTML = newDescription || '-';
+        if (newDescription !== originalText && !(newDescription === '' && originalText === '-')) {
+          try {
+            await updateDescription(file.id, newDescription);
+            file.description = newDescription;
+            resultsEl.innerHTML = '<div class="message success">描述更新成功</div>';
+            setTimeout(() => {
+              doSearch(inputEl.value);
+            }, 2000);
+          } catch (err) {
+            td.innerHTML = originalText;
+            resultsEl.innerHTML = `<div class="message error">錯誤：無法更新描述 (${err.message})</div>`;
+          }
+        }
+      };
+
+      input.addEventListener('blur', saveDescription);
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          input.blur();
+        }
+      });
+    }
+
+    function doSearch(term) {
+      resultsEl.innerHTML = '<div class="message">🔄 搜尋中…</div>';
+      
+      if (!term.trim()) {
+        resultsEl.innerHTML = '';
+        return;
+      }
+
+      try {
+        const results = index.files.filter(f => fuzzyMatch(f, term));
+        if (!results.length) {
+          resultsEl.innerHTML = '<div class="message">🔍 無符合檔案</div>';
+        } else {
+          resultsEl.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 40px;"></th>
+                  <th>檔案名稱</th>
+                  <th>描述</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${results.map(f => `
+                  <tr>
+                    <td class="icon"><img src="${getIconPath(f.name)}" alt=""></td>
+                    <td class="name"><a href="${f.webViewLink}" target="_blank">${f.name}</a></td>
+                    <td class="description">${f.description || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+          document.querySelectorAll('td.description').forEach(td => {
+            td.addEventListener('dblclick', () => {
+              const row = td.closest('tr');
+              const fileName = row.querySelector('.name a').textContent;
+              const file = index.files.find(f => f.name === fileName);
+              if (file) {
+                enableEditDescription(td, file);
+              }
+            });
+          });
+        }
+      } catch (err) {
+        resultsEl.innerHTML = `<div class="message error">錯誤：${err.message}</div>`;
+      }
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function handleClientLoad() {
+      gapi.load('client:auth2', async () => {
+        try {
+          await gapi.client.init({
+            apiKey: API_KEY,
+            clientId: CLIENT_ID,
+            discoveryDocs: DISCOVERY_DOCS,
+            scope: SCOPES
+          });
+          gapiLoaded = true;
+          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+        } catch (err) {
+          resultsEl.innerHTML = `<div class="message error">錯誤：無法初始化 Google API (${err.message})</div>`;
+        }
+      });
+    }
+
+    function updateSigninStatus(signedIn) {
+      isSignedIn = signedIn;
+      if (!signedIn) {
+        gapi.auth2.getAuthInstance().signIn();
+      }
+    }
+
+    (async () => {
+      try {
+        const res = await fetch('drive_index.json');
+        index = await res.json();
+        inputEl.disabled = false;
+        inputEl.focus();
+        
+        const debouncedSearch = debounce(doSearch, 300);
+        inputEl.addEventListener('input', (e) => {
+          debouncedSearch(e.target.value);
+        });
+
+        handleClientLoad();
+      } catch (err) {
+        resultsEl.innerHTML = `<div class="message error">錯誤：無法載入索引 (${err.message})</div>`;
+      }
+    })();
+  </script>
+</body>
+</html>

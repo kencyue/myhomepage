@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>全熱 Modbus RS-485 指令產生器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1f2a44;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 1.25rem;
+      text-align: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      padding: 16px;
+      margin-bottom: 1.5rem;
+      transition: transform 0.2s ease;
+      z-index: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .settings {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    label .tooltip {
+      cursor: pointer;
+      font-size: 0.7rem;
+      color: #718096;
+      background: #edf2f7;
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      user-select: none;
+      z-index: 1001; /* Ensure tooltip is above other elements */
+    }
+
+    .tooltip-content {
+      display: none;
+      position: absolute;
+      background-color: #ffffff;
+      color: #1f2a44;
+      font-size: 0.7rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 280px;
+      width: max-content;
+      z-index: 1002; /* Higher z-index for tooltip content */
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      white-space: normal;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+
+    .tooltip-content.show {
+      display: block;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      background-color: #fafafa;
+      transition: all 0.2s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      background-color: #ffffff;
+    }
+
+    input.invalid {
+      border-color: #ef4444;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 80px;
+      overflow-y: auto;
+      padding: 6px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background-color: #fafafa;
+    }
+
+    .button-group button {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background-color: #edf2f7;
+      color: #4a5568;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .button-group button.selected {
+      background-color: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .button-group button:hover {
+      background-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .fc-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .output {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .output .output-field {
+      position: relative;
+      margin-bottom: 0.8rem;
+    }
+
+    .output input {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      background-color: #f7fafc;
+      cursor: pointer;
+      padding: 8px 28px 8px 8px;
+      width: 100%;
+    }
+
+    .output input.copied {
+      background-color: #d1fae5;
+      transition: background-color 0.3s ease-out;
+    }
+
+    .copy-btn {
+      position: absolute;
+      right: 6px;
+      top: calc(50% + 8px);
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .copy-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: #718096;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background-color: #10b981;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      font-size: 0.8rem;
+      z-index: 1003; /* Ensure toast is above tooltips */
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      background-color: #ef4444;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      label, input, button {
+        font-size: 0.875rem;
+      }
+
+      .tooltip-content {
+        font-size: 0.75rem;
+      }
+
+      .copy-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tooltip-content {
+        max-width: 200px;
+        font-size: 0.65rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>全熱 Modbus RS-485 指令產生器</h1>
+
+  <!-- Settings Section -->
+  <div class="card settings">
+    <div>
+      <label for="slave">裝置位址 (Slave ID) <span class="tooltip" data-tooltip="slave">?</span></label>
+      <input id="slave" type="number" min="1" max="247" value="1">
+    </div>
+    <div>
+      <label>寄存器位址 <span class="tooltip" data-tooltip="reg">?</span></label>
+      <div id="reg" class="button-group"></div>
+    </div>
+    <div>
+      <label>功能碼 (Function Code) <span class="tooltip" data-tooltip="fc">?</span></label>
+      <div id="fc" class="button-group fc-group"></div>
+    </div>
+    <div id="valueBlock">
+      <label for="value">寫入數值 <span class="tooltip" data-tooltip="value">?</span></label>
+      <input id="value" type="text" placeholder="例如 0x01 或 1">
+    </div>
+    <div id="enumBlock" class="hidden">
+      <label for="enumVal">寫入數值</label>
+      <div id="enumVal" class="button-group"></div>
+    </div>
+    <div id="subBlock" class="hidden"></div>
+    <div id="quantityBlock" class="hidden">
+      <label for="qty">讀取筆數 (Quantity) <span class="tooltip" data-tooltip="qty">?</span></label>
+      <input id="qty" type="number" min="1" max="125" value="1">
+    </div>
+  </div>
+
+  <!-- Output Section -->
+  <div class="card output">
+    <div class="output-field">
+      <label for="output">RTU 幀 (HEX)：</label>
+      <input id="output" type="text" readonly>
+      <button class="copy-btn" onclick="copyToClipboard(document.getElementById('output'))">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="output-field">
+      <label for="monitorOutput">Modbus Monitor 命令：</label>
+      <input id="monitorOutput" type="text" readonly>
+      <button class="copy-btn" onclick="copyToClipboard(document.getElementById('monitorOutput'))">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">已複製到剪貼簿！</div>
+
+<script>
+/* ───── Tooltip 說明 ───── */
+const tooltipDescriptions = {
+  slave: '輸入 Modbus 從站地址，範圍為 1 到 247，用於識別目標設備。',
+  reg: '選擇要操作的寄存器位址，每個寄存器對應特定功能或參數。',
+  fc: '選擇功能碼：03 表示讀取保持暫存器，06 表示寫入單暫存器。',
+  value: '輸入要寫入的數值，可使用十進位（如 1）或十六進位（如 0x01）。',
+  qty: '輸入讀取的寄存器數量，範圍為 1 到 125，適用於功能碼 03。'
+};
+
+/* ───── 資料表 ───── */
+const registers = {
+  '0001': {name:'運轉狀態', access:'RW', enums:{0x0000:'停止',0x0001:'運轉'}},
+  '0002': {name:'運轉模式', access:'RW', enums:{0x0000:'全熱換氣',0x0001:'普通換氣'}},
+  '0003': {name:'風量', access:'RW', enums:{0x0001:'弱',0x0003:'強'}},
+  '000D': {name:'OA 濾網剩餘時間(h)', access:'R', note:'0–4320'},
+  '000E': {name:'OA 濾網更換週期', access:'RW', enums:{0x01:'120 日',0x02:'150 日',0x03:'180 日'}},
+  '000F': {name:'異常發生狀態', access:'R'},
+  '0011': {name:'設定定時開 (時/分)', access:'RW',
+           sub:[
+             {byte:'L', label:'小時 (0–23 或 0x7F 無效)', range:[0,23], skip:0x7F},
+             {byte:'H', label:'分鐘 (0–59 或 0x7F 無效)', range:[0,59], skip:0x7F}
+           ]},
+  '0012': {name:'定時開 / 關 啟動', access:'RW',
+           sub:[
+             {byte:'L', label:'定時開 0=OFF / 1=ON', range:[0,1]},
+             {byte:'H', label:'定時關 0=OFF / 1=ON', range:[0,1]}
+           ]},
+  '0013': {name:'設定定時關 (時/分)', access:'RW',
+           sub:[
+             {byte:'L', label:'小時 (0–23 或 0x7F 無效)', range:[0,23], skip:0x7F},
+             {byte:'H', label:'分鐘 (0–59 或 0x7F 無效)', range:[0,59], skip:0x7F}
+           ]},
+  '0014': {name:'網路時間(年)', access:'W', range:[0,9999]},
+  '0015': {name:'網路時間(分/秒)', access:'W',
+           sub:[
+             {byte:'H', label:'分鐘 (0–59 或 255=Skip)', range:[0,59], skip:255},
+             {byte:'L', label:'秒   (0–59 或 255=Skip)', range:[0,59], skip:255}
+           ]},
+  '0016': {name:'網路時間(週/時)', access:'W',
+           sub:[
+             {byte:'H', label:'星期 (0=日…6 或 255=Skip)', range:[0,6], skip:255},
+             {byte:'L', label:'小時 (0–23 或 255=Skip)', range:[0,23], skip:255}
+           ]},
+  '0017': {name:'網路時間(月/日)', access:'W',
+           sub:[
+             {byte:'H', label:'月份 (1–12 或 255=Skip)', range:[1,12], skip:255},
+             {byte:'L', label:'日期 (1–31 或 255=Skip)', range:[1,31], skip:255}
+           ]}
+};
+
+/* ───── DOM 變數 ───── */
+const regGroup = document.getElementById('reg');
+const fcGroup = document.getElementById('fc');
+const valueBlock = document.getElementById('valueBlock');
+const enumBlock = document.getElementById('enumBlock');
+const enumGroup = document.getElementById('enumVal');
+const subBlock = document.getElementById('subBlock');
+const quantityBlock = document.getElementById('quantityBlock');
+const valueInput = document.getElementById('value');
+const qtyInput = document.getElementById('qty');
+const outHex = document.getElementById('output');
+const outMonitor = document.getElementById('monitorOutput');
+const toast = document.getElementById('toast');
+
+/* ───── CRC16 ───── */
+function crc16(buf) {
+  let crc = 0xFFFF;
+  for (const b of buf) {
+    crc ^= b;
+    for (let i = 0; i < 8; i++) {
+      const bit = crc & 1;
+      crc >>= 1;
+      if (bit) crc ^= 0xA001;
+    }
+  }
+  return crc;
+}
+const hex = (n, len = 2) => n.toString(16).toUpperCase().padStart(len, '0');
+
+/* ───── 初始化寄存器按鈕 ───── */
+let selectedReg = '0001';
+function populateRegButtons() {
+  regGroup.innerHTML = '';
+  for (const addr in registers) {
+    const btn = document.createElement('button');
+    btn.textContent = `0x${addr.toUpperCase()} ${registers[addr].name}`;
+    btn.dataset.value = addr;
+    btn.className = addr === selectedReg ? 'selected' : '';
+    btn.addEventListener('click', () => {
+      selectedReg = addr;
+      document.querySelectorAll('#reg button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      populateFcButtons();
+      updateValueUI();
+    });
+    regGroup.appendChild(btn);
+  }
+}
+
+/* ───── 重建功能碼按鈕 ───── */
+let selectedFc = '03';
+function populateFcButtons() {
+  const info = registers[selectedReg];
+  fcGroup.innerHTML = '';
+  if (info.access.includes('R')) {
+    const btn = document.createElement('button');
+    btn.textContent = '03 讀取保持暫存器';
+    btn.dataset.value = '03';
+    btn.className = selectedFc === '03' ? 'selected' : '';
+    btn.addEventListener('click', () => {
+      selectedFc = '03';
+      document.querySelectorAll('#fc button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateValueUI();
+    });
+    fcGroup.appendChild(btn);
+  }
+  if (info.access.includes('W')) {
+    const btn = document.createElement('button');
+    btn.textContent = '06 寫入單暫存器';
+    btn.dataset.value = '06';
+    btn.className = selectedFc === '06' ? 'selected' : '';
+    btn.addEventListener('click', () => {
+      selectedFc = '06';
+      document.querySelectorAll('#fc button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      updateValueUI();
+    });
+    fcGroup.appendChild(btn);
+  }
+}
+
+/* ───── 切換輸入介面 ───── */
+function updateValueUI() {
+  const info = registers[selectedReg];
+  const fc = parseInt(selectedFc, 16);
+
+  if (fc === 0x03) {
+    quantityBlock.classList.remove('hidden');
+    valueBlock.classList.add('hidden');
+    enumBlock.classList.add('hidden');
+    subBlock.classList.add('hidden');
+    generate();
+    return;
+  }
+  quantityBlock.classList.add('hidden');
+
+  if (info.sub) {
+    subBlock.classList.remove('hidden');
+    enumBlock.classList.add('hidden');
+    valueBlock.classList.add('hidden');
+    buildSubInputs(info.sub);
+    generate();
+    return;
+  }
+  subBlock.classList.add('hidden');
+
+  if (info.enums) {
+    enumBlock.classList.remove('hidden');
+    valueBlock.classList.add('hidden');
+    buildEnumButtons(info.enums);
+    generate();
+    return;
+  }
+  enumBlock.classList.add('hidden');
+  valueBlock.classList.remove('hidden');
+  if (info.range) {
+    valueInput.type = 'number';
+    valueInput.min = info.range[0];
+    valueInput.max = info.range[1];
+    valueInput.placeholder = `${info.range[0]}–${info.range[1]}`;
+  } else {
+    valueInput.type = 'text';
+    valueInput.placeholder = '例如 0x01 或 1';
+  }
+  generate();
+}
+
+/* ── 動態產生高/低位輸入 ── */
+function buildSubInputs(subDef) {
+  subBlock.innerHTML = '';
+  subDef.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'sub-input';
+    const label = document.createElement('label');
+    label.className = 'sub-label';
+    label.textContent = f.label;
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.min = f.range[0];
+    inp.max = f.range[1];
+    inp.placeholder = f.skip !== undefined
+      ? `${f.range[0]}–${f.range[1]} 或 ${f.skip}=Skip`
+      : `${f.range[0]}–${f.range[1]}`;
+    inp.dataset.byte = f.byte;
+    inp.dataset.skip = f.skip ?? '';
+    inp.className = 'sub-input-field';
+    inp.addEventListener('input', generate);
+    wrap.append(label, inp);
+    subBlock.append(wrap);
+  });
+}
+
+/* ── 動態產生列舉按鈕 ── */
+let selectedEnum = null;
+function buildEnumButtons(enums) {
+  enumGroup.innerHTML = '';
+  const keys = Object.keys(enums);
+  selectedEnum = selectedEnum && keys.includes(selectedEnum) ? selectedEnum : keys[0];
+  keys.forEach(k => {
+    const btn = document.createElement('button');
+    btn.textContent = `0x${hex(+k)} (${enums[k]})`;
+    btn.dataset.value = k;
+    btn.className = k === selectedEnum ? 'selected' : '';
+    btn.addEventListener('click', () => {
+      selectedEnum = k;
+      document.querySelectorAll('#enumVal button').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      generate();
+    });
+    enumGroup.appendChild(btn);
+  });
+}
+
+/* ───── 產生指令 ───── */
+function generate() {
+  const slaveInput = document.getElementById('slave');
+  const qtyInput = document.getElementById('qty');
+  const slave = parseInt(slaveInput.value) || 1;
+  const fc = parseInt(selectedFc, 16);
+  const reg = parseInt(selectedReg, 16);
+  const frame = [slave, fc, reg >> 8, reg & 0xFF];
+
+  const info = registers[selectedReg];
+  let val = 0;
+
+  if (fc === 0x03) {
+    const qty = parseInt(qtyInput.value) || 1;
+    frame.push(qty >> 8, qty & 0xFF);
+  } else {
+    if (info.sub) {
+      let high = 0, low = 0;
+      subBlock.querySelectorAll('input').forEach(inp => {
+        let v = inp.value !== '' ? parseInt(inp.value) : NaN;
+        const skip = +inp.dataset.skip || null;
+        if (Number.isNaN(v) && skip !== null) v = skip;
+        if (inp.dataset.byte === 'H') high = v;
+        else low = v;
+      });
+      val = (high << 8) | low;
+    } else if (info.enums) {
+      val = parseInt(selectedEnum);
+    } else {
+      let raw = valueInput.value.trim();
+      val = raw.startsWith('0x') || raw.startsWith('0X')
+            ? parseInt(raw, 16) : parseInt(raw, 10);
+      if (isNaN(val)) val = 0;
+    }
+    frame.push(val >> 8, val & 0xFF);
+  }
+
+  const crc = crc16(frame);
+  frame.push(crc & 0xFF, crc >> 8);
+  outHex.value = frame.map(b => hex(b)).join(' ');
+
+  const monitorAddr = 400000 + (reg + 1);
+  let cmd = monitorAddr.toString().padStart(6, '0');
+  if (fc === 0x03) {
+    const qty = parseInt(qtyInput.value) || 1;
+    cmd += (qty > 1 ? `#${qty}` : '');
+  } else {
+    cmd += `*${val}`;
+  }
+  outMonitor.value = cmd;
+}
+
+/* ───── 複製到剪貼簿 ───── */
+function copyToClipboard(input) {
+  if (input.value) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      input.classList.add('copied');
+      toast.classList.remove('error');
+      toast.textContent = '已複製到剪貼簿！';
+      toast.classList.add('show');
+      setTimeout(() => {
+        input.classList.remove('copied');
+        toast.classList.remove('show');
+      }, 1000);
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  }
+}
+
+/* ───── Tooltip 事件 ───── */
+document.querySelectorAll('.tooltip').forEach(tooltip => {
+  const content = document.createElement('div');
+  content.className = 'tooltip-content';
+  content.textContent = tooltipDescriptions[tooltip.dataset.tooltip] || '無說明';
+  tooltip.appendChild(content);
+
+  const showTooltip = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('.tooltip-content').forEach(c => {
+      if (c !== content) c.classList.remove('show');
+    });
+    content.classList.toggle('show');
+  };
+
+  tooltip.addEventListener('click', showTooltip);
+  tooltip.addEventListener('touchstart', showTooltip);
+
+  // Prevent input focus when clicking tooltip
+  tooltip.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+  });
+});
+
+// Close tooltips when clicking or touching outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.tooltip')) {
+    document.querySelectorAll('.tooltip-content').forEach(c => c.classList.remove('show'));
+  }
+});
+document.addEventListener('touchstart', (e) => {
+  if (!e.target.closest('.tooltip')) {
+    document.querySelectorAll('.tooltip-content').forEach(c => c.classList.remove('show'));
+  }
+});
+
+/* ───── 事件 ───── */
+document.getElementById('slave').addEventListener('input', (e) => {
+  const val = parseInt(e.target.value);
+  if (val < 1 || val > 247) {
+    e.target.classList.add('invalid');
+    toast.textContent = '從站地址必須在 1 到 247 之間';
+    toast.classList.add('error', 'show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  } else {
+    e.target.classList.remove('invalid');
+    generate();
+  }
+});
+
+document.getElementById('value').addEventListener('input', generate);
+
+document.getElementById('qty').addEventListener('input', (e) => {
+  const val = parseInt(e.target.value);
+  if (val < 1 || val > 125) {
+    e.target.classList.add('invalid');
+    toast.textContent = '讀取筆數必須在 1 到 125 之間';
+    toast.classList.add('error', 'show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  } else {
+    e.target.classList.remove('invalid');
+    generate();
+  }
+});
+
+/* ───── 首次載入 ───── */
+populateRegButtons();
+populateFcButtons();
+updateValueUI();
+</script>
+</body>
+</html>

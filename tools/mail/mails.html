@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📧 Panasonic 聯絡信箱快速複製</title>
+<style>
+body {
+  font-family: "微軟正黑體", sans-serif;
+  background: #eef2f5;
+  margin: 0; padding: 20px;
+  color: #333;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 14px;
+  font-size: 1.3rem;
+}
+
+#tableWrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* =====================================
+   超薄版 Table（不捲軸）
+===================================== */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  font-size: 18px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 2px 4px;       /* ★ 幾乎無 padding → 自然變薄 */
+  height: 22px;           /* ★ row 高度直接變薄 */
+  white-space: nowrap;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+th {
+  background: #0078d7;
+  color: #fff;
+  font-size: 13px;
+  padding: 6px 4px;       /* 表頭微微大一點 */
+}
+th:hover { background: #005ea6; }
+
+/* =====================================
+   td 整格「按鈕化」
+===================================== */
+td {
+  background: #f8f9fc;
+  transition: 0.15s;
+}
+
+td:hover {
+  background: #e4efff;     /* hover 整格亮起 */
+}
+
+td.selected {
+  background: #0078d7 !important;
+  color: white !important;
+  font-weight: bold;
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
+}
+
+/* =====================================
+   狀態列
+===================================== */
+#status {
+  text-align: center;
+  margin-top: 10px;
+  color: #0078d7;
+  font-size: 13px;
+  min-height: 1.2em;
+}
+</style>
+</head>
+<body>
+
+<h2>📧 Panasonic 聯絡信箱快速複製</h2>
+
+<div id="tableWrapper">
+<table id="mailTable">
+  <tr>
+    <th data-role="ALL">區域</th>
+    <th data-role="處長">處長</th>
+    <th data-role="經理">經理</th>
+    <th data-role="站長">站長</th>
+  </tr>
+</table>
+</div>
+
+<div id="status">（未選取）</div>
+
+<script type="module">
+let selectedMails = new Set();
+let table = document.getElementById("mailTable");
+
+async function loadMails() {
+  const res = await fetch("mails.json");
+  const data = await res.json();
+
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+tr.innerHTML = `
+  <td data-area="${row.區域}">${row.區域}</td>
+
+  <td ${row.處長?.mail ? `data-mail="${row.處長.mail}"` : ""}>
+    ${row.處長?.name || ""}
+  </td>
+
+  <td ${row.經理?.mail ? `data-mail="${row.經理.mail}"` : ""}>
+    ${row.經理?.name || ""}
+  </td>
+
+  <td ${row.站長?.mail ? `data-mail="${row.站長.mail}"` : ""}>
+    ${row.站長?.name || ""}
+  </td>
+`;
+
+    table.appendChild(tr);
+  });
+}
+
+table.addEventListener("click", e => {
+  const td = e.target.closest("td");
+  const th = e.target.closest("th");
+
+  if (td) handleTd(td);
+  if (th) handleHeader(th.dataset.role);
+});
+
+function handleTd(td) {
+  const area = td.dataset.area;
+
+  // ============================
+  // ★ 點「區域」：整列 toggle
+  // ============================
+  if (area) {
+    const tr = td.parentElement;
+
+    // → 找出所有有 mail 的格子（真正要被選取的）
+    const mailCells = Array.from(tr.querySelectorAll("td[data-mail]"))
+                           .filter(c => c.dataset.mail.trim() !== "");
+
+    // 判斷是否全部 mail cell 都被選取
+    const allSelected = mailCells.every(c =>
+      c.classList.contains("selected")
+    );
+
+    // ★ mail cell 反向 toggle
+    mailCells.forEach(cell => {
+      const mail = cell.dataset.mail;
+      if (allSelected) {
+        cell.classList.remove("selected");
+        selectedMails.delete(mail);
+      } else {
+        cell.classList.add("selected");
+        selectedMails.add(mail);
+      }
+    });
+
+    // ★ 區域格也做視覺同步（但不加入 selectedMails）
+    if (allSelected) {
+      td.classList.remove("selected");
+    } else {
+      td.classList.add("selected");
+    }
+
+    copyMails();
+    return;
+  }
+
+  // ============================
+  // ★ 點一般格：普通 toggle
+  // ============================
+  const mail = td.dataset.mail;
+  if (!mail) return;
+
+  if (td.classList.contains("selected")) {
+    td.classList.remove("selected");
+    selectedMails.delete(mail);
+  } else {
+    td.classList.add("selected");
+    selectedMails.add(mail);
+  }
+
+  copyMails();
+}
+
+
+
+
+function handleHeader(role) {
+  const rows = Array.from(table.querySelectorAll("tr")).slice(1);
+
+  if (role === "ALL") {
+    const tds = table.querySelectorAll("td[data-mail]");
+    const allSelected = Array.from(tds).every(td => td.classList.contains("selected"));
+    tds.forEach(td => toggleSelect(td, !allSelected));
+  } else {
+    const index = {"處長":1,"經理":2,"站長":3}[role];
+    const col = rows.map(r => r.children[index]).filter(td => td.dataset.mail);
+    const allSelected = col.every(td => td.classList.contains("selected"));
+    col.forEach(td => toggleSelect(td, !allSelected));
+  }
+  copyMails();
+}
+
+
+
+function toggleSelect(td, select) {
+  const mail = td.dataset.mail;
+  if (!mail) return;
+
+  if (select) {
+    td.classList.add("selected");
+    selectedMails.add(mail);
+  } else {
+    td.classList.remove("selected");
+    selectedMails.delete(mail);
+  }
+}
+
+/* 複製 */
+function copyMails() {
+  const arr = Array.from(selectedMails);
+  const status = document.getElementById("status");
+
+  if (!arr.length) {
+    status.textContent = "（未選取）";
+    return;
+  }
+
+  navigator.clipboard.writeText(arr.join("; ")).then(() => {
+    status.textContent = `✔ 已複製 ${arr.length} 個`;
+  });
+}
+
+
+loadMails();
+</script>
+
+</body>
+</html>

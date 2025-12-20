@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手機截圖裁切工具</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/crop.png">
+<style>
+/* ===== 共用 ===== */
+*{box-sizing:border-box;}
+body{font-family:Arial, sans-serif;display:flex;flex-direction:column;align-items:center;background:#f0f0f0;margin:0;padding:20px;}
+h1{margin-top:0;}
+
+/* 拖放區 */
+#dropZone{width:100%;max-width:600px;height:220px;border:2px dashed #007bff;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;background:#fff;margin-bottom:20px;cursor:pointer;user-select:none;}
+#dropZone.dragover{background:#e1f0ff;}
+
+/* 按鈕列 */
+.btn-group{width:100%;max-width:600px;display:flex;gap:10px;flex-wrap:nowrap;margin-bottom:20px;}
+.btn-group>*{flex:1 1 0;min-width:0;padding:12px 16px;font-size:1rem;border-radius:6px;border:none;cursor:pointer;}
+.btn-group button{background:#007bff;color:#fff;}
+.btn-group button:hover{background:#0056b3;}
+.btn-group input{background:#fff;border:2px solid #007bff;color:#007bff;text-align:center;}
+
+/* 預覽區 */
+#output{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
+.image-container{text-align:center;}
+.image-container img{max-width:300px;border:1px solid #ccc;border-radius:4px;}
+
+/* 手機調整 */
+@media (max-width:600px){
+  #dropZone{height:160px;}
+  .image-container img{max-width:100%;}
+}
+</style>
+</head>
+<body>
+<h1>手機截圖裁切工具</h1>
+<p>拖放圖片到下方區域，或點擊「上傳圖片」。可自訂上下裁切 px，預設 90。</p>
+
+<div id="dropZone">拖放圖片到此處（支援多張）</div>
+
+<div class="btn-group">
+  <input type="number" id="cropPx" value="90" min="0" title="上下裁切 px">
+  <button onclick="downloadAll()">全部下載</button>
+  <button onclick="resetAll()">重整</button>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+<div id="output"></div>
+
+<script>
+const dropZone   = document.getElementById('dropZone');
+const fileInput  = document.getElementById('fileInput');
+const output     = document.getElementById('output');
+const cropInput  = document.getElementById('cropPx');
+
+let imgs = [];   // [{img,name,imgEl,container}]
+
+/* 拖曳與選檔 */
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover');});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');processFiles(e.dataTransfer.files);});
+dropZone.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',()=>{processFiles(fileInput.files);fileInput.value='';});
+
+/* px 變動即時更新 */
+cropInput.addEventListener('input',updateAllPreviews);
+
+/* 處理多檔 */
+function processFiles(files){
+  Array.from(files).forEach(f=>{
+    if(!f.type.startsWith('image/')) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>addPreview(img,f.name);
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+/* 新增一張預覽 */
+function addPreview(img,origName){
+  const {dataURL}=cropFromImage(img);
+  const container=document.createElement('div');
+  container.className='image-container';
+  const imgEl=document.createElement('img');
+  imgEl.src=dataURL;
+  container.appendChild(imgEl);
+  const caption=document.createElement('p');
+  caption.textContent=origName;
+  container.appendChild(caption);
+  output.appendChild(container);
+
+  imgs.push({img,name:origName.replace(/\.[^/.]+$/,'_cropped.png'),imgEl,container});
+}
+
+/* 依目前 px 重新裁全部 */
+function updateAllPreviews(){
+  imgs.forEach(o=>{
+    const {dataURL}=cropFromImage(o.img);
+    o.imgEl.src=dataURL;
+  });
+}
+
+/* 從已載入 Image 產生裁切後 dataURL */
+function cropFromImage(image){
+  const crop=Math.max(0,parseInt(cropInput.value,10)||0);
+  const usableH=image.height-crop*2;
+  if(usableH<=0){return {dataURL:image.src};}   // 不合法時回原圖
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=image.width;
+  canvas.height=usableH;
+  ctx.drawImage(image,0,-crop,image.width,image.height);
+  return {dataURL:canvas.toDataURL('image/png')};
+}
+
+/* 批次下載 */
+function downloadAll(){
+  imgs.forEach(o=>{
+    const {dataURL}=cropFromImage(o.img);
+    const a=document.createElement('a');
+    a.href=dataURL;
+    a.download=o.name;
+    a.click();
+  });
+}
+
+/* 重整 */
+function resetAll(){
+  imgs=[];
+  output.innerHTML='';
+}
+</script>
+</body>
+</html>

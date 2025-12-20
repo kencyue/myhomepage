@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>可拖曳卡片表格</title>
+  <style>
+    body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,'Noto Sans TC',sans-serif;background:#f7f9fc;margin:0;padding:12px;}
+    .wrap{max-width:960px;margin:auto}
+    .card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+    .tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid #ddd;margin-bottom:12px}
+    .tab{flex:1 1 auto;min-width:90px;padding:6px;text-align:center;cursor:pointer;background:#f3f4f6;font-size:14px;border-radius:6px 6px 0 0;user-select:none}
+    .tab.active{background:#2563eb;color:#fff;font-weight:600}
+    .tab.add-tab{background:#e5e7eb;font-weight:bold}
+    
+    .tab:not(.add-tab) { cursor: grab; } 
+
+    .row{display:flex;gap:6px;justify-content:space-between;margin-bottom:8px}
+    button{flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
+    button.primary{background:#2563eb;color:#fff;border-color:transparent}
+    table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+    th,td{border:1px solid #ddd;padding:4px 6px;text-align:left}
+    thead th{background:#f3f4f6}
+    
+    th.checkbox-col,td.checkbox-col{
+        width: 30px; 
+        text-align: center;
+    }
+    th.action-col,td.action-col{width:60px;text-align:center; white-space: nowrap;} 
+    
+    /* 複製圖示樣式 */
+    td.action-col .copy-btn {
+      cursor: pointer;
+      padding: 0 4px;
+      font-weight: bold;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      display: inline-block;
+      font-size: 15px; 
+      margin-left: 0;
+    }
+    td.action-col .copy-btn:hover {
+      opacity: 1;
+    }
+
+    /* 🔹 新增：刪除圖示樣式 */
+    td.action-col .delete-btn {
+      cursor: pointer;
+      padding: 0 4px;
+      font-weight: bold;
+      color: #ef4444; /* 紅色 */
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      display: inline-block;
+      font-size: 15px; 
+      margin-left: 4px; /* 與複製圖示間隔 */
+    }
+    td.action-col .delete-btn:hover {
+      opacity: 1;
+    }
+
+    /* 調整 tr 游標 */
+    tbody tr {
+      cursor: default; 
+    }
+
+    .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111;color:#fff;padding:6px 10px;border-radius:6px;opacity:0;transition:.25s;font-size:13px}
+    .toast.show{opacity:1}
+    
+    .sortable-ghost {
+      opacity: 0.4;
+      background: #f0f0f0;
+    }
+    
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="tabs" id="tabs"> 
+        <div class="tab add-tab" id="addTab">＋新增</div>
+      </div>
+      <div id="tabContents"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+
+<script>
+const toast = document.getElementById('toast');
+const TABS_KEY = 'tabs_v2';
+const ROWS_KEY = (uid)=>`rows_v2_${uid}`;
+
+let tabSortableInstance = null; 
+
+function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),1200); }
+function genUid(){ return 'tab_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
+
+function loadTabs(){ return JSON.parse(localStorage.getItem(TABS_KEY) || '[]'); }
+
+function updateAndSaveTabsByDOMOrder() {
+  const tabsContainer = document.getElementById('tabs');
+  const tabElements = [...tabsContainer.querySelectorAll('.tab:not(.add-tab)')];
+  const currentTabs = loadTabs();
+
+  const newTabsOrder = tabElements.map(el => {
+    const uid = el.dataset.uid;
+    return currentTabs.find(t => t.uid === uid) || { uid, name: el.textContent, active: false };
+  });
+
+  saveTabs(newTabsOrder);
+}
+
+function saveTabs(tabs){ localStorage.setItem(TABS_KEY, JSON.stringify(tabs)); }
+
+function saveRows(uid){
+  const tbody = document.getElementById(`tbody_${uid}`);
+  if(!tbody) return;
+  const rows = [...tbody.querySelectorAll('tr')].map(tr=>({
+    name: tr.querySelector('.name').textContent.trim(),
+    pn: tr.querySelector('.pn').textContent.trim()
+  }));
+  localStorage.setItem(ROWS_KEY(uid), JSON.stringify(rows));
+  updateClearButtonLabel(uid);
+  syncHeaderCheckbox(uid); 
+}
+function loadRows(uid){
+  const data = JSON.parse(localStorage.getItem(ROWS_KEY(uid)) || '[]');
+  data.forEach(r=>addRow(uid, r.name, r.pn, false, false));
+  updateClearButtonLabel(uid);
+  initSortableRows(uid);
+  syncHeaderCheckbox(uid); 
+}
+
+function initSortableRows(uid) {
+  const tbody = document.getElementById(`tbody_${uid}`);
+  if (!tbody) return;
+  
+  new Sortable(tbody, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    handle: '.row-chk', 
+    onEnd: function (evt) {
+      saveRows(uid);
+      showToast('行順序已儲存');
+    }
+  });
+}
+
+function initSortableTabs() {
+  const tabsContainer = document.getElementById('tabs');
+  if (!tabsContainer) return;
+
+  if (tabSortableInstance) {
+      tabSortableInstance.destroy();
+  }
+
+  tabSortableInstance = new Sortable(tabsContainer, {
+    animation: 150,
+    filter: '.add-tab', 
+    onEnd: function (evt) {
+      updateAndSaveTabsByDOMOrder(); 
+      showToast('分頁順序已儲存');
+    }
+  });
+}
+
+
+function createTabDOM({uid, name, active}){
+  const addBtn = document.getElementById('addTab');
+  const el = document.createElement('div');
+  el.className = 'tab';
+  el.dataset.uid = uid;
+  el.textContent = name;
+  if(active) el.classList.add('active');
+  document.getElementById('tabs').insertBefore(el, addBtn);
+  return el;
+}
+
+function createContentDOM(uid){
+  const div = document.createElement('div');
+  div.className = 'tab-content';
+  div.id = `content_${uid}`;
+  div.style.display = 'none';
+  div.innerHTML = `
+    <div class="row">
+      <button class="primary" data-uid="${uid}" data-act="add">新增</button>
+      <button data-uid="${uid}" data-act="import">匯入</button>
+      <button data-uid="${uid}" data-act="export">匯出</button>
+      <button data-uid="${uid}" data-act="share">分享</button>
+      <button data-uid="${uid}" data-act="copy">複製</button>
+      <button data-uid="${uid}" data-act="clear" id="clear_${uid}">清空</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="checkbox-col">
+            <input type="checkbox" class="header-chk" data-uid="${uid}" id="header_chk_${uid}"/>
+          </th>
+          <th>名稱</th>
+          <th>品番</th>
+          <th class="action-col">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tbody_${uid}" data-uid="${uid}"></tbody>
+    </table>`;
+  document.getElementById('tabContents').appendChild(div);
+  return div;
+}
+
+// 🔹 修改：在操作欄位新增刪除圖示
+function addRow(uid, name='', pn='', save=true, prepend=false, newRow=false){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="checkbox-col">
+        <input type="checkbox" class="row-chk"/>
+    </td>
+    <td class="name" contenteditable="true">${name || '(輸入名稱)'}</td>
+    <td class="pn" contenteditable="true">${pn || '(輸入品番)'}</td>
+    <td class="action-col">
+      <span class="copy-btn">📋</span>
+      <span class="delete-btn">❌</span>
+    </td>`;
+  if (newRow) {
+    tr.querySelector('.name').style.background = '#fffbe6';
+    tr.querySelector('.pn').style.background = '#fffbe6';
+  }
+  const tbody = document.getElementById(`tbody_${uid}`);
+  if(prepend && tbody.firstChild) tbody.insertBefore(tr, tbody.firstChild);
+  else tbody.appendChild(tr);
+  if(save) saveRows(uid);
+  syncHeaderCheckbox(uid); 
+}
+
+function getSelected(uid){
+  return [...document.querySelectorAll(`#tbody_${uid} tr`)]
+          .filter(tr=>tr.querySelector('.row-chk').checked);
+}
+function hasAnyChecked(uid){ return getSelected(uid).length > 0; }
+
+function updateClearButtonLabel(uid){
+  const btn = document.getElementById(`clear_${uid}`);
+  if(!btn) return;
+  btn.textContent = hasAnyChecked(uid) ? '刪除' : '清空';
+}
+
+function syncHeaderCheckbox(uid) {
+    const tbody = document.getElementById(`tbody_${uid}`);
+    if (!tbody) return;
+
+    const rowCheckboxes = tbody.querySelectorAll('.row-chk');
+    const headerCheckbox = document.getElementById(`header_chk_${uid}`);
+
+    if (!headerCheckbox) return;
+
+    const checkedCount = tbody.querySelectorAll('.row-chk:checked').length;
+    const totalCount = rowCheckboxes.length;
+
+    if (totalCount === 0) {
+        headerCheckbox.checked = false;
+        headerCheckbox.indeterminate = false;
+        return;
+    }
+
+    const allChecked = checkedCount === totalCount;
+    const noneChecked = checkedCount === 0;
+
+    headerCheckbox.checked = allChecked;
+    headerCheckbox.indeterminate = !allChecked && !noneChecked; 
+}
+
+
+function switchTo(uid){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const curTab = document.querySelector(`.tab[data-uid="${uid}"]`);
+  if(curTab) curTab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+  const content = document.getElementById(`content_${uid}`);
+  if(content) content.style.display='block';
+  const tabs = loadTabs().map(t => ({...t, active: t.uid===uid}));
+  saveTabs(tabs);
+}
+
+function migrateIfNeeded(tabs){
+  if(tabs.length) return tabs;
+  const defaults = [
+    {uid: genUid(), name:'表格一', active:true, oldKey:'tableData1'},
+    {uid: genUid(), name:'表格二', active:false, oldKey:'tableData2'},
+    {uid: genUid(), name:'表格三', active:false, oldKey:'tableData3'},
+  ];
+  defaults.forEach(d=>{
+    const old = localStorage.getItem(d.oldKey);
+    if(old){ localStorage.setItem(ROWS_KEY(d.uid), old); }
+  });
+  const tabsV2 = defaults.map(({uid,name,active})=>({uid,name,active}));
+  saveTabs(tabsV2);
+  ['tableData1','tableData2','tableData3'].forEach(k=>localStorage.removeItem(k));
+  return tabsV2;
+}
+
+function boot(){
+  let tabs = loadTabs();
+  tabs = migrateIfNeeded(tabs);
+  document.querySelectorAll('.tab:not(.add-tab)').forEach(t=>t.remove());
+  document.getElementById('tabContents').innerHTML = '';
+  tabs.forEach(t=>{
+    createTabDOM(t);
+    createContentDOM(t.uid);
+    loadRows(t.uid); 
+  });
+  const active = tabs.find(t=>t.active) || tabs[0];
+  if(active) switchTo(active.uid);
+
+  initSortableTabs(); 
+}
+
+// ========================== 主事件 ==========================
+
+document.body.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('header-chk')) return;
+    
+    const headerCheckbox = e.target;
+    const uid = headerCheckbox.dataset.uid;
+    const isChecked = headerCheckbox.checked;
+    
+    const rowCheckboxes = document.querySelectorAll(`#tbody_${uid} .row-chk`);
+    
+    rowCheckboxes.forEach(chk => {
+        chk.checked = isChecked;
+    });
+    
+    headerCheckbox.indeterminate = false;
+
+    updateClearButtonLabel(uid);
+});
+
+
+document.body.addEventListener('click', async (e)=>{
+  const act = e.target.dataset.act;
+  const uid = e.target.dataset.uid;
+  if(!act || !uid) return;
+
+  if (act === 'add') {
+    addRow(uid, '', '', true, true, true); 
+    showToast('已新增空白列');
+  } else if(act==='clear'){
+    const selected = getSelected(uid);
+    if(selected.length>0){
+      selected.forEach(tr=>tr.remove());
+      saveRows(uid);
+      showToast('已刪除選取');
+    }else{
+      if(confirm('沒有勾選，確定要清空全部嗎？')){
+        document.getElementById(`tbody_${uid}`).innerHTML = '';
+        saveRows(uid);
+        showToast('已清空全部');
+      }
+    }
+  } else if(act==='export'){
+    const rows = JSON.parse(localStorage.getItem(ROWS_KEY(uid)) || '[]');
+    const tabs = loadTabs();
+    const tab = tabs.find(t=>t.uid===uid);
+    const safeName = (tab?.name || uid).replace(/[\\/:*?"<>|]/g,'_');
+    const blob = new Blob([JSON.stringify(rows,null,2)],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `data_${safeName}.json`; a.click();
+    URL.revokeObjectURL(url);
+  } else if(act==='import'){
+    const input = document.createElement('input');
+    input.type='file'; input.accept='application/json';
+    input.onchange = ev=>{
+      const file = ev.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const arr = JSON.parse(reader.result);
+          const existing = JSON.parse(localStorage.getItem(ROWS_KEY(uid)) || '[]');
+          const combo = [...existing];
+          arr.forEach(r=>{
+            const exists = combo.some(e=>e.name===r.name && e.pn===r.pn);
+            if(!exists) combo.push(r);
+          });
+          const tbody = document.getElementById(`tbody_${uid}`);
+          tbody.innerHTML='';
+          combo.forEach(r=>addRow(uid, r.name, r.pn, false, false, false)); 
+          saveRows(uid);
+          showToast(`已匯入 ${arr.length} 筆（新增 ${combo.length - existing.length} 筆）`);
+        }catch{
+          showToast('匯入失敗');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  } else if(act==='share' || act==='copy'){
+    const rows = getSelected(uid);
+    if(rows.length===0){ showToast('請先勾選'); return; }
+    const text = rows.map(tr=>`${tr.querySelector('.name').textContent} ${tr.querySelector('.pn').textContent}`).join('\n');
+    if(act==='share' && navigator.share){
+      try{ await navigator.share({text}); }
+      catch{ await navigator.clipboard.writeText(text); showToast('已複製分享內容'); }
+    }else{
+      await navigator.clipboard.writeText(text);
+      showToast('已複製');
+    }
+  }
+});
+
+// --- 單列複製 ---
+document.body.addEventListener('click', async (e)=>{
+  if(!e.target.classList.contains('copy-btn')) return;
+  const tr = e.target.closest('tr');
+  const text = `${tr.querySelector('.name').textContent} ${tr.querySelector('.pn').textContent}`;
+  try{ await navigator.clipboard.writeText(text); showToast('已複製'); }
+  catch{ showToast('複製失敗'); }
+});
+
+// --- 🔹 新增：單列刪除功能 ---
+document.body.addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('delete-btn')) return;
+
+    const tr = e.target.closest('tr');
+    const tbody = tr.closest('tbody');
+    const uid = tbody.dataset.uid;
+
+    if(confirm('確定要刪除此項目嗎？')){
+        tr.remove();
+        saveRows(uid); 
+        showToast('已刪除項目');
+    }
+});
+
+// --- Checkbox 變更 ---
+document.body.addEventListener('change', (e)=>{
+  if(!e.target.classList.contains('row-chk')) return;
+
+  const uid = e.target.closest('tbody').dataset.uid;
+  
+  syncHeaderCheckbox(uid); 
+  updateClearButtonLabel(uid);
+});
+
+// --- 點一下清除 placeholder ---
+document.body.addEventListener('focusin', e=>{
+  if(e.target.classList.contains('name') || e.target.classList.contains('pn')){
+    if(e.target.textContent.startsWith('(')){
+      e.target.textContent = '';
+      e.target.style.background = '#fff'; 
+    }
+  }
+});
+
+// --- 分頁名稱修改 (dblclick) ---
+document.getElementById('tabs').addEventListener('dblclick', (e)=>{
+  if(!e.target.classList.contains('tab') || e.target.classList.contains('add-tab')) return; 
+  const tabEl = e.target;
+  const uid = tabEl.dataset.uid;
+  const old = tabEl.textContent;
+  const input = document.createElement('input');
+  input.type='text'; input.value=old; input.style.width='90%';
+  tabEl.textContent=''; tabEl.appendChild(input); input.focus();
+  input.addEventListener('blur', ()=>{
+    const name = input.value.trim() || old;
+    tabEl.textContent = name;
+    updateAndSaveTabsByDOMOrder(); 
+  });
+  input.addEventListener('keydown', ev=>{ if(ev.key==='Enter') input.blur(); });
+});
+
+// --- 分頁刪除 (contextmenu) ---
+document.getElementById('tabs').addEventListener('contextmenu', (e)=>{
+  if(!e.target.classList.contains('tab') || e.target.classList.contains('add-tab')) return;
+  e.preventDefault();
+  const uid = e.target.dataset.uid;
+  const tabs = loadTabs();
+  if(tabs.length<=1){ showToast('至少保留一個分頁'); return; }
+  const name = e.target.textContent;
+  if(confirm(`刪除分頁「${name}」？（資料也會被刪除）`)){
+    document.getElementById(`content_${uid}`)?.remove();
+    e.target.remove();
+    localStorage.removeItem(ROWS_KEY(uid));
+    
+    updateAndSaveTabsByDOMOrder();
+
+    const newTabs = loadTabs(); 
+    let nextActive = newTabs.find(t=>t.active)?.uid || newTabs[0]?.uid; 
+    
+    if (nextActive) {
+        const tabsToSave = newTabs.map(t => ({...t, active: t.uid === nextActive}));
+        saveTabs(tabsToSave);
+        switchTo(nextActive);
+    }
+    
+    showToast('已刪除分頁');
+    initSortableTabs();
+  }
+});
+
+// --- 點選切換分頁 (click) ---
+document.getElementById('tabs').addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('tab') || e.target.classList.contains('add-tab')) return;
+  if (e.target.classList.contains('sortable-chosen')) return; 
+  const uid = e.target.dataset.uid;
+  switchTo(uid);
+});
+
+// --- 新增分頁 ---
+document.getElementById('addTab').addEventListener('click', ()=>{
+  const uid = genUid();
+  const tabs = loadTabs();
+  const newTabs = tabs.map(t=>({...t, active:false})).concat([{uid, name:'新表格', active:true}]);
+  saveTabs(newTabs);
+  
+  createTabDOM({uid,name:'新表格',active:true});
+  createContentDOM(uid);
+  loadRows(uid);
+  switchTo(uid);
+  showToast('已新增分頁');
+  
+  initSortableTabs(); 
+});
+
+// --- blur 儲存事件 ---
+document.body.addEventListener('blur', (e)=>{
+  if(e.target.classList.contains('name') || e.target.classList.contains('pn')){
+    const uid = e.target.closest('tbody').dataset.uid;
+    saveRows(uid);
+  }
+}, true);
+
+boot();
+</script>
+
+</body>
+</html>

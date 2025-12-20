@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>繁 / 簡 自動偵測轉換器</title>
+<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/zhcn.png">
+<style>
+  /* ① 讓所有元素以 border-box 計算尺寸 */
+  *,*::before,*::after{box-sizing:border-box;}
+
+  /* —— 版面 —— */
+  html,body{height:100%;margin:0;}
+  body{
+    display:flex;justify-content:center;align-items:flex-start;
+    padding:12px;background:#f4f4f4;font-family:"Noto Sans TC",sans-serif;
+  }
+
+  /* ② 卡片高度扣掉 body padding，保證永遠 ≤ 100vh */
+  .box{
+    width:100%;max-width:650px;
+    height:calc(100dvh - 24px);          /* 24px = 2 × body padding */
+    background:#fff;border-radius:10px;
+    box-shadow:0 4px 8px rgba(0,0,0,.1);
+    padding:16px;display:flex;flex-direction:column;
+  }
+
+  h1{margin:0 0 12px;text-align:center;font-size:1.3rem;font-weight:700}
+
+  textarea{
+    flex:1;width:100%;
+    min-height:0;                       /* ③ 允許隨父層高度縮放 */
+    padding:12px;font-size:18px;line-height:1.5;
+    border:1px solid #ccc;border-radius:6px;
+    resize:vertical;overflow:auto;
+  }
+</style>
+
+</head>
+<body>
+  <div class="box">
+    <h1>繁 / 簡 自動偵測轉換器</h1>
+    <textarea id="txt" placeholder="點一下自動貼上、偵測並轉換"></textarea>
+  </div>
+
+<script>
+window.addEventListener('load', () => {
+  const txt = document.getElementById('txt');
+  const s2t = OpenCC.Converter({from:'cn',to:'tw'});
+  const t2s = OpenCC.Converter({from:'tw',to:'cn'});
+
+  const diffCount = (a,b) => {
+    const len = Math.max(a.length,b.length);let d=0;
+    for(let i=0;i<len;i++) if(a[i]!==b[i]) d++;
+    return d;
+  };
+
+  async function handle(){
+    try{
+      const clip = await navigator.clipboard.readText();
+      if(!clip) return;
+
+      const toTrad = s2t(clip);
+      const toSimp = t2s(clip);
+      const diffTrad = diffCount(clip,toTrad);
+      const diffSimp = diffCount(clip,toSimp);
+
+      let result = clip;
+      if(diffTrad>diffSimp)       result = toTrad; // 原文為簡 → 轉繁
+      else if(diffSimp>diffTrad)  result = toSimp; // 原文為繁 → 轉簡
+
+      txt.value = result;
+      await navigator.clipboard.writeText(result);
+    }catch(e){
+      console.error('Clipboard access failed:',e);
+    }
+  }
+
+  txt.addEventListener('focus', handle);
+  txt.addEventListener('click', handle);
+});
+</script>
+</body>
+</html>

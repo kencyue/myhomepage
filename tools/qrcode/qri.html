@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QR / Barcode 掃描儲存工具</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#e5e5e5;margin:0;padding:20px;display:flex;justify-content:center}
+  .window{background:#fff;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.15);width:min(1000px,100%);overflow:hidden}
+  .titlebar{background:#f5f5f7;padding:8px 12px;display:flex;align-items:center;gap:8px}
+  .titlebar-title{font-size:1rem;font-weight:600;color:#333;flex:1;text-align:center}
+  .dot{width:12px;height:12px;border-radius:50%}.red{background:#ff5f57}.yellow{background:#febc2e}.green{background:#28c940}
+  .content{padding:20px}
+  .scanner-box{text-align:center;margin-bottom:20px}
+  #reader{width:100%;max-width:600px;margin:10px auto}
+  .list{list-style:none;padding:0;margin:0}
+  .list li{background:#fafafa;margin-bottom:3px;padding:12px;border-radius:10px;border:1px solid #e0e0e0;transition:background .2s}
+  .list li:hover{background:#f0f0f0}
+  .item-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:.95rem}
+  .item-header span{flex:1}
+  .item-content{display:none;margin-top:10px;font-size:.9rem;word-break:break-all}
+  .item-actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+  .qrcode{margin-top:10px;text-align:center}
+  .qrcode canvas,.qrcode img,.qrcode svg{width:100%!important;height:auto!important;max-width:520px}
+  .pagination{margin-top:20px;text-align:center}
+  .pagination button{margin:0 5px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:#f9f9f9;cursor:pointer}
+  .pagination button:disabled{background:#ddd;cursor:not-allowed}
+  .bottom-actions{margin-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .bottom-actions button{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:#007aff;color:#fff;font-size:.9rem;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:background .2s}
+  .bottom-actions button:hover{background:#005ecb}
+  .danger{background:#ff3b30!important}.danger:hover{background:#d32d24!important}
+  #editorModal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;justify-content:center;align-items:center}
+  #editorBox{background:#fff;padding:20px;border-radius:12px;width:90%;max-width:760px;display:flex;flex-direction:column;gap:10px}
+  #editorBox textarea{width:100%;height:420px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem}
+  #fileInput{display:none}
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+      <div class="titlebar-title">QR / Barcode 掃描儲存工具</div>
+    </div>
+
+    <div class="content">
+      <div class="scanner-box">
+        <button id="scanBtn" onclick="toggleScanner()">開始掃描</button>
+        <div id="reader"></div>
+      </div>
+
+      <ul id="list" class="list"></ul>
+      <div class="pagination" id="pagination"></div>
+
+      <div class="bottom-actions">
+        <button onclick="exportJSON()">匯出</button>
+        <button onclick="document.getElementById('fileInput').click()">匯入</button>
+        <button onclick="openEditor()">編輯</button>
+        <input type="file" id="fileInput" accept=".json" onchange="importJSON(event)">
+        <button class="danger" onclick="clearAll()">清除全部</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editorModal">
+    <div id="editorBox">
+      <textarea id="editorArea"></textarea>
+      <div style="text-align:right;">
+        <button onclick="saveEditor()">儲存</button>
+        <button onclick="closeEditor()">取消</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+<script>
+/* ===================== IndexedDB ===================== */
+const DB_NAME = "qrStorageDB";
+const STORE_NAME = "qrItemsStore";
+let db=null;
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME,1);
+    req.onupgradeneeded = e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(STORE_NAME))
+        db.createObjectStore(STORE_NAME,{keyPath:"id",autoIncrement:true});
+    };
+    req.onsuccess = e=>{ db=e.target.result; resolve(); };
+    req.onerror = ()=>reject("DB 開啟失敗");
+  });
+}
+
+async function loadItems(){
+  await openDB();
+  return new Promise(res=>{
+    const tx=db.transaction(STORE_NAME,"readonly");
+    const st=tx.objectStore(STORE_NAME);
+    const r=st.getAll();
+    r.onsuccess=()=>res(r.result.sort((a,b)=>new Date(b.date)-new Date(a.date)));
+  });
+}
+
+async function addItemDB(item){
+  await openDB();
+  return new Promise(res=>{
+    const tx=db.transaction(STORE_NAME,"readwrite");
+    tx.objectStore(STORE_NAME).add(item);
+    tx.oncomplete=res;
+  });
+}
+
+async function saveItems(items){
+  await openDB();
+  return new Promise(res=>{
+    const tx=db.transaction(STORE_NAME,"readwrite");
+    const st=tx.objectStore(STORE_NAME);
+    st.clear();
+    items.forEach(i=>st.put(i));
+    tx.oncomplete=res;
+  });
+}
+
+/* ===================== 原本函數改 async ===================== */
+const ITEMSPERPAGE=10;
+let currentPage=1,html5Qr,isScanning=false;
+
+async function addItem(text,detected={type:"qrcode",formatName:"QR_CODE"}){
+  let items=await loadItems();
+  if(items.some(i=>i.text===text)){ alert("此內容已存在！"); return; }
+  await addItemDB({text,date:new Date().toISOString(),type:detected.type,formatName:detected.formatName,note:""});
+  renderList();
+}
+
+async function deleteItem(index){
+  if(!confirm("確定要刪除？"))return;
+  let items=await loadItems();
+  items.splice(index,1);
+  await saveItems(items);
+  renderList();
+}
+
+async function clearAll(){
+  if(!confirm("⚠️ 確定要清除全部？"))return;
+  await saveItems([]);
+  renderList();
+}
+
+async function renderList(){
+  const items=await loadItems();
+  const listEl=document.getElementById("list");
+  const paginationEl=document.getElementById("pagination");
+  listEl.innerHTML=""; paginationEl.innerHTML="";
+
+  const totalPages=Math.ceil(items.length/ITEMSPERPAGE);
+  if(currentPage>totalPages)currentPage=totalPages||1;
+  const start=(currentPage-1)*ITEMSPERPAGE;
+  const pageItems=items.slice(start,start+ITEMSPERPAGE);
+
+  pageItems.forEach((item,i)=>{
+    const idx=start+i;
+    const showText=(item.note||item.text).slice(0,20)+(item.text.length>20?"...":"");
+    const li=document.createElement("li");
+    li.innerHTML=`
+      <div class="item-header">
+        <span>${showText}</span>
+        <button onclick="deleteItem(${idx})">❌</button>
+      </div>
+      <div class="item-content" id="content-${idx}">
+        <div>${linkify(item.text)}</div>
+        <div class="item-actions">
+          <button onclick="toggleCode(${idx})">顯示 ${item.type==="barcode"?"Barcode":"QR Code"}</button>
+          <button onclick="editNote(${idx})">編輯註解</button>
+          <button onclick="shareItem(${idx})">分享</button>
+        </div>
+        <div class="qrcode" id="code-${idx}"></div>
+      </div>`;
+    li.querySelector(".item-header").addEventListener("click",e=>{
+      if(e.target.tagName==="BUTTON")return;
+      const c=li.querySelector(".item-content");
+      c.style.display=c.style.display==="block"?"none":"block";
+    });
+    listEl.appendChild(li);
+  });
+
+  for(let i=1;i<=totalPages;i++){
+    const b=document.createElement("button");
+    b.textContent=i;
+    if(i===currentPage)b.disabled=true;
+    b.onclick=()=>{currentPage=i;renderList();};
+    paginationEl.appendChild(b);
+  }
+}
+
+function linkify(t){
+  return t.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>');
+}
+
+function toggleCode(index){
+  const el=document.getElementById(`code-${index}`);
+  if(el.innerHTML.trim()){ el.innerHTML=""; return; }
+  loadItems().then(items=>{
+    const item=items[index];
+    if(item.type==="barcode"){
+      let svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+      svg.setAttribute("width","100%");svg.setAttribute("height","150");
+      el.appendChild(svg);
+      JsBarcode(svg,item.text,{format:"CODE128",lineColor:"#000",width:2,height:100,displayValue:true});
+    } else {
+      new QRCode(el,{text:item.text,width:260,height:260});
+    }
+  });
+}
+
+async function editNote(index){
+  let items=await loadItems();
+  let v=prompt("註解：",items[index].note||"");
+  if(v===null)return;
+  items[index].note=v.trim();
+  await saveItems(items);
+  renderList();
+}
+
+async function shareItem(index){
+  let items=await loadItems();
+  const item=items[index];
+  const combined=item.note?`${item.note}\n${item.text}`:item.text;
+  if(navigator.share){
+    navigator.share({title:"資料",text:combined}).catch(()=>{});
+  } else {
+    await navigator.clipboard.writeText(combined);
+    alert("已複製到剪貼簿!");
+  }
+}
+
+function exportJSON(){
+  loadItems().then(items=>{
+    const blob=new Blob([JSON.stringify(items,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="qrdata.json";a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function importJSON(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async evt=>{
+    try{
+      const parsed=JSON.parse(evt.target.result);
+      await saveItems(parsed);
+      renderList();
+      alert("匯入成功");
+    }catch{alert("匯入格式錯誤");}
+  };
+  reader.readAsText(file);
+}
+
+function openEditor(){
+  loadItems().then(items=>{
+    document.getElementById("editorArea").value=JSON.stringify(items,null,2);
+    document.getElementById("editorModal").style.display="flex";
+  });
+}
+function closeEditor(){document.getElementById("editorModal").style.display="none";}
+async function saveEditor(){
+  try{
+    const parsed=JSON.parse(document.getElementById("editorArea").value);
+    await saveItems(parsed);
+    renderList();closeEditor();alert("已更新");
+  }catch{alert("JSON 格式錯誤");}
+}
+
+/* ===================== Scan ===================== */
+async function toggleScanner(){
+  const btn=document.getElementById("scanBtn");
+  if(isScanning){
+    try{await html5Qr.stop();html5Qr.clear();}catch{}
+    document.getElementById("reader").innerHTML="";
+    isScanning=false;btn.textContent="開始掃描";return;
+  }
+  html5Qr=new Html5Qrcode("reader");
+  html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},
+    (decodedText)=>{ addItem(decodedText); alert("掃描成功"); toggleScanner(); },
+    ()=>{}
+  ).catch(err=>alert("相機開啟失敗："+err));
+  isScanning=true;btn.textContent="關閉掃描";
+}
+
+/* 初始化 */
+renderList();
+</script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>全熱 Modbus RS-485 指令產生器</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f7fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #2d3748;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    /* Setting Section */
+    .settings {
+      width: 100%;
+      max-width: 400px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 1.5rem;
+    }
+
+    .settings > div {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #4a5568;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+    }
+
+    /* Custom Dropdown Styling */
+    select {
+      width: 100%;
+      padding: 12px 36px 12px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      background-color: #ffffff;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234a5568' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-position: right 12px center;
+      background-repeat: no-repeat;
+      background-size: 20px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3182ce;
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #2b6cb0;
+    }
+
+    /* Output Section */
+    .output {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .output > div {
+      margin-bottom: 1rem;
+    }
+
+    .output input {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.875rem;
+      background-color: #edf2f7;
+      cursor: pointer;
+    }
+
+    .output input.copied {
+      background-color: #c6f6d5;
+      transition: background-color 0.3s ease-out;
+    }
+
+    /* Hidden Class */
+    .hidden {
+      display: none;
+    }
+
+    /* Responsive Adjustments */
+    @media (min-width: 640px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      label {
+        font-size: 1rem;
+      }
+
+      input, select, button {
+        font-size: 1rem;
+      }
+
+      .settings {
+        padding: 24px;
+      }
+
+      .output input {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>全熱 Modbus RS-485 指令產生器</h1>
+
+  <!--─ 設定區 ─-->
+  <div class="settings">
+    <!-- Slave -->
+    <div>
+      <label for="slave">裝置位址 (Slave ID)</label>
+      <input id="slave" type="number" min="1" max="247" value="1">
+    </div>
+
+    <!-- Register -->
+    <div>
+      <label for="reg">寄存器位址</label>
+      <select id="reg"></select>
+    </div>
+
+    <!-- Function Code -->
+    <div>
+      <label for="fc">功能碼 (Function Code)</label>
+      <select id="fc"></select>
+    </div>
+
+    <!-- 自由輸入 -->
+    <div id="valueBlock">
+      <label for="value">寫入數值</label>
+      <input id="value" type="text" placeholder="例如 0x01 或 1">
+    </div>
+
+    <!-- 列舉下拉 -->
+    <div id="enumBlock" class="hidden">
+      <label for="enumVal">寫入數值</label>
+      <select id="enumVal"></select>
+    </div>
+
+    <!-- 子位元組 (高/低位) -->
+    <div id="subBlock" class="hidden"></div>
+
+    <!-- 讀取筆數 -->
+    <div id="quantityBlock" class="hidden">
+      <label for="qty">讀取筆數 (Quantity)</label>
+      <input id="qty" type="number" min="1" max="125" value="1">
+    </div>
+
+    <button id="gen">產生指令</button>
+  </div>
+
+  <!--─ 輸出區 ─-->
+  <div class="output">
+    <div>
+      <label for="output">RTU 幀 (HEX)：</label>
+      <input id="output" type="text" readonly>
+    </div>
+    <div>
+      <label for="monitorOutput">Modbus Monitor 命令：</label>
+      <input id="monitorOutput" type="text" readonly>
+    </div>
+  </div>
+
+<script>
+/* ───── 資料表 ───── */
+const registers = {
+  '0001': {name:'運轉狀態',          access:'RW', enums:{0x0000:'停止',0x0001:'運轉'}},
+  '0002': {name:'運轉模式',          access:'RW', enums:{0x0000:'全熱換氣',0x0001:'普通換氣'}},
+  '0003': {name:'風量',              access:'RW', enums:{0x0001:'弱',0x0003:'強'}},
+  '000D': {name:'OA 濾網剩餘時間(h)', access:'R',  note:'0–4320'},
+  '000E': {name:'OA 濾網更換週期',    access:'RW', enums:{0x01:'120 日',0x02:'150 日',0x03:'180 日'}},
+  '000F': {name:'異常發生狀態',      access:'R'},
+  '0011': {name:'設定定時開 (時/分)', access:'RW',
+           sub:[
+             {byte:'L', label:'小時 (0–23 或 0x7F 無效)', range:[0,23], skip:0x7F},
+             {byte:'H', label:'分鐘 (0–59 或 0x7F 無效)', range:[0,59], skip:0x7F}
+           ]},
+  '0012': {name:'定時開 / 關 啟動',   access:'RW',
+           sub:[
+             {byte:'L', label:'定時開 0=OFF / 1=ON', range:[0,1]},
+             {byte:'H', label:'定時關 0=OFF / 1=ON', range:[0,1]}
+           ]},
+  '0013': {name:'設定定時關 (時/分)', access:'RW',
+           sub:[
+             {byte:'L', label:'小時 (0–23 或 0x7F 無效)', range:[0,23], skip:0x7F},
+             {byte:'H', label:'分鐘 (0–59 或 0x7F 無效)', range:[0,59], skip:0x7F}
+           ]},
+  '0014': {name:'網路時間(年)',      access:'W',  range:[0,9999]},
+  '0015': {name:'網路時間(分/秒)',   access:'W',
+           sub:[
+             {byte:'H', label:'分鐘 (0–59 或 255=Skip)', range:[0,59], skip:255},
+             {byte:'L', label:'秒   (0–59 或 255=Skip)', range:[0,59], skip:255}
+           ]},
+  '0016': {name:'網路時間(週/時)',   access:'W',
+           sub:[
+             {byte:'H', label:'星期 (0=日…6 或 255=Skip)', range:[0,6], skip:255},
+             {byte:'L', label:'小時 (0–23 或 255=Skip)',   range:[0,23], skip:255}
+           ]},
+  '0017': {name:'網路時間(月/日)',   access:'W',
+           sub:[
+             {byte:'H', label:'月份 (1–12 或 255=Skip)', range:[1,12], skip:255},
+             {byte:'L', label:'日期 (1–31 或 255=Skip)', range:[1,31], skip:255}
+           ]}
+};
+
+/* ───── DOM 變數 ───── */
+const regSel        = document.getElementById('reg');
+const fcSel         = document.getElementById('fc');
+const valueBlock    = document.getElementById('valueBlock');
+const enumBlock     = document.getElementById('enumBlock');
+const subBlock      = document.getElementById('subBlock');
+const quantityBlock = document.getElementById('quantityBlock');
+const valueInput    = document.getElementById('value');
+const enumSel       = document.getElementById('enumVal');
+const qtyInput      = document.getElementById('qty');
+const outHex        = document.getElementById('output');
+const outMonitor    = document.getElementById('monitorOutput');
+
+/* ───── CRC16 ───── */
+function crc16(buf){
+  let crc=0xFFFF;
+  for(const b of buf){
+    crc ^= b;
+    for(let i=0;i<8;i++){
+      const bit=crc&1;
+      crc>>=1;
+      if(bit) crc ^= 0xA001;
+    }
+  }
+  return crc;
+}
+const hex=(n,len=2)=>n.toString(16).toUpperCase().padStart(len,'0');
+
+/* ───── 初始化寄存器選單 ───── */
+for(const addr in registers){
+  const opt=document.createElement('option');
+  opt.value=addr;
+  opt.text =`0x${addr.toUpperCase()} ${registers[addr].name}`;
+  regSel.add(opt);
+}
+
+/* ───── 重建 FC 選單 ───── */
+function populateFcOptions(){
+  const info=registers[regSel.value];
+  const prev=fcSel.value;
+  fcSel.innerHTML='';
+  if(info.access.includes('R'))
+    fcSel.add(new Option('03 讀取保持暫存器','03'));
+  if(info.access.includes('W'))
+    fcSel.add(new Option('06 寫入單暫存器','06'));
+  if([...fcSel.options].some(o=>o.value===prev))
+    fcSel.value=prev;
+}
+
+/* ───── 切換輸入介面 ───── */
+function updateValueUI(){
+  const info=registers[regSel.value];
+  const fc=parseInt(fcSel.value,16);
+
+  if(fc===0x03){
+    quantityBlock.classList.remove('hidden');
+    valueBlock   .classList.add   ('hidden');
+    enumBlock    .classList.add   ('hidden');
+    subBlock     .classList.add   ('hidden');
+    return;
+  }
+  quantityBlock.classList.add('hidden');
+
+  if(info.sub){
+    subBlock.classList.remove('hidden');
+    enumBlock.classList.add   ('hidden');
+    valueBlock.classList.add   ('hidden');
+    buildSubInputs(info.sub);
+    return;
+  }
+  subBlock.classList.add('hidden');
+
+  if(info.enums){
+    enumBlock .classList.remove('hidden');
+    valueBlock.classList.add   ('hidden');
+    enumSel.innerHTML='';
+    for(const k in info.enums){
+      enumSel.add(new Option(`0x${hex(+k)} (${info.enums[k]})`,k));
+    }
+    return;
+  }
+  enumBlock .classList.add   ('hidden');
+  valueBlock.classList.remove('hidden');
+  if(info.range){
+    valueInput.type='number';
+    valueInput.min =info.range[0];
+    valueInput.max =info.range[1];
+    valueInput.placeholder=`${info.range[0]}–${info.range[1]}`;
+  }else{
+    valueInput.type='text';
+    valueInput.placeholder='例如 0x01 或 1';
+  }
+}
+
+/* ── 動態產生高/低位輸入 ── */
+function buildSubInputs(subDef){
+  subBlock.innerHTML='';
+  subDef.forEach(f=>{
+    const wrap=document.createElement('div');
+    wrap.className='sub-input';
+    const label=document.createElement('label');
+    label.className='sub-label';
+    label.textContent=f.label;
+    const inp=document.createElement('input');
+    inp.type='number';
+    inp.min=f.range[0];
+    inp.max=f.range[1];
+    inp.placeholder=f.skip!==undefined
+      ?`${f.range[0]}–${f.range[1]} 或 ${f.skip}=Skip`
+      :`${f.range[0]}–${f.range[1]}`;
+    inp.dataset.byte=f.byte;
+    inp.dataset.skip=f.skip ?? '';
+    inp.className='sub-input-field';
+    wrap.append(label,inp);
+    subBlock.append(wrap);
+  });
+}
+
+/* ───── 產生指令 ───── */
+function generate(){
+  const slave=parseInt(document.getElementById('slave').value);
+  const fc   =parseInt(fcSel.value,16);
+  const reg  =parseInt(regSel.value,16);
+  const frame=[slave,fc,reg>>8,reg&0xFF];
+
+  const info=registers[regSel.value];
+  let val=0;
+
+  if(fc===0x03){
+    const qty=parseInt(qtyInput.value);
+    frame.push(qty>>8,qty&0xFF);
+  }else{
+    if(info.sub){
+      let high=0, low=0;
+      subBlock.querySelectorAll('input').forEach(inp=>{
+        let v=inp.value!==''?parseInt(inp.value):NaN;
+        const skip=+inp.dataset.skip||null;
+        if(Number.isNaN(v) && skip!==null) v=skip;
+        if(inp.dataset.byte==='H') high=v;
+        else                        low =v;
+      });
+      val=(high<<8)|low;
+    }else if(info.enums){
+      val=parseInt(enumSel.value);
+    }else{
+      let raw=valueInput.value.trim();
+      val=raw.startsWith('0x')||raw.startsWith('0X')
+            ?parseInt(raw,16):parseInt(raw,10);
+    }
+    frame.push(val>>8,val&0xFF);
+  }
+
+  const crc=crc16(frame);
+  frame.push(crc&0xFF,crc>>8);
+  outHex.value=frame.map(b=>hex(b)).join(' ');
+
+  const monitorAddr=400000+(reg+1);
+  let cmd=monitorAddr.toString().padStart(6,'0');
+  if(fc===0x03){
+    const qty=parseInt(qtyInput.value);
+    cmd += (qty>1?`#${qty}`:'');
+  }else{
+    cmd += `*${val}`;
+  }
+  outMonitor.value=cmd;
+}
+
+/* ───── 複製到剪貼簿 ───── */
+function copyToClipboard(input) {
+  if (input.value) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      input.classList.add('copied');
+      setTimeout(() => {
+        input.classList.remove('copied');
+      }, 1000); // Remove 'copied' class after 1 second
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  }
+}
+
+/* ───── 事件 ───── */
+regSel.addEventListener('change',()=>{
+  populateFcOptions();
+  updateValueUI();
+});
+fcSel.addEventListener('change',updateValueUI);
+document.getElementById('gen').addEventListener('click',generate);
+outHex.addEventListener('click', () => copyToClipboard(outHex));
+outMonitor.addEventListener('click', () => copyToClipboard(outMonitor));
+
+/* ───── 首次載入 ───── */
+populateFcOptions();
+updateValueUI();
+</script>
+</body>
+</html>

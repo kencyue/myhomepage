@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>冷房能力試算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div id="card" class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow">
+    <h1 class="text-xl font-bold text-center mb-4">冷房能力試算器</h1>
+
+    <!-- 坪／m² -->
+    <label class="block font-medium mb-1">輸入坪數或平方公尺（擇一）*</label>
+    <div class="flex gap-2 mb-4">
+      <input id="ping" type="number" class="w-1/2 p-2 border rounded" placeholder="坪">
+      <input id="m2"   type="number" class="w-1/2 p-2 border rounded" placeholder="平方公尺">
+    </div>
+
+    <!-- 空間用途 -->
+    <label class="block font-medium mb-1">使用空間 *</label>
+    <select id="usage" class="w-full p-2 mb-4 border rounded">
+      <option value="">請選擇</option>
+      <option value="living">客廳（0.58 kW/坪）</option>
+      <option value="bedroom">臥房（0.52 kW/坪）</option>
+      <option value="office">辦公室（0.64 kW/坪）</option>
+      <option value="business">營業場所（0.76 kW/坪）</option>
+    </select>
+
+    <!-- 建築條件 -->
+    <label class="block font-medium mb-1">建築條件（擇一）</label>
+    <select id="structure" class="w-full p-2 mb-4 border rounded">
+      <option value="none">無</option>
+      <option value="west">西晒／頂樓（+0.23~0.35）</option>
+      <option value="iron">鐵皮屋（+0.58~0.82）</option>
+    </select>
+
+    <!-- 挑高 -->
+    <label class="block font-medium mb-1">挑高</label>
+    <select id="heightFactor" class="w-full p-2 mb-4 border rounded">
+      <option value="1">標準層高</option>
+      <option value="1.5">挑高 4.6 m（×1.5）</option>
+      <option value="1.8">挑高 5.6 m（×1.8）</option>
+    </select>
+
+    <!-- 熱源 -->
+    <label class="block font-medium mb-1">熱源人數</label>
+    <div class="flex gap-2 mb-4">
+      <input id="adult" type="number" class="w-1/2 p-2 border rounded" placeholder="大人 (+0.12 kW)">
+      <input id="child" type="number" class="w-1/2 p-2 border rounded" placeholder="小孩 (+0.06 kW)">
+    </div>
+
+    <div class="flex gap-2 mb-4">
+      <button onclick="calculate()"
+              class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">計算</button>
+      <button onclick="resetForm()"
+              class="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400">重置</button>
+    </div>
+
+    <!-- 結果 -->
+    <div id="result"  class="text-center text-lg font-semibold select-none"></div>
+    <div id="formula" class="text-center text-sm text-gray-700 whitespace-pre-line mt-2"></div>
+  </div>
+
+<script>
+/* ---------- 常數 ---------- */
+const P2M = 3.30579, M2P = 1 / P2M;
+
+/* ---------- 互斥輸入 ---------- */
+ping.addEventListener('input', () => m2.value  = ping.value ? '' : m2.value);
+m2  .addEventListener('input', () => ping.value= m2.value  ? '' : ping.value);
+
+/* ---------- 重置 ---------- */
+function resetForm(){
+  document.querySelectorAll('input').forEach(el => el.value = '');
+  usage.value=''; structure.value='none'; heightFactor.value='1';
+  result.textContent=''; formula.textContent=''; result.onclick=null;
+  result.classList.remove('text-green-700','text-red-600','cursor-pointer');
+}
+
+/* ---------- 計算 ---------- */
+function calculate(){
+  const area =  !isNaN(+ping.value) && +ping.value>0 ? +ping.value
+              : !isNaN(+m2.value)  && +m2.value >0 ? +m2.value * M2P : NaN;
+  if (isNaN(area)) return showErr('請輸入坪數或平方公尺');
+  if (!usage.value) return showErr('請選擇使用空間類型');
+
+  const baseMap = { living:0.58, bedroom:0.52, office:0.64, business:0.76 };
+  const base   = baseMap[usage.value];
+  const struct = ({
+    none:0,
+    west:/living|bedroom/.test(usage.value)?0.23:0.35,
+    iron:/living|bedroom/.test(usage.value)?0.58:0.82
+  })[structure.value];
+  const ht     = +heightFactor.value;
+  const extra  = (+adult.value||0)*0.12 + (+child.value||0)*0.06;
+  const kw     = area*(base+struct)*ht + extra;
+
+  /* 顯示 & 綁分享 */
+  result.className =
+    'text-center text-lg font-semibold text-green-700 cursor-pointer select-none';
+  result.textContent = `✅ 建議冷房能力：約 ${kw.toFixed(2)} kW`;
+  const formulaTxt =
+`計算式：
+  ${area.toFixed(2)} 坪 × (基準 ${base.toFixed(2)} + 加成 ${struct.toFixed(2)})
+         × 挑高倍率 ${ht}
+       + 熱源加成 ${extra.toFixed(2)}
+  = ${kw.toFixed(2)} kW`;
+  formula.textContent = formulaTxt;
+  result.onclick = () => shareText(kw, formulaTxt);
+
+  function showErr(msg){
+    result.className='text-center text-lg font-semibold text-red-600';
+    result.textContent='❌ '+msg; formula.textContent=''; result.onclick=null;
+  }
+}
+
+/* ---------- 分享文字 ---------- */
+async function shareText(kw, formulaTxt){
+  /* 組分享文字 */
+  const usageText      = usage.selectedOptions[0].textContent.split('（')[0];
+  const structureText  = structure.selectedOptions[0].textContent.split('（')[0];
+  const heightText     = heightFactor.selectedOptions[0].textContent.split('（')[0];
+  const peopleText     = `大人：${adult.value || 0}；小孩：${child.value || 0}`;
+
+  const shareStr =
+`使用空間：${usageText}
+建築條件：${structureText}
+挑高：${heightText}
+${peopleText}
+建議冷房能力：${kw.toFixed(2)} kW
+${formulaTxt}`;
+
+  /* 1️⃣ 有 Web Share（文字）→ 直接分享 */
+  if (navigator.share) {
+    try { await navigator.share({ title:'冷房能力試算結果', text:shareStr }); return; }
+    catch(e){ /* 使用者取消；落到 2️⃣ */ }
+  }
+
+  /* 2️⃣ Clipboard API → 複製，提示使用者自己貼上 */
+  if (navigator.clipboard?.writeText) {
+    try { await navigator.clipboard.writeText(shareStr);
+      alert('✅ 已複製結果到剪貼簿，直接貼給對方！'); return;
+    } catch(e){ /* 失敗→3️⃣ */ }
+  }
+
+  /* 3️⃣ 最後備援：開新視窗顯示文字，使用者手動複製 */
+  const newWin = window.open('', '_blank', 'noopener');
+  newWin.document.write(`<pre style="white-space:pre-wrap;font-family:inherit">${shareStr}</pre>`);
+  newWin.document.title = '冷房能力試算結果';
+}
+</script>
+</body>
+</html>

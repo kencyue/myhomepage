@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=yes">
+<title>圖片標註工具 (重構版)</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
+
+<style>
+/* ==== 基本佈局 & 按鈕風格 (同舊版) ==== */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;padding:1rem;display:flex;flex-direction:column;align-items:center}
+h1{font-size:1.2rem;margin-bottom:1rem}
+input[type=file]{display:none}
+.btn-row{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1rem}
+.btn{all:unset;cursor:pointer;width:50px;height:50px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#e0e0e0;color:#555;box-shadow:0 1px 3px rgb(0 0 0 / 14%);transition:.15s}
+.btn:hover{transform:translateY(-1px)}
+.btn .ico{font-size:1.3rem;line-height:1;text-align:center;width:100%}
+.btn .label{font-size:.6rem;margin-top:.1rem;user-select:none;text-align:center;width:100%}
+.btn.on-success{background:#e8f5e9;color:#1b5e20}.btn.on-warn{background:#fff9c4;color:#7f6000}
+.btn.on-danger{background:#ffebee;color:#b71c1c}.btn.on-primary{background:#c5e1ff;color:#003c8f}
+
+#drop-zone{width:100%;max-width:420px;padding:2rem;border:2px dashed #aaa;border-radius:8px;background:#fff;color:#666;text-align:center;cursor:pointer;margin-bottom:1rem;transition:.2s}
+#drop-zone.dragover{background:#e0f7fa;border-color:#00796b;color:#00796b}
+
+#canvasWrap{position:relative;display:none;max-width:100%}
+#imgBase{max-width:100%;max-height:70vh;border-radius:4px;display:block}
+#markupLayer{position:absolute;left:0;top:0;touch-action:none;cursor:crosshair}
+.cropper-container{max-width:100%!important;max-height:70vh!important}
+
+/* == 裁切尺寸標籤 == */
+.crop-size{position:absolute;padding:2px 4px;font-size:.7rem;background:#000a;color:#fff;border-radius:4px;pointer-events:none}
+</style>
+</head>
+<body>
+
+<h1>圖片標註工具 (重構版)</h1>
+
+<!-- ====================== 隱藏檔案 input ====================== -->
+<input type="file" id="fileGallery" accept="image/*">
+<input type="file" id="fileCamera"  accept="image/*" capture="environment">
+
+<!-- ====================== 選圖按鈕 ====================== -->
+<div class="btn-row" id="selectBtns">
+  <button class="btn" id="btnGallery"><span class="ico">📁</span><span class="label">相簿</span></button>
+  <button class="btn" id="cameraBtn" ><span class="ico">📷</span><span class="label">拍照</span></button>
+</div>
+
+<!-- ====================== 拖拉區 ====================== -->
+<div id="drop-zone">或拖拉圖片到這裡</div>
+
+<!-- ====================== 工作區 ====================== -->
+<div id="canvasWrap">
+  <img    id="imgBase" alt="">
+  <canvas id="markupLayer"></canvas>
+</div>
+
+<!-- ====================== 工具列 ====================== -->
+<div class="btn-row" id="toolBar" style="display:none">
+  <!-- 裁切/取消 -->
+  <button class="btn" id="cropTool"   data-color="success"><span class="ico">✂️</span><span class="label">裁切</span></button>
+  <button class="btn" id="cancelCrop" data-color="danger" style="display:none"><span class="ico">❌</span><span class="label">取消</span></button>
+
+  <!-- 筆刷 -->
+  <button class="btn" id="penRed"    data-color="danger"><span class="ico">🖍️</span><span class="label">紅筆</span></button>
+  <button class="btn" id="penYellow" data-color="warn"  ><span class="ico">🖌️</span><span class="label">螢光</span></button>
+
+  <!-- 文字 -->
+  <button class="btn" id="textTool"  data-color="primary"><span class="ico">🅰️</span><span class="label">文字</span></button>
+
+  <!-- 圖形 -->
+  <button class="btn" id="ellipseRed" data-color="danger"><span class="ico">⭕</span><span class="label">紅圈</span></button>
+  <button class="btn" id="rectRed"    data-color="danger"><span class="ico">🟥</span><span class="label">紅框</span></button>
+
+  <!-- 高亮 -->
+  <button class="btn" id="highlightOval" data-color="primary"><span class="ico">⚪</span><span class="label">高亮圓</span></button>
+  <button class="btn" id="highlightRect" data-color="primary"><span class="ico">⬜</span><span class="label">高亮</span></button>
+
+  <!-- 其他 -->
+  <button class="btn" id="undoBtn"><span class="ico">↶</span><span class="label">Undo</span></button>
+  <button class="btn" id="redoBtn"><span class="ico">↷</span><span class="label">Redo</span></button>
+  <button class="btn" id="shareBtn"   data-color="primary"><span class="ico">📤</span><span class="label">分享</span></button>
+  <button class="btn" id="downloadBtn"data-color="primary"><span class="ico">⬇️</span><span class="label">下載</span></button>
+  <button class="btn" id="resetBtn"><span class="ico">🧹</span><span class="label">清除</span></button>
+  <button class="btn" id="reload" onclick="confirm('確定要重新載入？')&&location.reload()"><span class="ico">🔄</span><span class="label">重載</span></button>
+</div>
+
+<script>
+/* ===========================================================
+   CONFIG & 小工具
+=========================================================== */
+const $ = id=>document.getElementById(id);
+const MOBILE = /Android|iPhone|iPad|iPod|Windows/i.test(navigator.userAgent);
+const CONFIG = {
+  undoLimit: 20,
+  penRed   : {color:'red'               ,width:3 },
+  penYellow: {color:'rgba(255,255,0,.5)',width:18},
+  font     : size=>`${size}px sans-serif`
+};
+
+/* ===========================================================
+   模組 0. GlobalState  (所有模組共用資料)
+=========================================================== */
+const GS = {
+  mode   : 'none',
+  cropper: null,
+  stream : null,
+  drawing: false,
+  startX : 0, startY: 0,
+  preview: null,
+  hasMask: false,
+  undo   : [],     // {type:'markup'|'img', data:ImageData|src}
+  redo   : []
+};
+
+/* ===========================================================
+   模組 1. CanvasDrawer：所有繪圖行為
+=========================================================== */
+const CanvasDrawer = (()=>{
+  const cv  = $('markupLayer');
+  const ctx = cv.getContext('2d');
+
+  function fitCanvas(img){ cv.width=img.clientWidth; cv.height=img.clientHeight; }
+  function clear(){ ctx.clearRect(0,0,cv.width,cv.height); GS.hasMask=false; }
+
+  /* ---------- 形狀 ---------- */
+  function ellipse(x0,y0,w,h){
+    ctx.strokeStyle='red'; ctx.lineWidth=3; ctx.beginPath();
+    ctx.ellipse(x0+w/2,y0+h/2,Math.abs(w/2),Math.abs(h/2),0,0,Math.PI*2); ctx.stroke();
+  }
+  function rect(x0,y0,w,h){
+    ctx.strokeStyle='red'; ctx.lineWidth=3; ctx.strokeRect(x0,y0,w,h);
+  }
+  function highlightRect(w,h){ ctx.clearRect(GS.startX,GS.startY,w,h); }
+  function highlightOval(w,h){
+    ctx.save(); ctx.beginPath();
+    ctx.ellipse(GS.startX+w/2,GS.startY+h/2,Math.abs(w/2),Math.abs(h/2),0,0,Math.PI*2);
+    ctx.clip(); ctx.clearRect(0,0,cv.width,cv.height); ctx.restore();
+  }
+
+  /* ---------- 筆刷 & 文字 ---------- */
+  function penTo(x,y){ ctx.lineTo(x,y); ctx.stroke(); }
+  function penStart(color,width){ ctx.lineCap='round'; ctx.strokeStyle=color; ctx.lineWidth=width; ctx.beginPath(); ctx.moveTo(GS.startX,GS.startY);}
+  function drawText(text,x,y){
+    ctx.fillStyle='red';
+    ctx.font=CONFIG.font(Math.max(16,cv.width/25));
+    ctx.textBaseline='top';
+    ctx.fillText(text,x,y);
+  }
+
+  /* ---------- 快照 ---------- */
+  function pushMarkup(){
+    try{
+      GS.undo.push({type:'markup',data:ctx.getImageData(0,0,cv.width,cv.height)});
+      if(GS.undo.length>CONFIG.undoLimit)GS.undo.shift();
+      GS.redo.length=0;
+    }catch{}
+  }
+  function restoreMarkup(imgdat){ ctx.putImageData(imgdat,0,0); }
+
+  return {ctx,cv,fitCanvas,clear,ellipse,rect,highlightRect,highlightOval,
+          penTo,penStart,drawText,pushMarkup,restoreMarkup};
+})();
+
+/* ===========================================================
+   模組 2. ImageManager：載圖、攝影、匯出
+=========================================================== */
+const ImageManager = (()=>{
+  const img = $('imgBase');
+
+  function loadFile(file){
+    const r=new FileReader();
+    r.onload=e=>{ img.src=e.target.result; img.onload=()=>UI.enterWorkArea(); };
+    r.onerror=()=>alert('讀取失敗'); r.readAsDataURL(file);
+  }
+  async function openCamera(){
+    try{ GS.stream=await navigator.mediaDevices.getUserMedia({video:true}); }
+    catch{ return alert('無法開啟攝影機'); }
+    const v=document.createElement('video');
+    v.autoplay=true;v.srcObject=GS.stream;
+    $('canvasWrap').innerHTML='';$('canvasWrap').appendChild(v);$('canvasWrap').style.display='block';
+    v.onclick=()=>{
+      const c=document.createElement('canvas');
+      c.width=v.videoWidth;c.height=v.videoHeight;
+      c.getContext('2d').drawImage(v,0,0);
+      img.src=c.toDataURL();
+      img.onload=()=>{ GS.stream.getTracks().forEach(t=>t.stop());UI.enterWorkArea(); };
+    };
+  }
+  function mergedCanvas(){
+    if(GS.cropper)CropperManager.applyCrop();
+    const o=document.createElement('canvas');
+    o.width=img.naturalWidth;o.height=img.naturalHeight;
+    const ct=o.getContext('2d');
+    ct.drawImage(img,0,0);ct.drawImage(CanvasDrawer.cv,0,0,o.width,o.height);
+    return o;
+  }
+  function download(){
+    if(!img.src)return;
+    const c=mergedCanvas(),d=new Date();
+    const fname=`mark_${d.toISOString().replace(/[-:T]/g,'').slice(0,14)}.png`;
+    const a=document.createElement('a');a.download=fname;a.href=c.toDataURL();a.click();
+  }
+  function share(){
+    if(!navigator.share||!img.src)return;
+    mergedCanvas().toBlob(async b=>{
+      try{await navigator.share({files:[new File([b],'image.png',{type:b.type})],title:'分享圖片'});}catch{}
+    });
+  }
+  return {img,loadFile,openCamera,download,share};
+})();
+
+/* ===========================================================
+   模組 3. CropperManager：裁切
+=========================================================== */
+const CropperManager =(()=>{
+  let sizeTag=null;
+
+  function start(){
+    if(GS.cropper)return applyCrop();
+    GS.cropper=new Cropper(ImageManager.img,{viewMode:1,responsive:true,ready(){
+      sizeTag=document.createElement('div');sizeTag.className='crop-size';
+      $('canvasWrap').appendChild(sizeTag);
+    },crop(e){
+      const d=e.detail;
+      sizeTag.textContent=`${Math.round(d.width)}×${Math.round(d.height)}`;
+      sizeTag.style.left=d.x+'px';sizeTag.style.top=d.y+'px';
+    }});
+    UI.toggleCropUI(true);
+  }
+  function applyCrop(){
+    CanvasDrawer.pushMarkup(); // 把舊圖當作一次操作 (可 Undo)
+    const c=GS.cropper.getCroppedCanvas();
+    ImageManager.img.src=c.toDataURL();
+    ImageManager.img.onload=()=>{
+      GS.cropper.destroy();GS.cropper=null;
+      sizeTag.remove();sizeTag=null;
+      UI.toggleCropUI(false);
+      CanvasDrawer.fitCanvas(ImageManager.img);CanvasDrawer.clear();
+    };
+  }
+  function cancel(){
+    if(GS.cropper){GS.cropper.destroy();GS.cropper=null;sizeTag.remove();UI.toggleCropUI(false);}
+  }
+  return {start,applyCrop,cancel};
+})();
+
+/* ===========================================================
+   模組 4. UI：頁面互動與事件繫結
+=========================================================== */
+const UI =(()=>{
+  const wrap   = $('canvasWrap');
+  const bar    = $('toolBar');
+
+  /* ---------- 進入工作區 ---------- */
+  function enterWorkArea(){
+    $('selectBtns').style.display='none';
+    $('drop-zone').style.display='none';
+    wrap.style.display='block';
+    bar.style.display='flex';
+    CanvasDrawer.fitCanvas(ImageManager.img);
+    CanvasDrawer.clear();
+    GS.undo.length=GS.redo.length=0;
+    GS.mode='none'; highlightTool(null);
+    window.addEventListener('resize',onResize);
+  }
+
+  function onResize(){ CanvasDrawer.fitCanvas(ImageManager.img); }
+
+  /* ---------- 工具按鈕高亮 ---------- */
+  const allTools=[...'cropTool penRed penYellow textTool ellipseRed rectRed highlightOval highlightRect'.split(' ')].map($)
+                  .concat([]);
+  function highlightTool(btn){
+    allTools.forEach(b=>b.className='btn');
+    if(btn)btn.classList.add(`on-${btn.dataset.color}`);
+  }
+
+  /* ---------- 切換模式 ---------- */
+  function setMode(m){ if(GS.cropper)CropperManager.cancel();GS.mode=m;highlightTool($(MODE2ID[m]||'')); }
+  const MODE2ID={
+    penRed:'penRed',penYellow:'penYellow',text:'textTool',
+    ellipse:'ellipseRed',rect:'rectRed',highlightOval:'highlightOval',highlightRect:'highlightRect'
+  };
+
+  /* ---------- 裁切 UI 狀態 ---------- */
+  function toggleCropUI(on){
+    $('cancelCrop').style.display=on?'flex':'none';
+    $('markupLayer').style.pointerEvents = on?'none':'auto';
+    const c=$('cropTool');
+    c.querySelector('.ico').textContent = on?'✔️':'✂️';
+    c.querySelector('.label').textContent=on?'套用':'裁切';
+    on?highlightTool(c):highlightTool(null);
+  }
+
+  /* ---------- Undo / Redo ---------- */
+  function undo(){
+    if(!GS.undo.length)return;
+    const last=GS.undo.pop();GS.redo.push(last);
+    if(last.type==='markup')CanvasDrawer.restoreMarkup(last.data);
+    else if(last.type==='img'){ImageManager.img.src=last.data;ImageManager.img.onload=CanvasDrawer.fitCanvas.bind(null,ImageManager.img);}
+  }
+  function redo(){
+    if(!GS.redo.length)return;
+    const rec=GS.redo.pop();GS.undo.push(rec);
+    if(rec.type==='markup')CanvasDrawer.restoreMarkup(rec.data);
+    else if(rec.type==='img'){ImageManager.img.src=rec.data;ImageManager.img.onload=CanvasDrawer.fitCanvas.bind(null,ImageManager.img);}
+  }
+
+  /* ---------- 熱鍵 ---------- */
+  document.addEventListener('keydown',e=>{
+    if(e.ctrlKey && e.key==='z'){e.preventDefault();undo();}
+    if(e.ctrlKey && (e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();redo();}
+  });
+
+  /* ---------- 事件掛勾 ---------- */
+  function bindUI(){
+    // 檔案 / 相機
+    $('btnGallery').onclick=()=>$('fileGallery').click();
+    $('fileGallery').onchange=e=>e.target.files[0]&&ImageManager.loadFile(e.target.files[0]);
+    $('cameraBtn').onclick=()=>MOBILE?$('fileCamera').click():ImageManager.openCamera();
+    $('fileCamera').onchange=e=>e.target.files[0]&&ImageManager.loadFile(e.target.files[0]);
+
+    // 拖拉
+    if(!MOBILE){
+      const dz=$('drop-zone');
+      ['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add('dragover');}));
+      ['dragleave','dragend','drop'].forEach(t=>dz.addEventListener(t,()=>dz.classList.remove('dragover')));
+      dz.addEventListener('drop',e=>{e.preventDefault();e.dataTransfer.files[0]&&ImageManager.loadFile(e.dataTransfer.files[0]);});
+    }
+
+    // 工具
+    $('cropTool').onclick =CropperManager.start;
+    $('cancelCrop').onclick=CropperManager.cancel;
+
+    $('penRed').onclick       =()=>setMode('penRed');
+    $('penYellow').onclick    =()=>setMode('penYellow');
+    $('textTool').onclick     =()=>setMode('text');
+    $('ellipseRed').onclick   =()=>setMode('ellipse');
+    $('rectRed').onclick      =()=>setMode('rect');
+    $('highlightOval').onclick=()=>setMode('highlightOval');
+    $('highlightRect').onclick=()=>setMode('highlightRect');
+
+    $('undoBtn').onclick=undo;
+    $('redoBtn').onclick=redo;
+    $('downloadBtn').onclick=ImageManager.download;
+    $('shareBtn').onclick   =ImageManager.share;
+    $('resetBtn').onclick   =resetAll;
+  }
+
+  /* ---------- 重設 ---------- */
+  function resetAll(){
+    if(confirm('清除所有標註？')){
+      CanvasDrawer.clear();GS.undo.length=GS.redo.length=0;
+      if(GS.cropper)CropperManager.cancel();
+      highlightTool(null);GS.mode='none';
+    }
+  }
+
+  return {enterWorkArea,toggleCropUI,bindUI,setMode};
+})();
+
+/* ===========================================================
+   互動：Canvas Pointer 事件
+=========================================================== */
+(()=>{
+  const {cv,ctx} = CanvasDrawer;
+
+  cv.addEventListener('pointerdown',e=>{
+    if(GS.mode==='none')return;
+    const r=cv.getBoundingClientRect();
+    GS.startX=e.clientX-r.left;GS.startY=e.clientY-r.top;
+
+    if(GS.mode==='text'){
+      const txt=prompt('輸入文字'); if(!txt)return;
+      CanvasDrawer.pushMarkup();CanvasDrawer.drawText(txt,GS.startX,GS.startY); return;
+    }
+
+    CanvasDrawer.pushMarkup(); GS.drawing=true;
+
+    if(GS.mode.startsWith('pen')){
+      const cfg=GS.mode==='penRed'?CONFIG.penRed:CONFIG.penYellow;
+      CanvasDrawer.penStart(cfg.color,cfg.width);
+    }
+    if((GS.mode==='highlightRect'||GS.mode==='highlightOval')&&!GS.hasMask){
+      ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,cv.width,cv.height);GS.hasMask=true;
+    }
+    GS.preview=ctx.getImageData(0,0,cv.width,cv.height);
+  });
+
+  cv.addEventListener('pointermove',e=>{
+    if(!GS.drawing)return;
+    const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,w=x-GS.startX,h=y-GS.startY;
+    if(GS.mode.startsWith('pen')){CanvasDrawer.penTo(x,y);return;}
+    ctx.putImageData(GS.preview,0,0);
+    switch(GS.mode){
+      case'ellipse':CanvasDrawer.ellipse(GS.startX,GS.startY,w,h);break;
+      case'rect'   :CanvasDrawer.rect   (GS.startX,GS.startY,w,h);break;
+      case'highlightRect':CanvasDrawer.highlightRect(w,h);break;
+      case'highlightOval':CanvasDrawer.highlightOval(w,h);break;
+    }
+  });
+
+  cv.addEventListener('pointerup',()=>GS.drawing=false);
+  cv.addEventListener('pointercancel',()=>GS.drawing=false);
+})();
+
+/* ===========================================================
+   INIT
+=========================================================== */
+UI.bindUI();
+
+/* ===== 防下拉重整 (iOS) ===== */
+let lastY=0;
+window.addEventListener('touchstart',e=>{lastY=e.touches[0].clientY;},{passive:true});
+window.addEventListener('touchmove',e=>{
+  if(window.pageYOffset===0 && e.touches[0].clientY>lastY) e.preventDefault();
+},{passive:false});
+</script>
+</body>
+</html>

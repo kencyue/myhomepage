@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF 壓縮（Ghostscript-WASM 前端線上版）</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; max-width: 600px; padding: 1rem; }
+    input, select, button, progress { display: block; width: 100%; margin: 0.5rem 0; }
+    #status { margin-top: 1rem; color: #333; }
+    .download-link { word-break: break-all; display: block; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>PDF 壓縮（Ghostscript-WASM 前端線上版）</h1>
+  <p>以下示範使用 Ghostscript-WASM 透過 jsDelivr 直接載入 laurentmmeyer 的 Worker 實作。</p>
+
+  <input type="file" id="fileInput" accept="application/pdf" multiple />
+  <label>壓縮模式：
+    <select id="preset">
+      <option value="screen">screen（72 DPI）</option>
+      <option value="ebook">ebook（150 DPI）</option>
+      <option value="printer">printer（300 DPI）</option>
+      <option value="prepress">prepress（高品質）</option>
+    </select>
+  </label>
+  <button id="compressBtn">開始壓縮</button>
+  <progress id="progressBar" max="1" value="0" style="visibility:hidden;"></progress>
+  <div id="status"></div>
+  <div id="links"></div>
+
+  <script type="module">
+    import { initWorker } from 'https://unpkg.com/laurentmmeyer/ghostscript-pdf-compress.wasm@master/public/worker.js';
+
+    const fileInput = document.getElementById('fileInput');
+    const presetSelect = document.getElementById('preset');
+    const compressBtn = document.getElementById('compressBtn');
+    const progressBar = document.getElementById('progressBar');
+    const status = document.getElementById('status');
+    const linksContainer = document.getElementById('links');
+
+    // 初始化 Worker
+    const worker = await initWorker();
+
+    compressBtn.addEventListener('click', async () => {
+      const files = fileInput.files;
+      if (!files.length) return alert('請選擇至少一個 PDF 檔案');
+      linksContainer.innerHTML = '';
+
+      for (const file of files) {
+        status.textContent = `壓縮中：${file.name}`;
+        progressBar.value = 0;
+        progressBar.style.visibility = 'visible';
+
+        let outBuffer;
+        try {
+          outBuffer = await worker.compress(await file.arrayBuffer(), presetSelect.value);
+        } catch (e) {
+          console.error(e);
+          status.textContent = `錯誤：${e.message}`;
+          progressBar.style.visibility = 'hidden';
+          return;
+        }
+
+        progressBar.value = 1;
+        progressBar.style.visibility = 'hidden';
+
+        const blob = new Blob([outBuffer], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const outName = file.name.replace(/\.pdf$/i, `_${presetSelect.value}.pdf`);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = outName;
+        link.textContent = `下載 → ${outName}`;
+        link.className = 'download-link';
+        linksContainer.appendChild(link);
+
+        status.textContent = `完成：${outName}`;
+      }
+    });
+  </script>
+</body>
+</html>

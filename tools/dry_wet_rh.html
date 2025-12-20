@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>乾球 / 溼球 / 濕度 互算</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+<div class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow">
+  <h1 class="text-xl font-bold text-center mb-4">乾球 / 溼球 / 濕度 互算</h1>
+
+  <!-- 單位 -->
+  <label class="block font-medium mb-1">溫度單位</label>
+  <select id="unit" class="w-full p-2 mb-4 border rounded">
+    <option value="C">攝氏 (°C)</option>
+    <option value="F">華氏 (°F)</option>
+  </select>
+
+  <!-- 乾球 -->
+  <label class="block mb-1 font-medium">乾球溫度 T</label>
+  <input id="tDry" type="text" class="w-full p-2 mb-4 border rounded" placeholder="留空自動計算">
+
+  <!-- 溼球 -->
+  <label class="block mb-1 font-medium">溼球溫度 Tw</label>
+  <input id="tWet" type="text" class="w-full p-2 mb-4 border rounded" placeholder="留空自動計算">
+
+  <!-- 濕度 -->
+  <label class="block mb-1 font-medium">相對濕度 RH (%)</label>
+  <input id="rh" type="text" class="w-full p-2 mb-4 border rounded" placeholder="留空自動計算">
+
+  <!-- 按鈕列 -->
+  <div class="flex gap-2 mb-2">
+    <button id="btnCalc"  class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">計算</button>
+    <button id="btnReset" class="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400">重置</button>
+  </div>
+
+  <!-- 輸出 -->
+  <div id="out" class="mt-2 text-center text-lg font-semibold"></div>
+</div>
+
+<script>
+/* ---------- 基本常數與工具 ---------- */
+const P = 1013.25;                                    // hPa，假設一標大氣壓
+const toC = f => (f - 32) * 5 / 9;
+const toF = c => c * 9 / 5 + 32;
+const fmt = x => x.toFixed(2).replace(/\.00$/, '').replace(/(\.[1-9]*)0+$/, '$1');
+
+/* 飽和水氣壓 (Magnus, hPa) */
+function esat(tC){
+  return 6.112 * Math.exp((17.62 * tC) / (243.12 + tC));
+}
+
+/* 已知 T, Tw → RH (%) */
+function rhFromT_Tw(tC, twC){
+  const ew     = esat(twC);                           // Tw 處飽和蒸汽壓
+  const gamma  = 0.00066 * P * (1 + 0.00115 * twC);   // 心理常數
+  const e      = ew - gamma * (tC - twC);             // 實際蒸汽壓
+  return 100 * e / esat(tC);
+}
+
+/* 已知 T, RH → Tw (二分搜尋, 精度 0.01°C) */
+function twFromT_RH(tC, RH){
+  let low = -50, high = tC;
+  for(let i = 0; i < 60; i++){
+    const mid = (low + high) / 2;
+    const rh  = rhFromT_Tw(tC, mid);
+    (rh > RH) ? high = mid : low = mid;
+  }
+  return (low + high) / 2;
+}
+
+/* 已知 Tw, RH → T (二分搜尋, 精度 0.01°C) */
+function tFromTw_RH(twC, RH){
+  let low = twC, high = 120;
+  while(rhFromT_Tw(high, twC) > RH && high < 200) high += 10; // 找到 RH 低於目標的上限
+  for(let i = 0; i < 60; i++){
+    const mid = (low + high) / 2;
+    const rh  = rhFromT_Tw(mid, twC);
+    (rh > RH) ? low = mid : high = mid;
+  }
+  return (low + high) / 2;
+}
+
+/* ---------- DOM ---------- */
+const tDryEl = document.getElementById('tDry');
+const tWetEl = document.getElementById('tWet');
+const rhEl   = document.getElementById('rh');
+const unitEl = document.getElementById('unit');
+const outEl  = document.getElementById('out');
+
+document.getElementById('btnCalc').onclick  = compute;
+document.getElementById('btnReset').onclick = reset;
+
+/* ---------- UI 相關 ---------- */
+function reset(){
+  [tDryEl, tWetEl, rhEl].forEach(e => { e.value=''; e.classList.remove('text-red-600','font-bold'); });
+  outEl.textContent=''; outEl.className='';
+}
+function mark(el){ el.classList.add('text-red-600','font-bold'); }
+function err(msg){
+  outEl.className = 'mt-2 text-center text-lg font-semibold text-red-600';
+  outEl.textContent = msg;
+}
+
+/* ---------- 核心計算 ---------- */
+function compute(){
+  /* 清理狀態 */
+  [tDryEl, tWetEl, rhEl].forEach(e => e.classList.remove('text-red-600','font-bold'));
+  outEl.textContent=''; outEl.className='mt-2 text-center text-lg font-semibold text-green-700';
+
+  /* 讀取輸入 */
+  const rawT  = tDryEl.value.trim().replace(',', '.');
+  const rawTw = tWetEl.value.trim().replace(',', '.');
+  const rawRH = rhEl.value.trim();
+  const hasT  = rawT  !== '';
+  const hasTw = rawTw !== '';
+  const hasRH = rawRH !== '';
+  if((hasT + hasTw + hasRH) !== 2) return err('請輸入任意兩個數值，並留空要計算的那一個');
+
+  const toCelsius = unitEl.value === 'F' ? toC : x => +x;
+  let T  = hasT  ? parseFloat(rawT)  : null;
+  let Tw = hasTw ? parseFloat(rawTw) : null;
+  let RH = hasRH ? parseFloat(rawRH) : null;
+  if(hasT  && isNaN(T))  return err('乾球格式錯誤');
+  if(hasTw && isNaN(Tw)) return err('溼球格式錯誤');
+  if(hasRH && (isNaN(RH) || RH < 0 || RH > 100)) return err('濕度需 0–100%');
+  if(hasT)  T  = toCelsius(T);
+  if(hasTw) Tw = toCelsius(Tw);
+
+  /* 說明文字 */
+  let exp = '<div class="mt-2 text-sm text-left text-gray-700"><b>公式說明：</b><br>';
+
+  /* 計算三種情境 */
+  if(!hasRH){                                     // 已知 T & Tw，求 RH
+    if(Tw > T) return err('Tw 不可高於 T');
+    const ew    = esat(Tw);
+    const eSatT = esat(T);
+    const gamma = 0.00066 * P * (1 + 0.00115 * Tw);
+    RH = rhFromT_Tw(T, Tw);
+
+    rhEl.value = fmt(RH); mark(rhEl);
+
+    exp += `eₛ(T) = 6.112·e^(17.62·T / (243.12+T))<br>`
+        +  `eₛ(${fmt(Tw)}) = ${fmt(ew)} hPa；eₛ(${fmt(T)}) = ${fmt(eSatT)} hPa<br>`
+        +  `γ = 0.00066·${P}·(1+0.00115·${fmt(Tw)}) = ${fmt(gamma)}<br>`
+        +  `RH = 100·(eₛ(Tw) − γ·(T − Tw)) / eₛ(T) = ${fmt(RH)} %`;
+  }
+  else if(!hasTw){                                // 已知 T & RH，求 Tw
+    Tw = twFromT_RH(T, RH);
+    tWetEl.value = unitEl.value==='F' ? fmt(toF(Tw)) : fmt(Tw); mark(tWetEl);
+
+    exp += `由 RH = 100·(eₛ(Tw) − γ·(T − Tw)) / eₛ(T)<br>`
+        +  `採二分法迭代 Tw，使左式趨近 ${fmt(RH)} %，收斂至 ±0.01 °C<br>`
+        +  `Tw = ${fmt(Tw)} °C`;
+  }
+  else{                                           // 已知 Tw & RH，求 T
+    T = tFromTw_RH(Tw, RH);
+    tDryEl.value = unitEl.value==='F' ? fmt(toF(T)) : fmt(T); mark(tDryEl);
+
+    exp += `同上式反解 T (二分法)，收斂至 ±0.01 °C<br>`
+        +  `T = ${fmt(T)} °C`;
+  }
+  exp += '</div>';
+
+  /* 顯示結果 */
+  const dispT  = unitEl.value==='F' ? fmt(toF(T))  : fmt(T);
+  const dispTw = unitEl.value==='F' ? fmt(toF(Tw)) : fmt(Tw);
+  const dispRH = fmt(RH);
+  outEl.innerHTML = `T = ${dispT} °${unitEl.value} · Tw = ${dispTw} °${unitEl.value} · RH = ${dispRH} %<br><br>` + exp;
+}
+</script>
+</body>
+</html>

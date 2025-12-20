@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+<title>圖片標註工具(測試)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/paint.png">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
+<style>
+/* ========== 版面 / 共用 ========== */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+     background:#f5f5f5;padding:1rem;display:flex;flex-direction:column;align-items:center;}
+h1{font-size:1.2rem;margin-bottom:1rem;}
+input[type=file]{display:none;}
+
+/* ========== 按鈕 ========== */
+.btn-row{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1rem;}
+.btn{
+  all:unset;cursor:pointer;
+  width:58px;height:58px;border-radius:8px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:#e0e0e0;color:#555;box-shadow:0 1px 3px rgba(0,0,0,.14);
+  transition:background .2s,color .2s,transform .1s;
+}
+.btn:hover{transform:translateY(-1px);}
+.ico{display:block;font-size:1.25rem;line-height:1;}
+.label{font-size:.6rem;line-height:1;margin-top:.1rem;user-select:none;}
+.btn.on-success{background:#e8f5e9;color:#1b5e20;}
+.btn.on-warn   {background:#fff9c4;color:#7f6000;}
+.btn.on-danger {background:#ffebee;color:#b71c1c;}
+.btn.on-primary{background:#c5e1ff;color:#003c8f;}
+
+/* ========== 拖拉區 ========== */
+#drop-zone{width:100%;max-width:420px;padding:2rem;border:2px dashed #aaa;border-radius:8px;
+  background:#fff;color:#666;text-align:center;cursor:pointer;margin-bottom:1rem;transition:.2s;}
+#drop-zone.dragover{background:#e0f7fa;border-color:#00796b;color:#00796b;}
+
+/* ========== 工作區 ========== */
+#canvasWrap{position:relative;display:none;max-width:100%;}
+#imgBase{max-width:100%;max-height:70vh;border-radius:4px;display:block;}
+#markupLayer{position:absolute;left:0;top:0;touch-action:none;cursor:crosshair;}
+.cropper-container{max-width:100%!important;max-height:70vh!important;}
+</style>
+</head>
+<body>
+
+<h1>圖片標註工具(測試)</h1>
+
+<!-- 隱藏 input -->
+<input type="file" id="fileGallery" accept="image/*">
+<input type="file" id="fileCamera"  accept="image/*" capture="environment">
+
+<!-- 選圖 -->
+<div class="btn-row" id="selectBtns">
+  <button class="btn" id="btnGallery"><span class="ico">📁</span><span class="label">相簿</span></button>
+  <button class="btn" id="cameraBtn" ><span class="ico">📷</span><span class="label">拍照</span></button>
+</div>
+
+<!-- 拖拉 -->
+<div id="drop-zone">或拖拉圖片到這裡</div>
+
+<!-- 工作區 -->
+<div id="canvasWrap">
+  <img    id="imgBase" alt="">
+  <canvas id="markupLayer"></canvas>
+</div>
+
+<!-- 工具列 -->
+<div class="btn-row" id="toolBar" style="display:none">
+  <button class="btn" id="cropTool"   data-color="success"><span class="ico">✂️</span><span class="label">裁切</span></button>
+  <button class="btn" id="cancelCrop" data-color="danger" style="display:none"><span class="ico">❌</span><span class="label">取消</span></button>
+
+  <button class="btn" id="penRed"     data-color="danger"><span class="ico">🖍️</span><span class="label">紅筆</span></button>
+  <button class="btn" id="penYellow"  data-color="warn"  ><span class="ico">🖌️</span><span class="label">螢光</span></button>
+  <button class="btn" id="ellipseRed" data-color="danger"><span class="ico">⭕</span><span class="label">紅圈</span></button>
+  <button class="btn" id="highlight"  data-color="primary"><span class="ico">💡</span><span class="label">高亮</span></button>
+
+  <button class="btn" id="undoBtn" ><span class="ico">🔙</span><span class="label">上一步</span></button>
+  <button class="btn" id="shareBtn" data-color="primary"><span class="ico">📤</span><span class="label">分享</span></button>
+  <button class="btn" id="downloadBtn" data-color="primary"><span class="ico">⬇️</span><span class="label">下載</span></button>
+  <button class="btn" id="resetBtn"><span class="ico">🔄</span><span class="label">重設</span></button>
+</div>
+
+<script>
+/* ======== 快捷 ======== */
+const $=id=>document.getElementById(id), mobile=/Android|iPhone|iPad|iPod|Windows/i.test(navigator.userAgent);
+
+/* DOM */
+const fGal=$('fileGallery'),fCam=$('fileCamera');
+const selBtns=$('selectBtns'),drop=$('drop-zone'),wrap=$('canvasWrap'),img=$('imgBase'),cv=$('markupLayer'),bar=$('toolBar');
+const cropBtn=$('cropTool'),cancelBtn=$('cancelCrop');
+const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),hi=$('highlight');
+const undo=$('undoBtn'),dl=$('downloadBtn'),share=$('shareBtn'),reset=$('resetBtn');
+const btnGal=$('btnGallery'),camBtn=$('cameraBtn');
+const ctx=cv.getContext('2d');
+
+/* 狀態 */
+let mode='none',cropper=null,stream=null,drawing=false,sx=0,sy=0,preview=null;
+const UM=10, markStack=[], cropStack=[];
+
+/* ------- 工具亮起 ------- */
+const tools=[cropBtn,penRed,penYel,ellipse,hi];
+function active(btn){
+  tools.forEach(b=>b.className='btn');
+  if(btn)btn.classList.add(`on-${btn.dataset.color}`);
+}
+
+/* ------- 畫布大小 ------- */
+function fit(){cv.width=img.clientWidth;cv.height=img.clientHeight;}
+window.addEventListener('resize',()=>{if(wrap.style.display!=='none')fit();});
+
+/* ------- 進入工作區 ------- */
+function showArea(){
+  selBtns.style.display='none';drop.style.display='none';
+  wrap.style.display='block';bar.style.display='flex';
+  fit();ctx.clearRect(0,0,cv.width,cv.height);
+  markStack.length=0;cropStack.length=0;mode='none';active(null);
+  if(cropper){cropper.destroy();cropper=null;toggleCrop(false);}
+}
+
+/* ------- 載圖 ------- */
+function load(file){
+  const r=new FileReader();
+  r.onload=e=>{img.src=e.target.result;img.onload=showArea;};
+  r.readAsDataURL(file);
+}
+btnGal.onclick=()=>fGal.click();
+fGal.onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+camBtn.onclick=()=>mobile?fCam.click():openCam();
+fCam.onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+
+/* 拖拉 (桌機) */
+if(!mobile){
+  ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('dragover');}));
+  ['dragleave','dragend','drop'].forEach(t=>drop.addEventListener(t,()=>drop.classList.remove('dragover')));
+  drop.addEventListener('drop',e=>{e.preventDefault();e.dataTransfer.files[0]&&load(e.dataTransfer.files[0]);});
+}
+
+/* 攝影機 (桌機) */
+async function openCam(){
+  try{stream=await navigator.mediaDevices.getUserMedia({video:true});}
+  catch{return alert('無法開啟攝影機');}
+  const v=document.createElement('video');
+  v.autoplay=true;v.playsInline=true;v.srcObject=stream;
+  wrap.innerHTML='';wrap.appendChild(v);wrap.style.display='block';
+  selBtns.style.display='none';drop.style.display='none';bar.style.display='flex';
+  v.onloadedmetadata=()=>v.play();
+  v.onclick=()=>{
+    const c=document.createElement('canvas');
+    c.width=v.videoWidth;c.height=v.videoHeight;
+    c.getContext('2d').drawImage(v,0,0);
+    img.src=c.toDataURL();
+    img.onload=()=>{stream.getTracks().forEach(t=>t.stop());wrap.innerHTML='';wrap.appendChild(img);wrap.appendChild(cv);showArea();}
+  };
+}
+
+/* ------- Undo 堆疊 ------- */
+function pushMark(){if(markStack.length>=UM)markStack.shift();markStack.push(ctx.getImageData(0,0,cv.width,cv.height));}
+function pushCrop(){if(cropStack.length>=UM)cropStack.shift();cropStack.push(img.src);}
+
+/* ------- 裁切 ------- */
+function toggleCrop(on){
+  cancelBtn.style.display=on?'block':'none';
+  cv.style.pointerEvents=on?'none':'auto';
+  cropBtn.querySelector('.ico').textContent=on?'✔️':'✂️';
+  cropBtn.querySelector('.label').textContent=on?'套用':'裁切';
+  on?active(cropBtn):active(null);
+}
+cropBtn.onclick=()=>{
+  if(!img.src)return;
+  if(!cropper){
+    cropper=new Cropper(img,{viewMode:1,responsive:true});toggleCrop(true);
+  }else{
+    pushCrop();
+    const c=cropper.getCroppedCanvas();
+    img.src=c.toDataURL();
+    img.onload=()=>{cropper.destroy();cropper=null;toggleCrop(false);fit();}
+  }
+};
+cancelBtn.onclick=()=>{cropper&&(cropper.destroy(),cropper=null,toggleCrop(false));};
+
+/* ------- 模式 ------- */
+function setMode(m){
+  if(cropper)cancelBtn.click();
+  mode=m;
+  active(
+    m==='penRed'?penRed:
+    m==='penYellow'?penYel:
+    m==='ellipse'?ellipse:
+    m==='highlight'?hi:null
+  );
+}
+penRed   .onclick=()=>setMode('penRed');
+penYel   .onclick=()=>setMode('penYellow');
+ellipse  .onclick=()=>setMode('ellipse');
+hi       .onclick=()=>setMode('highlight');
+
+/* ------- 繪圖事件 ------- */
+cv.addEventListener('pointerdown',e=>{
+  if(mode==='none')return;
+  drawing=true;pushMark();
+  const r=cv.getBoundingClientRect();sx=e.clientX-r.left;sy=e.clientY-r.top;
+  preview=ctx.getImageData(0,0,cv.width,cv.height);
+
+  if(mode.startsWith('pen')){
+    ctx.lineCap='round';ctx.lineWidth=(mode==='penYellow'?18:3);
+    ctx.strokeStyle=(mode==='penYellow')?'rgba(255,255,0,0.5)':'red';
+    ctx.beginPath();ctx.moveTo(sx,sy);
+  }
+  if(mode==='highlight'){ctx.clearRect(0,0,cv.width,cv.height);} /* 先清掉舊高亮 */
+});
+cv.addEventListener('pointermove',e=>{
+  if(!drawing)return;
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,w=x-sx,h=y-sy;
+
+  if(mode.startsWith('pen')){ctx.lineTo(x,y);ctx.stroke();}
+  else{
+    ctx.putImageData(preview,0,0);
+    if(mode==='ellipse'){
+      ctx.strokeStyle='red';ctx.lineWidth=3;
+      ctx.beginPath();ctx.ellipse(sx+w/2,sy+h/2,Math.abs(w/2),Math.abs(h/2),0,0,Math.PI*2);ctx.stroke();
+    }else if(mode==='highlight'){
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      ctx.fillRect(0,0,cv.width,cv.height);
+      ctx.clearRect(sx,sy,w,h);
+    }
+  }
+});
+cv.addEventListener('pointerup',finishDraw);
+cv.addEventListener('pointercancel',finishDraw);
+function finishDraw(e){
+  if(!drawing)return;drawing=false;
+  ctx.putImageData(preview,0,0);
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,w=x-sx,h=y-sy;
+  if(mode==='ellipse'){
+    ctx.strokeStyle='red';ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(sx+w/2,sy+h/2,Math.abs(w/2),Math.abs(h/2),0,0,Math.PI*2);ctx.stroke();
+  }else if(mode==='highlight'){
+    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,cv.width,cv.height);ctx.clearRect(sx,sy,w,h);
+  }else if(mode.startsWith('pen')){ctx.lineTo(x,y);ctx.stroke();}
+}
+
+/* ------- 上一步 ------- */
+undo.onclick=()=>{
+  if(markStack.length){ctx.putImageData(markStack.pop(),0,0);}
+  else if(cropStack.length){img.src=cropStack.pop();img.onload=fit;}
+};
+
+/* 合併畫布 → Canvas */
+function merged(){
+  if(cropper)cropBtn.click();
+  const o=document.createElement('canvas');
+  o.width=img.naturalWidth;o.height=img.naturalHeight;
+  const ct=o.getContext('2d');
+  ct.drawImage(img,0,0);ct.drawImage(cv,0,0,o.width,o.height);
+  return o;
+}
+
+/* ------- 下載 ------- */
+dl.onclick=()=>{
+  if(!img.src)return;
+  const o=merged(),d=new Date();
+  const f=`crop_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}.png`;
+  const a=document.createElement('a');a.download=f;a.href=o.toDataURL();a.click();
+};
+
+/* ------- 分享 ------- */
+share.onclick=()=>{
+  if(!navigator.share||!img.src)return;
+  merged().toBlob(async b=>{
+    try{await navigator.share({files:[new File([b],'image.png',{type:b.type})],title:'分享圖片'});}catch{}
+  });
+};
+
+/* ------- 重設 (回到第一步) ------- */
+function resetAll(){
+  cropper&&cropper.destroy();
+  stream&&stream.getTracks().forEach(t=>t.stop());
+  img.src='';wrap.style.display='none';bar.style.display='none';
+  ctx.clearRect(0,0,cv.width,cv.height);
+  markStack.length=0;cropStack.length=0;mode='none';active(null);
+  selBtns.style.display='flex';if(!mobile)drop.style.display='block';
+}
+reset.onclick=resetAll;
+</script>
+</body>
+</html>
