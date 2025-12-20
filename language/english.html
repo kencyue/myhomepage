@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home English Practice</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f6f6f6; }
+    h2 { color: #333; }
+    .sentence { margin: 10px 0; padding: 8px; background: #fff; border-radius: 6px; }
+    .en { cursor: pointer; color: #00695c; font-weight: bold; }
+    .en:hover { background: #e0f7fa; }
+    .cn { color: #555; margin-left: 10px; display: block; }
+  </style>
+</head>
+<body>
+  <h2>🏡 Home English Practice (Click English to Speak)</h2>
+
+  <!-- Living Room -->
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">This living room is spacious and inviting.</span>
+    <span class="cn">這個客廳很寬敞又溫馨。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The sofa looks comfortable but is actually uncomfortable to sit on.</span>
+    <span class="cn">這張沙發看起來很舒服，但實際上坐起來不舒服。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">Our carpet is old but still very cosy.</span>
+    <span class="cn">我們的地毯雖然舊了，但仍然很舒適。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The curtains are stylish and fashionable.</span>
+    <span class="cn">窗簾很時髦也很有設計感。</span>
+  </div>
+
+  <!-- Kitchen -->
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The kitchen is spotless and hygienic.</span>
+    <span class="cn">廚房非常乾淨而且衛生。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">That fridge is malfunctioning again.</span>
+    <span class="cn">那台冰箱又出故障了。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">We bought an energy-efficient dishwasher.</span>
+    <span class="cn">我們買了一台省電的洗碗機。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">This cupboard is affordable but sturdy.</span>
+    <span class="cn">這個櫥櫃價格便宜但很結實。</span>
+  </div>
+
+  <!-- Bedroom -->
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The bedroom feels peaceful and comfortable.</span>
+    <span class="cn">臥室感覺安靜又舒適。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">Her doona is incredibly warm and soft.</span>
+    <span class="cn">她的羽絨被非常溫暖柔軟。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The wardrobe is traditional but practical.</span>
+    <span class="cn">衣櫃設計傳統，但很實用。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The mirror is large and fashionable.</span>
+    <span class="cn">鏡子很大也很時尚。</span>
+  </div>
+
+  <!-- Bathroom -->
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">This bathroom is small but functional.</span>
+    <span class="cn">這間浴室雖小但很實用。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The shower is powerful and refreshing.</span>
+    <span class="cn">淋浴水壓強勁又讓人清爽。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The old bathtub is unreliable and dodgy.</span>
+    <span class="cn">這個舊浴缸不可靠又有點破爛。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The tiles are clean and shiny.</span>
+    <span class="cn">磁磚乾淨又閃亮。</span>
+  </div>
+
+  <!-- General Home -->
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">Our house is modern and contemporary.</span>
+    <span class="cn">我們的房子很現代化。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The backyard is massive and perfect for kids.</span>
+    <span class="cn">後院非常大，很適合小孩玩耍。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">This fan is noisy and unreliable.</span>
+    <span class="cn">這台風扇又吵又不可靠。</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak(this.innerText)">The air con is broken and completely stuffed.</span>
+    <span class="cn">冷氣壞掉了，完全不能用了。</span>
+  </div>
+
+  <script>
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-AU"; // 澳洲英文
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>

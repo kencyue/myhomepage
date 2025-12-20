@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旅遊日文｜多檔 MD（逐字 ruby＋每列語速）</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f4f7fa;
+      --card: #ffffff;
+      --line: #d1d5db;
+      --ink: #1f2a44;
+      --muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC",
+        "Hiragino Kaku Gothic ProN", "Meiryo", Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      max-width: 980px;
+      margin: 0 auto 16px;
+      padding: 16px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: var(--ink);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    .chips {
+      max-width: 980px;
+      margin: 12px auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      background: #e5e7eb;
+      color: var(--ink);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition);
+    }
+
+    .chip:hover {
+      background: #d1d5db;
+    }
+
+    .chip.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #list {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .row {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .row:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      color: #fff;
+      background: var(--accent);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    .btns {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    button.btn {
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .jp {
+      font-size: 1.125rem;
+      line-height: 2;
+      margin-top: 8px;
+      word-break: keep-all;
+    }
+
+    ruby {
+      ruby-position: over;
+      ruby-align: center;
+    }
+
+    rt {
+      font-size: 0.75em;
+      color: var(--muted);
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+    }
+
+    .rom {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .en,
+    .zh {
+      font-size: 0.9375rem;
+      margin-top: 6px;
+      color: var(--ink);
+    }
+
+    .rate {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .rate label {
+      font-size: 0.875rem;
+      color: var(--ink);
+    }
+
+    .rate input[type="range"] {
+      flex: 1;
+      min-width: 160px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .rate .val {
+      min-width: 48px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+      font-size: 0.875rem;
+    }
+
+    .foot {
+      max-width: 980px;
+      margin: 16px auto 0;
+      color: var(--muted);
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+
+      header {
+        padding: 12px;
+      }
+
+      h1 {
+        font-size: 1.125rem;
+      }
+
+      .chip {
+        padding: 6px 12px;
+        font-size: 0.8125rem;
+      }
+
+      .row {
+        padding: 12px;
+        margin: 8px 0;
+      }
+
+      .jp {
+        font-size: 1rem;
+      }
+
+      .btns {
+        gap: 6px;
+      }
+
+      button.btn {
+        padding: 6px 10px;
+        font-size: 0.8125rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-plane"></i> 旅遊日文（中・日〈含假名/羅馬音〉・英）</h1>
+    <div class="hint">資料在 <code>md/</code>；清單 <code>md/catalog.md</code>（格式：<code>檔名|分類名</code>）。點整列播 🇯🇵；右側可播 🇯🇵/🇺🇸/🇹🇼。</div>
+  </header>
+
+  <div class="chips" id="chips"></div>
+  <main id="list"></main>
+  <div class="foot">若無聲音：請先在瀏覽器手動播放任意音訊、或關閉靜音模式（iOS/Safari 需解鎖自動播放）。</div>
+
+<script>
+let catalog = [];        // [{file, cat}]
+let currentCat = '全部';
+let allItems = [];       // 當前顯示的句子
+let speakTimer = null;   // 防抖
+let listHandlersBound = false;
+
+// ---------- 初始化 ----------
+(async function init(){
+  try{
+    const catTxt = await fetch('md/catalog.md').then(r=>r.text());
+    catalog = parseCatalog(catTxt);
+    renderChips(catalog);
+    await loadAllAndRender();
+  }catch(err){
+    console.error(err);
+    document.getElementById('list').innerHTML =
+      `<div style="color:#b91c1c">讀取 catalog.md 失敗：${escapeHtml(String(err))}</div>`;
+  }
+})();
+
+// ---------- catalog ----------
+function parseCatalog(text){
+  return text.split(/\r?\n/)
+    .map(l=>l.trim())
+    .filter(l=>l && !l.startsWith('#'))
+    .map(l=>{
+      const [f,c] = l.split('|');
+      return { file:(f||'').trim(), cat:(c||'').trim() || (f||'').replace(/\.\w+$/,'') };
+    })
+    .filter(x=>x.file);
+}
+
+function renderChips(cats){
+  const wrap = document.getElementById('chips');
+  wrap.innerHTML = [
+    `<div class="chip active" onclick="filterCat('全部', this)">全部</div>`,
+    ...cats.map(c=>`<div class="chip" onclick="filterCat('${escapeAttr(c.cat)}', this)">${escapeHtml(c.cat)}</div>`)
+  ].join('');
+}
+
+// ---------- 載入 / 切換 ----------
+async function loadAllAndRender(){
+  const results = [];
+  for (const c of catalog){
+    try{
+      const txt = await fetch('md/' + c.file).then(r=>r.text());
+      results.push(...parsePhrasesMd(txt, c.cat));
+    }catch(err){
+      console.warn('讀取失敗:', c.file, err);
+    }
+  }
+  allItems = results;
+  renderList(allItems);
+}
+
+async function filterCat(cat, el){
+  currentCat = cat;
+  document.querySelectorAll('.chip').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  if (cat === '全部'){ await loadAllAndRender(); return; }
+
+  const hit = catalog.find(x=>x.cat === cat);
+  if (!hit){ document.getElementById('list').innerHTML = `<div>找不到分類：${escapeHtml(cat)}</div>`; return; }
+
+  try{
+    const txt = await fetch('md/' + hit.file).then(r=>r.text());
+    allItems = parsePhrasesMd(txt, hit.cat);
+    renderList(allItems);
+  }catch(err){
+    document.getElementById('list').innerHTML =
+      `<div style="color:#b91c1c">讀取 ${escapeHtml(hit.file)} 失敗：${escapeHtml(String(err))}</div>`;
+  }
+}
+
+// ---------- 解析單一類別 md ----------
+function parsePhrasesMd(md, catName){
+  const lines = md.split(/\r?\n/);
+  const items = [];
+  let cur = null;
+
+  for (const raw of lines){
+    const line = raw.trim();
+    if (!line) continue;
+
+    if (line.startsWith('- JP:')){
+      if (cur) items.push(cur);
+      cur = { cat: catName || '一般', jp: line.replace(/^- JP:\s*/, ''), rom: '', en: '', zh: '' };
+      continue;
+    }
+    if (!cur) continue;
+
+    if (/^ROMAJI[:：]/i.test(line)) { cur.rom = line.replace(/^ROMAJI[:：]\s*/i, ''); continue; }
+    if (/^EN[:：]/i.test(line))     { cur.en  = line.replace(/^EN[:：]\s*/i,     ''); continue; }
+    if (/^ZH[:：]/i.test(line))     { cur.zh  = line.replace(/^ZH[:：]\s*/i,     ''); continue; }
+  }
+  if (cur) items.push(cur);
+  return items;
+}
+
+// ---------- 工具：跳脫 ----------
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+// ---------- 發音（純假名、每列語速 0.1–1.0） ----------
+function speak(text, lang, rate){
+  if (!text) return;
+  if (speakTimer) clearTimeout(speakTimer);
+  speechSynthesis.cancel();
+  speakTimer = setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang || 'ja-JP';
+    const r = Math.max(0.1, Math.min(1.0, typeof rate === 'number' ? rate : 1.0));
+    u.rate = r;
+    u.pitch = 1.0;
+    speechSynthesis.speak(u);
+  }, 150);
+}
+
+// ---------- 判斷標記方向並修正（應為 <漢字|假名>） ----------
+function fixOrder(kanji, kana) {
+  const reKanji = /[\u4E00-\u9FFF々〆〤]/;
+  const reKana  = /[\u3040-\u309F\u30A0-\u30FFー]/;
+  const leftLooksKanaOnly = !reKanji.test(kanji) && reKana.test(kanji);
+  const rightHasKanji     = reKanji.test(kana);
+  return (leftLooksKanaOnly && rightHasKanji) ? { kanji: kana, kana: kanji } : { kanji, kana };
+}
+
+// ---------- 假名分組（把 っ/ゃ/ゅ/ょ/ぁ/ぃ/ぅ/ぇ/ぉ/ー 等黏到前一個） ----------
+function splitKanaGroups(kana){
+  const small = /[ぁぃぅぇぉゃゅょァィゥェォャュョヮゎっッー]/;
+  const out = [];
+  for (const ch of kana){
+    if (out.length && small.test(ch)) out[out.length-1] += ch;
+    else out.push(ch);
+  }
+  return out;
+}
+
+// ---------- 逐字 ruby 產生器（長度不等做「合理分配」） ----------
+function interCharRuby(kanji, kana){
+  const kChars = Array.from(kanji);
+  const groups = splitKanaGroups(kana);
+
+  if (kChars.length === 0 || groups.length === 0) {
+    return `<ruby>${escapeHtml(kanji)}<rt>${escapeHtml(kana)}</rt></ruby>`;
+  }
+
+  if (groups.length < kChars.length){
+    return `<ruby>${escapeHtml(kanji)}<rt>${escapeHtml(kana)}</rt></ruby>`;
+  }
+
+  const base = Math.floor(groups.length / kChars.length);
+  const rest = groups.length % kChars.length;
+
+  let idx = 0, html = '<ruby>';
+  for (let i=0;i<kChars.length;i++){
+    const take = base + (i < rest ? 1 : 0);
+    const part = groups.slice(idx, idx+take).join('');
+    idx += take;
+    html += `<rb>${escapeHtml(kChars[i])}</rb><rt>${escapeHtml(part)}</rt>`;
+  }
+  html += '</ruby>';
+  return html;
+}
+
+// ---------- 顯示：把 <漢字|かな> 轉成逐字 ruby，並修正方向 ----------
+function toRubySmart(input){
+  if (!input) return '';
+  const parts = [];
+  const tagRe = /<([^<>|]+)\|([^<>|]+)>/g;
+  let last = 0, m;
+  while ((m = tagRe.exec(input))){
+    if (m.index > last) parts.push({type:'text', value: input.slice(last, m.index)});
+    let {kanji, kana} = fixOrder(m[1], m[2]);
+    parts.push({type:'tag', kanji, kana});
+    last = tagRe.lastIndex;
+  }
+  if (last < input.length) parts.push({type:'text', value: input.slice(last)});
+
+  return parts.map(p=>{
+    if (p.type === 'text') return escapeHtml(p.value);
+    return interCharRuby(p.kanji, p.kana);
+  }).join('');
+}
+
+// ---------- 朗讀：把 <漢字|假名> 轉純假名（也做方向修正） ----------
+function jpSpeakable(s){
+  if (!s) return '';
+  let t = s.replace(/&lt;([^&<>|]+)\|([^&<>|]+)&gt;/g, (_m, a, b) => fixOrder(a,b).kana);
+  t = t.replace(/<([^<>|]+)\|([^<>|]+)>/g, (_m, a, b) => fixOrder(a,b).kana);
+  return t.replace(/[<>]/g, '');
+}
+
+// ---------- 每列語速更新 ----------
+function updateRowRate(inputEl){
+  const row = inputEl.closest('.row');
+  if (!row) return;
+  const val = Math.max(0.1, Math.min(1.0, parseFloat(inputEl.value) || 1.0));
+  row.dataset.rate = String(val);
+  const v = row.querySelector('.rate .val');
+  if (v) v.textContent = val.toFixed(1) + 'x';
+}
+
+// ---------- 渲染 ----------
+function renderList(items){
+  const list = document.getElementById('list');
+  if (!items.length){
+    list.innerHTML = `<div class="row">此分類暫無句子。</div>`;
+    return;
+  }
+  list.innerHTML = items.map(it => rowHtml(it)).join('');
+
+  if (!listHandlersBound){
+    list.addEventListener('pointerdown', e=>{
+      if (e.target && e.target.matches('input[type="range"]')) e.stopPropagation();
+    }, {capture:true});
+    list.addEventListener('click', e=>{
+      if (e.target && e.target.matches('input[type="range"]')) e.stopPropagation();
+    }, {capture:true});
+    listHandlersBound = true;
+  }
+}
+
+function rowHtml(it){
+  const jpRaw = it.jp || '';
+  const say    = escapeAttr(jpSpeakable(jpRaw));
+  const jpHtml = toRubySmart(jpRaw);
+  const initRate = 1.0;
+
+  return `
+  <section class="row"
+           data-say="${say}"
+           data-rate="${initRate}"
+           onclick="speak(this.dataset.say, 'ja-JP', parseFloat(this.dataset.rate)||1)">
+    <div class="top">
+      <span class="tag">${escapeHtml(it.cat || '')}</span>
+      <div class="btns">
+        <button class="btn" onclick="event.stopPropagation(); speak(this.closest('.row').dataset.say, 'ja-JP', parseFloat(this.closest('.row').dataset.rate)||1)">
+          <i class="fas fa-volume-up"></i> 🇯🇵
+        </button>
+        <button class="btn" onclick="event.stopPropagation(); speak(\`${escapeHtml(it.en||'')}\`, 'en-US', parseFloat(this.closest('.row').dataset.rate)||1)">
+          <i class="fas fa-volume-up"></i> 🇺🇸
+        </button>
+        <button class="btn" onclick="event.stopPropagation(); speak(\`${escapeHtml(it.zh||'')}\`, 'zh-TW', parseFloat(this.closest('.row').dataset.rate)||1)">
+          <i class="fas fa-volume-up"></i> 🇹🇼
+        </button>
+      </div>
+    </div>
+    <div class="jp">${jpHtml}</div>
+    <div class="rom">${escapeHtml(it.rom || '')}</div>
+    <div class="en">${escapeHtml(it.en || '')}</div>
+    <div class="zh">${escapeHtml(it.zh || '')}</div>
+    <div class="rate" onclick="event.stopPropagation()">
+      <label><i class="fas fa-tachometer-alt"></i> 語速</label>
+      <input type="range" min="0.1" max="1" step="0.1" value="${initRate}"
+             oninput="event.stopPropagation(); updateRowRate(this)"
+             onclick="event.stopPropagation()"
+             onpointerdown="event.stopPropagation()"
+             ontouchstart="event.stopPropagation()" />
+      <span class="val">${initRate.toFixed(1)}x</span>
+    </div>
+  </section>`;
+}
+</script>
+</body>
+</html>
