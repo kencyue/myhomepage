@@ -5,7 +5,7 @@
       "group": "工作工具",
       "items": [
         {
-          "url": "https://kencyue.neocities.org/calendar",
+          "url": "calendar/",
           "text": "公司月曆",
           "img": "images/calendar.png",
           "order": 1
