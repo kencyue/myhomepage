@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ken的首頁</title>
+  <title>自訂首頁</title>
   <link rel="shortcut icon" href="images/tool-box.png" type="image/x-icon">
   <style>
     /* --- 基礎樣式 --- */
@@ -285,7 +285,7 @@
     <div class="traffic-lights">
       <div class="circle red"></div><div class="circle yellow"></div><div class="circle green"></div>
     </div>
-    <div id="pageTitle">Ken的首頁</div>
+    <div id="pageTitle">自訂首頁</div>
     <div id="time"></div>
   </div>
 
@@ -321,7 +321,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-let data = { title: "Ken的首頁", groups: [] };
+let data = { title: "自訂首頁", groups: [] };
 let currentMainTab = null;
 let currentEditorTab = 0;
 const columnHeaders = ["URL", "敘述", "Icon URL", "序號"];
@@ -428,7 +428,7 @@ async function initData() {
 }
 
 function renderMain() {
-    document.getElementById("pageTitle").textContent = data.title || "Ken的首頁";
+    document.getElementById("pageTitle").textContent = data.title || "自訂首頁";
 
     const tabsContainer = document.getElementById("mainTabs");
     tabsContainer.innerHTML = "";
@@ -690,7 +690,7 @@ document.getElementById("saveBtn").onclick = () => {
     });
     
     // 4. 更新資料
-    data.title = document.getElementById("titleInput").value.trim() || "Ken的首頁";
+    data.title = document.getElementById("titleInput").value.trim() || "自訂的首頁";
     data.groups = newGroups;
 
     const savedGroupNames = data.groups.map(g => g.group);
