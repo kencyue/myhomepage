@@ -179,25 +179,20 @@
           "order": 29
         },
         {
-          "url": "https://www.fotojet.com/tw/apps/?entry=collage",
-          "text": "相片拼貼",
-          "img": "images/fotojet.png",
-          "order": 30
-        },
-        {
           "url": "tools/sn",
           "text": "機種機號",
           "img": "images/sn.png",
-          "order": 31
+          "order": 30
         },
         {
           "url": "tools/keyparts",
           "text": "常用code",
           "img": "images/promo.png",
-          "order": 32
+          "order": 31
         }
       ]
     }
   ]
 
 }
+
