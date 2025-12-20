@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>檔案內容比較</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: monospace; margin: 10px; background: #f9f9f9; }
+    h2 { text-align: center; font-size: 1.4em; margin-bottom: 20px; }
+
+    .upload-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .upload-box {
+      border: 2px dashed #aaa;
+      border-radius: 8px;
+      padding: 25px 15px;
+      text-align: center;
+      color: #666;
+      cursor: pointer;
+      background: #fff;
+      width: 90%;
+      max-width: 500px;
+      box-sizing: border-box;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .upload-box:hover {
+      border-color: #333;
+      color: #000;
+    }
+
+    /* 外層容器 (控制左右/上下排) */
+    .compare-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .column {
+      background: white; 
+      border: 1px solid #ddd;
+      border-radius: 5px; 
+      flex: 1 1 45%;     /* 預設左右佔比 */
+      min-width: 280px;  /* 縮到手機時會自動換行 */
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .colHeader {
+      font-weight: bold; 
+      background: #eee;
+      padding: 5px; 
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .content {
+      max-height: 40vh; 
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .line { border-bottom: 1px solid #f0f0f0; padding: 1px 0; }
+    .diff { background: yellow; color: red; font-weight: bold; }
+    .notFound { color: gray; font-style: italic; }
+
+    /* 手機版：上下排列 */
+    @media (max-width: 768px) {
+      .compare-container {
+        flex-direction: column;
+      }
+      .column {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>檔案內容比較 + e2p 檢查</h2>
+
+  <div class="upload-container">
+    <div class="upload-box" id="uploadBox">
+      📂 請上傳一個檔案讀取，或二個檔案進行比較
+    </div>
+    <input type="file" id="files" multiple accept=".txt,.csv,.log,.md" style="display:none">
+  </div>
+
+  <div class="compare-container">
+    <div class="column">
+      <div id="header1" class="colHeader">檔案1</div>
+      <div id="col1" class="content"></div>
+    </div>
+
+    <div class="column" id="rightCol" style="display:none;">
+      <div id="header2" class="colHeader">檔案2</div>
+      <div id="col2" class="content"></div>
+    </div>
+  </div>
+
+  <script>
+    let e2pMap = {}; // key: 品番後4碼, value: 機種
+
+    async function loadE2P() {
+      try {
+        const resp = await fetch("e2p.csv");
+        const text = await resp.text();
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        lines.shift();
+        lines.forEach(line => {
+          const parts = line.split(",");
+          if (parts.length >= 2) {
+            const model = parts[0].trim();
+            const partno = parts[1].trim();
+            if (partno.includes("-")) {
+              const suffix = partno.split("-")[1];
+              e2pMap[suffix] = model;
+            }
+          }
+        });
+      } catch (err) {
+        console.error("載入 e2p.csv 失敗", err);
+      }
+    }
+
+    function readFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = e => reject(e);
+        reader.readAsText(file, 'UTF-8');
+      });
+    }
+
+    function highlightDiff(base, compare) {
+      let result = "";
+      const maxLen = Math.max(base.length, compare.length);
+      for (let i = 0; i < maxLen; i++) {
+        const b = base[i] || "";
+        const c = compare[i] || "";
+        if (b !== c) {
+          result += `<span class="diff">${c}</span>`;
+        } else {
+          result += c;
+        }
+      }
+      return result;
+    }
+
+    function setHeader(headerId, fileName, firstLine) {
+      let suffix = firstLine ? firstLine.substring(13, 17) : "";
+      let modelName = e2pMap[suffix] || "";
+      let headerText = fileName;
+      if (modelName) {
+        headerText += ` (<span class="diff">${modelName}</span>)`;
+      } else if (suffix) {
+        headerText += ` (<span class="notFound">未找到(${suffix})</span>)`;
+      }
+      document.getElementById(headerId).innerHTML = headerText;
+    }
+
+    document.getElementById("uploadBox").addEventListener("click", () => {
+      document.getElementById("files").click();
+    });
+
+    document.getElementById("files").addEventListener("change", async (e) => {
+      const files = e.target.files;
+      if (files.length === 0) return;
+
+      document.getElementById("rightCol").style.display = (files.length === 1) ? "none" : "flex";
+
+      const text1 = await readFile(files[0]);
+      const lines1 = text1.split(/\r?\n/);
+      setHeader("header1", files[0].name, lines1[0]);
+      document.getElementById("col1").innerHTML =
+        lines1.map(l => `<div class="line">${l}</div>`).join("");
+
+      if (files.length === 2) {
+        const text2 = await readFile(files[1]);
+        const lines2 = text2.split(/\r?\n/);
+        const maxLen = Math.max(lines1.length, lines2.length);
+
+        setHeader("header2", files[1].name, lines2[0]);
+
+        let col2Html = "";
+        for (let i = 0; i < maxLen; i++) {
+          const l1 = lines1[i] || "";
+          const l2 = lines2[i] || "";
+          col2Html += `<div class="line">${highlightDiff(l1, l2)}</div>`;
+        }
+        document.getElementById("col2").innerHTML = col2Html;
+      }
+    });
+
+    loadE2P();
+  </script>
+</body>
+</html>

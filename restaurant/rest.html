@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Restaurants</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #randomRestaurant {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        // 儲存餐廳的連結與名稱
+const restaurants = [
+{ name: "老德記手工拉麵店", link: "https://maps.app.goo.gl/mJcmmpoSei8FNJZE8" },
+{ name: "御鼎香脆皮烤鴨餐廳", link: "https://maps.app.goo.gl/SSoeY3MmFLxeATHu9" },
+{ name: "咖食堂", link: "https://maps.app.goo.gl/XsFqQGVCWSRE7wm49" },
+{ name: "嵐迪義大利麵館", link: "https://maps.app.goo.gl/rW7c8D6mKsq5Zu277" },
+{ name: "銀記手擀刀切牛肉麵", link: "https://maps.app.goo.gl/66FdrbWvKx4LyAU6A" },
+{ name: "卡那達咖啡店", link: "https://maps.app.goo.gl/jiTe2gcVtSYxE5ML7" },
+{ name: "摩斯漢堡 忠孝二店", link: "https://maps.app.goo.gl/d8jdbQR4yXfY5GX67" },
+{ name: "垃圾(喇舌)麵", link: "https://maps.app.goo.gl/hoAKiGigNh2B6PSb8" },
+{ name: "惠姐 臭臭鍋", link: "https://maps.app.goo.gl/49JkMMjebkiv2pcA7" },
+{ name: "迪司沙威瑪 D.C Shawarma", link: "https://maps.app.goo.gl/e9Zutcgm8d5KzEpJA" },
+{ name: "喬喜蛋炒飯專賣店", link: "https://maps.app.goo.gl/uYBizd2S9yCVY5Zv5" },
+{ name: "鮮芋仙 台北三創店", link: "https://maps.app.goo.gl/epJDj2GrnsnHCtGt6" },
+{ name: "Al Cicchetto Huashan Bistro", link: "https://maps.app.goo.gl/86KtFuaDKVD5P3xm8" },
+{ name: "莎瓦迪卡海鮮.泰", link: "https://maps.app.goo.gl/xDdwt3rTk8VcaB9g9" },
+{ name: "琉嵐香自助餐", link: "https://maps.app.goo.gl/ZXwUhBYdoLRggTZK9" },
+{ name: "Daylight光合箱子 華山店", link: "https://maps.app.goo.gl/ABKUn3GjTfiaxruX9" },
+{ name: "I'm pasta", link: "https://maps.app.goo.gl/wYoSaaLVD7JypgTT8" },
+{ name: "日式桃子燒", link: "https://maps.app.goo.gl/V2VVWPrA8sgGHUsW7" },
+{ name: "歐樂讚", link: "https://maps.app.goo.gl/vv5BqseudEYUzqvC9" },
+{ name: "B Line by A train", link: "https://maps.app.goo.gl/1ZziCFTxT2Vjd5im6" },
+{ name: "漢堡王 光華店", link: "https://maps.app.goo.gl/38eP9zSNFN2yiRQc9" },
+{ name: "御膳品水煎包", link: "https://maps.app.goo.gl/czFeWqZ381Un4gZi6" },
+{ name: "近藤和牛串", link: "https://maps.app.goo.gl/agGPjDwEFGKcWmpS7" },
+{ name: "DON DON DONKI 忠孝新生店", link: "https://maps.app.goo.gl/reLmHKmkXu8LcyzB7" },
+{ name: "麵屋雞金 光華店", link: "https://maps.app.goo.gl/BgHAUWccKUcVNzyr7" },
+{ name: "豪好粗", link: "https://maps.app.goo.gl/1A6qqZCYfxCvQgiX9" },
+{ name: "鴿鴿家食堂-沖繩飯糰", link: "https://maps.app.goo.gl/bBiEQuHWTpA6zqVh6" },
+{ name: "空腹鐵板吐司(新生店)", link: "https://maps.app.goo.gl/kZ9mBcmP9DV6fnr38" },
+{ name: "吐司好忙 Busy Toast", link: "https://maps.app.goo.gl/DNcWv6CSdpeATfSU6" },
+{ name: "山本軒YAMAMOTOKEN肉丼飯(外帶.便當.供應中)", link: "https://maps.app.goo.gl/RKyzTipmd8FbN6497" },
+{ name: "韓老六 椒香滷味", link: "https://maps.app.goo.gl/vroapGyCkKCSC3z1A" },
+{ name: "草莓亭炒飯麵", link: "https://maps.app.goo.gl/MhTzdCz45PKwcRLq5" },
+{ name: "菲菲酸奶拉絲水果撈台北光華", link: "https://maps.app.goo.gl/z3LtpT74KgkhirGn7" },
+{ name: "QQ坊/古早味地瓜球", link: "https://maps.app.goo.gl/iPgURuhXySjuFTdF7" },
+{ name: "Chef 78", link: "https://maps.app.goo.gl/DTis4YU8ZVsNeNsr8" },
+{ name: "滿面全小吃", link: "https://maps.app.goo.gl/TifFBwrvz3dHmNhL6" },
+{ name: "潑墨輕食所", link: "https://maps.app.goo.gl/hqBEMTsURDkHqqAP7" },
+{ name: "紅燒牛肉麵", link: "https://maps.app.goo.gl/V8QaVqhx2qKAMKQa7" },
+{ name: "光華—胡家刈包（豆花）", link: "https://maps.app.goo.gl/uS7BKC42fTeWQHZW8" },
+{ name: "胡家掛包油飯", link: "https://maps.app.goo.gl/rFNajy234UFUiPPh6" },
+{ name: "關東煮", link: "https://maps.app.goo.gl/iGfCWE1u8Wxmy7w37" },
+{ name: "Beef noodle soup restaurant", link: "https://maps.app.goo.gl/3f13RTVWxRcFDANs8" },
+{ name: "阿嬤的炸蛋蔥油餅", link: "https://maps.app.goo.gl/GqLKAFcnTypzYems7" },
+{ name: "宣坊", link: "https://maps.app.goo.gl/81tYGafkRF1ugw1j9" },
+{ name: "Xiang Ju Restaurant", link: "https://maps.app.goo.gl/XUBcricRVHKmdCQV9" },
+{ name: "拉亞漢堡 臺北科大(綠光庭園第二美食街)", link: "https://maps.app.goo.gl/STJLhG35aoGyyaRK6" },
+{ name: "摩斯漢堡 北科庭園店", link: "https://maps.app.goo.gl/NoabPbFmt9DBZDTH9" },
+{ name: "強尼兄弟健康廚房 北科大店", link: "https://maps.app.goo.gl/k6hgwHmkQFjDkkxi8" },
+{ name: "日光料理", link: "https://maps.app.goo.gl/9RZo8LqPgBX4nVuo9" },
+{ name: "天津蔥抓餅北科大店", link: "https://maps.app.goo.gl/ypR3EMMB5resVSDP7" },
+{ name: "今日魚市 光華三創店", link: "https://maps.app.goo.gl/g4ZELfghG5idvsTc9" },
+{ name: "好吃豬血糕", link: "https://maps.app.goo.gl/2WiSMhCxvZjARgwt6" },
+{ name: "辛狠守辣四川麻辣燙", link: "https://maps.app.goo.gl/atd1iiNfDcQBXrGP6" },
+{ name: "玖伍牛肉麵", link: "https://maps.app.goo.gl/ziE1Gi7qb6x7jPdT7" },
+{ name: "湯神—頂級和牛牛肉麵", link: "https://maps.app.goo.gl/3p5hkvgFbCVNtPXm8" },
+{ name: "臺北科技大學-綠光庭園", link: "https://maps.app.goo.gl/Dk42Vmz2Y9Ms7EfQ8" },
+{ name: "楽坡BonBox - 台北忠孝新生店", link: "https://maps.app.goo.gl/jaaRiPabtiTbwEiQ8" },
+{ name: "光華正宗老舖炸蛋蔥油餅", link: "https://maps.app.goo.gl/MA9FnBMzMTorgCRK6" },
+{ name: "小籠包店", link: "https://maps.app.goo.gl/J1d1UmFDfvVqFWY7A" },
+{ name: "頑派 ONE PART", link: "https://maps.app.goo.gl/mH5vJGjTkV8QGpok7" },
+{ name: "佐藤精肉店", link: "https://maps.app.goo.gl/aa2jwje8rTZYaVKn7" },
+{ name: "喊燒鐵板燒 三創生活園區", link: "https://maps.app.goo.gl/JhUM4Je8TZa5uvZN7" },
+{ name: "高麗園銅盤烤肉 三創市場", link: "https://maps.app.goo.gl/m5aWsmn3oLmuvM1q6" },
+{ name: "莫凡彼台北三創店", link: "https://maps.app.goo.gl/wfNj1BcH32cZgdCY7" },
+{ name: "CoCo壹番屋 三創店", link: "https://maps.app.goo.gl/FhcgN4btedkgjEur9" },
+{ name: "勝博殿 三創Express店", link: "https://maps.app.goo.gl/FtMsDrSqUBpLBk7E6" },
+{ name: "百八魚場 三創店", link: "https://maps.app.goo.gl/ee6Td7MgzHYLnWzG8" },
+{ name: "滷春秋(滷味煮/楊桃汁)-八德三創店", link: "https://maps.app.goo.gl/1R8bivJJmNC9Cvr78" },
+{ name: "豆腐村 Tofu Village - 三創生活園區店", link: "https://maps.app.goo.gl/L9jxWZfiCEcMxPSs7" },
+{ name: "點八小食 台北三創店", link: "https://maps.app.goo.gl/7cxqHhecbaNwro9T7" },
+{ name: "麵屋 千雲 光華店", link: "https://maps.app.goo.gl/vyu2N5iT2qpYvcgp8" },
+{ name: "丸舢拉麵 光華店", link: "https://maps.app.goo.gl/P333CVyPvvvTctns7" },
+{ name: "背鍋的人 個人即食鍋", link: "https://maps.app.goo.gl/RC9RF331iW6DbG938" },
+{ name: "王創那煎銅鑼燒", link: "https://maps.app.goo.gl/QErxzYMUkW1yXy6n8" },
+{ name: "光華紅豆餅", link: "https://maps.app.goo.gl/Zvzhh8n4aDeGRRmR7" },
+{ name: "就是愛 光華煎餅果子.特色飯糰", link: "https://maps.app.goo.gl/Nto66r4cGUKFBWm2A" },
+{ name: "老貴州酸辣粉（光華店）", link: "https://maps.app.goo.gl/QErxzYMUkW1yXy6n8" },
+{ name: "享之饌光華店 台南虱目魚", link: "https://maps.app.goo.gl/naEFo72ttbZKFqVd6" },
+{ name: "雞肉本家", link: "https://maps.app.goo.gl/G9ka8HRLbC8UJ6ki7" },
+{ name: "肯德基KFC-台北八德餐廳", link: "https://maps.app.goo.gl/9X1K8WgAxWF7bXH76" },
+{ name: "7-ELEVEN 德金門市", link: "https://maps.app.goo.gl/EmcDzPL4axPJ8HDVA" },
+{ name: "全家便利商店 新德店", link: "https://maps.app.goo.gl/oMLH6hmwgxBkRHN39" },
+];
+
+//按鈕點擊時隨機顯示餐廳連結
+
+        function showRandomRestaurant() {
+
+            const randomIndex = Math.floor(Math.random() * restaurants.length);
+            const restaurant = restaurants[randomIndex];
+            const linkHTML = `<a href="${restaurant.link}" target="_blank">${restaurant.name}</a>`;
+            document.getElementById('randomRestaurant').innerHTML = linkHTML;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>希望廣場附近300M內的餐廳</h1>
+        <button onclick="showRandomRestaurant()">今天午餐要吃什麼？</button>
+        <div id="randomRestaurant"></div>
+    </div>
+</body>
+</html>
+
+
+
+        

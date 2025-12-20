@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firestore 歷史紀錄匯入工具</title>
+  <!-- 引入 Vue 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  
+  <style>
+    /* 全局樣式和變量 */
+    :root {
+      font-size: clamp(14px, 3.5vw, 20px);
+      --primary: #4a90e2;
+      --success: #50e3c2;
+      --warning: #f8e71c;
+      --danger: #d0021b;
+      --background: #f4f6f9;
+      --text: #333;
+      --border: #e0e0e0;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 0.75rem;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    #app {
+      max-width: 500px;
+      margin: 4rem auto; /* 居中並增加上下邊距 */
+      padding: 1.5rem;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .subtitle {
+        text-align: center;
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* 匯入區塊樣式 */
+    .import-container {
+        border: 1px dashed var(--primary);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        background: #fcfdff;
+    }
+    .import-container input[type="file"] {
+        padding: 0.75rem 0;
+        width: 100%;
+        display: block;
+        font-size: 1rem;
+    }
+    .import-btn {
+        padding: 0.8rem;
+        background: var(--warning);
+        color: var(--text);
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.1s;
+        margin-top: 1rem;
+        width: 100%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .import-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* 狀態訊息 */
+    .status-message {
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+    
+    .status-message.loading-message {
+        background-color: #e0f7fa;
+        color: #007bff;
+    }
+
+    .status-message.success {
+        background-color: #e6ffed;
+        color: var(--success);
+    }
+    .status-message.error {
+        background-color: #ffebee;
+        color: var(--danger);
+    }
+
+    /* RWD 調整 */
+    @media (max-width: 550px) {
+      #app {
+        margin: 1rem auto;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>Firestore 歷史紀錄匯入工具</h1>
+  <p class="subtitle">將 Supabase 匯出的 CSV 數據批量寫入到 Firestore 集合中。</p>
+
+  <div class="import-container">
+      <h2 style="font-size:1.2rem;margin-top:0;">CSV 檔案上傳</h2>
+      <p style="font-size:0.85rem;color:#666;margin:0 0 1rem;">
+          **目標集合:** `classroom_safety_checks`<br>
+          **預期欄位:** `employeeId`, `acSwitch`, `lighting`, `doorLock`, `time` (或 Supabase 匯出的對應欄位名如 `employee_id`, `created_at` 等)
+      </p>
+      <input type="file" ref="csvFile" accept=".csv" @change="handleFileUpload" />
+      <button class="import-btn" @click="importCsv" :disabled="!selectedFile || importLoading">
+          {{ importLoading ? '🚀 正在批量匯入中...' : '開始匯入資料' }}
+      </button>
+      
+      <p v-if="importStatus.message" :class="['status-message', importStatus.type]">
+          {{ importStatus.message }}
+      </p>
+  </div>
+</div>
+
+<script type="module">
+  // 導入 Firebase 必要的模組
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getFirestore, collection, Timestamp, writeBatch, doc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  // 您的 Firebase 配置 (由用戶提供)
+  const firebaseConfig = {
+    apiKey: "AIzaSyB3zbbQPryMDD3WWEwSDy33XDz2ohmUd-k",
+    authDomain: "fir-51fa5.firebaseapp.com",
+    projectId: "fir-51fa5",
+    storageBucket: "fir-51fa5.firebasestorage.app",
+    messagingSenderId: "87934569004",
+    appId: "1:87934569004:web:275f884f89737b786c1f89",
+    measurementId: "G-8G5P02LHPN"
+  };
+
+  // 初始化 Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const COLLECTION_NAME = 'classroom_safety_checks'; // 匯入的目標集合名稱
+  const BATCH_SIZE = 499; // Firestore 批量寫入的限制
+
+  // Vue 應用程式邏輯
+  Vue.createApp({
+    data() {
+      return {
+        selectedFile: null,
+        importLoading: false,
+        // 狀態訊息：message (內容), type (CSS類別: success, error, loading-message)
+        importStatus: { message: '請選擇 CSV 檔案並開始匯入。', type: 'loading-message' },
+      };
+    },
+    methods: {
+      handleFileUpload(event) {
+          this.selectedFile = event.target.files[0];
+          this.importStatus = { message: `已選擇檔案: ${this.selectedFile.name}`, type: 'loading-message' };
+      },
+
+      // 讀取檔案內容的 Promise 包裝
+      readFile(file) {
+          return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = e => resolve(e.target.result);
+              reader.onerror = e => reject(e);
+              reader.readAsText(file);
+          });
+      },
+
+      // 簡單的 CSV 解析器
+      parseCsv(csvString) {
+          const lines = csvString.trim().split('\n');
+          if (lines.length < 2) throw new Error('CSV 檔案內容不足。');
+
+          const header = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
+          const data = [];
+          
+          for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(',');
+              if (values.length !== header.length) {
+                console.warn(`跳過不一致的行 ${i}: ${lines[i]}`);
+                continue;
+              }
+              let obj = {};
+              for (let j = 0; j < header.length; j++) {
+                  obj[header[j]] = values[j].trim().replace(/"/g, '');
+              }
+              data.push(obj);
+          }
+          return data;
+      },
+
+      async importCsv() {
+          if (!this.selectedFile) return; // 再次檢查
+          
+          this.importLoading = true;
+          this.importStatus = { message: '讀取並匯入中，請勿關閉網頁...', type: 'loading-message' };
+
+          try {
+              const fileContent = await this.readFile(this.selectedFile);
+              const records = this.parseCsv(fileContent);
+
+              if (records.length === 0) {
+                  throw new Error('CSV 檔案中沒有有效數據。');
+              }
+              
+              const collectionRef = collection(db, COLLECTION_NAME);
+              let successfulWrites = 0;
+              
+              // 批量寫入邏輯
+              for (let i = 0; i < records.length; i += BATCH_SIZE) {
+                  const batch = writeBatch(db);
+                  const chunk = records.slice(i, i + BATCH_SIZE);
+                  
+                  chunk.forEach(record => {
+                      // 核心資料轉換邏輯
+                      const firestoreRecord = {
+                          // 容許多種欄位名稱：employeeid 或 employee_id
+                          employeeId: String(record.employeeid || record.employee_id || ''),
+                          acSwitch: (record.acswitch || record.ac_switch) === 'true' || (record.acswitch || record.ac_switch) === 'Y' ? 'Y' : 'N',
+                          lighting: (record.lighting || record.lighting) === 'true' || (record.lighting || record.lighting) === 'Y' ? 'Y' : 'N',
+                          doorLock: (record.doorlock || record.door_lock) === 'true' || (record.doorlock || record.door_lock) === 'Y' ? 'Y' : 'N',
+                          // 轉換時間字串為 Firestore Timestamp
+                          time: Timestamp.fromDate(new Date(record.time || record.created_at || new Date().toISOString())),
+                      };
+                      
+                      const docRef = doc(collectionRef); 
+                      batch.set(docRef, firestoreRecord);
+                      successfulWrites++;
+                  });
+                  
+                  await batch.commit();
+                  this.importStatus.message = `正在匯入... 已完成 ${successfulWrites} 筆紀錄。`;
+              }
+              
+              this.importStatus = { 
+                  message: `✅ 恭喜！成功匯入 ${successfulWrites} 筆紀錄到 Firestore！`, 
+                  type: 'success' 
+              };
+              
+          } catch (error) {
+              console.error('匯入失敗:', error);
+              let msg = error.message;
+              if (msg.includes('Firebase: Error')) {
+                  msg = '請檢查您的 Firestore 安全規則是否已設置為公開寫入 (allow write: if true)。';
+              }
+              this.importStatus = { 
+                  message: `🚨 匯入失敗: ${msg}`, 
+                  type: 'error' 
+              };
+          } finally {
+              this.importLoading = false;
+              // 重設檔案選擇器
+              if(this.$refs.csvFile) this.$refs.csvFile.value = null;
+              this.selectedFile = null;
+          }
+      },
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>

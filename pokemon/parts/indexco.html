@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PANASONIC 冷氣材料查詢</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 1rem;
+      margin: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    input, button {
+      font-size: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #status {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color: green;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6rem;
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    th {
+      background-color: #e9ecef;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>PANASONIC 冷氣材料查詢</h2>
+
+  <div class="search-area">
+    <input type="text" id="searchInput" placeholder="輸入關鍵字，例如：CS-UX 40456 主控板">
+    <button onclick="search()">搜尋</button>
+  </div>
+
+  <div id="status">資料載入中...</div>
+
+  <table id="resultTable"></table>
+
+  <script src="papaparse.min.js"></script>
+  <script>
+    let dataRows = [];
+    let loaded = false;
+
+    fetch('data.csv')
+      .then(response => response.text())
+      .then(csvText => {
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            dataRows = results.data;
+            loaded = true;
+            document.getElementById("status").textContent = `資料載入完成，共 ${dataRows.length} 筆`;
+          }
+        });
+      });
+
+    function search() {
+      if (!loaded) {
+        document.getElementById("status").textContent = "資料尚未載入，請稍候再試。";
+        return;
+      }
+
+      const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+      const table = document.getElementById('resultTable');
+      table.innerHTML = '';
+
+      if (!keyword) {
+        document.getElementById("status").textContent = `資料載入完成，共 ${dataRows.length} 筆`;
+        return;
+      }
+
+      const keywords = keyword.split(/\s+/);
+
+      const result = dataRows.filter(row => {
+        const rowText = Object.values(row).join(' ').toLowerCase();
+        return keywords.every(kw => rowText.includes(kw));
+      });
+
+      const statusEl = document.getElementById("status");
+      if (result.length === 0) {
+        statusEl.textContent = "找到 0 筆";
+        table.innerHTML = '<tr><td>查無資料</td></tr>';
+        return;
+      } else {
+        statusEl.textContent = `找到 ${result.length} 筆`;
+      }
+
+      const allHeaders = Object.keys(result[0]);
+      const headers = allHeaders.slice(0, -1); // 移除最後一欄
+
+      const thead = document.createElement('tr');
+      headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        thead.appendChild(th);
+      });
+      table.appendChild(thead);
+
+      result.forEach(row => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => {
+          const td = document.createElement('td');
+          td.textContent = row[h];
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>

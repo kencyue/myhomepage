@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寶可夢圖鑑</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #5c6bc0;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    select, input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    select {
+      margin-right: 10px;
+    }
+
+    input {
+      width: 60%;
+    }
+
+    .result-count {
+      text-align: center;
+      font-size: 14px;
+      color: #757575;
+      margin: 10px 0;
+    }
+
+    .pokemon-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    /* 響應式設計 - 小螢幕時每行顯示 3 個 */
+    @media (max-width: 600px) {
+      .pokemon-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .pokemon-card {
+      border-radius: 12px;
+      padding: 10px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .pokemon-card img {
+      width: 100%;
+      height: auto;
+      max-width: 120px;
+      margin-bottom: 10px;
+    }
+
+    .pokemon-card h3 {
+      font-size: 18px;
+      color: #3f51b5;
+    }
+
+    .pokemon-card p {
+      font-size: 14px;
+      color: #757575;
+    }
+
+    .pokemon-card .id {
+      font-size: 14px;
+      color: blue;
+      margin-bottom: 10px;
+    }
+
+    .pokemon-card a {
+      text-decoration: none;
+      display: block;
+    }
+
+    .pokemon-card a:hover img {
+      opacity: 0.8;
+    }
+
+    .pagination {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .pagination button {
+      margin: 0 5px;
+      padding: 8px 15px;
+      font-size: 16px;
+      background-color: #5c6bc0;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      background-color: #e0e0e0;
+      cursor: not-allowed;
+    }
+    
+    button,.id,img,p,h3,select {margin:2px !important}
+  </style>
+</head>
+<body>
+  <h1>寶可夢圖鑑</h1>
+  <div class="search-container">
+    <select id="search-type">
+      <option value="name">名稱</option>
+      <option value="type">屬性</option>
+    </select>
+    <input type="text" id="search" placeholder="依名稱搜尋">
+  </div>
+  <div class="result-count" id="result-count">找到 0 筆資料</div>
+  <div class="pokemon-container" id="pokemon-container"></div>
+  <div class="pagination" id="pagination"></div>
+
+  <script>
+    const ITEMS_PER_PAGE = 50;
+    let pokemonData = [];
+    let filteredData = [];
+    let currentPage = 1;
+
+    // 讀取寶可夢資料
+    async function loadPokemonData() {
+      try {
+        const response = await fetch('pokemon_data.json?ver=1');
+        pokemonData = await response.json();
+        filteredData = pokemonData;
+        updateResultCount();
+        renderPage(1);
+      } catch (error) {
+        console.error('無法載入資料:', error);
+      }
+    }
+
+    // 更新搜尋結果數量
+    function updateResultCount() {
+      const resultCount = document.getElementById('result-count');
+      resultCount.textContent = `找到 ${filteredData.length} 筆資料`;
+    }
+
+    // 渲染寶可夢卡片
+    function renderPage(page) {
+      currentPage = page;
+      const container = document.getElementById('pokemon-container');
+      container.innerHTML = '';
+      
+      const start = (page - 1) * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      const pageData = filteredData.slice(start, end);
+
+      pageData.forEach(pokemon => {
+        const card = document.createElement('div');
+        card.className = 'pokemon-card';
+
+        // 確保 ID 格式為四位數，例如 0002
+        const formattedId = String(pokemon.id).padStart(4, '0');
+
+        card.innerHTML = `
+          <div class="id">NO. ${pokemon.id}</div>
+          <a href="https://tw.portal-pokemon.com/play/pokedex/${formattedId}" target="_blank">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png" alt="${pokemon.name}">
+          </a>
+          <h3>${pokemon.name}</h3>
+          <p>屬性: ${pokemon.types.join(', ')}</p>
+        `;
+
+        container.appendChild(card);
+      });
+
+      renderPagination();
+    }
+
+    // 渲染分頁按鈕
+    function renderPagination() {
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+
+      const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const button = document.createElement('button');
+        button.textContent = i;
+        button.disabled = i === currentPage;
+        button.addEventListener('click', () => renderPage(i));
+        pagination.appendChild(button);
+      }
+    }
+
+    // 更新搜尋框的提示文字
+    function updatePlaceholder() {
+      const searchType = document.getElementById('search-type').value;
+      const searchInput = document.getElementById('search');
+      searchInput.placeholder = searchType === 'name' ? '依名稱搜尋' : '依屬性搜尋';
+    }
+
+    // 即時搜尋功能
+    document.getElementById('search').addEventListener('input', (e) => {
+      const searchTerm = e.target.value.trim().toLowerCase();
+      const searchType = document.getElementById('search-type').value;
+
+      filteredData = pokemonData.filter(pokemon => {
+        if (searchType === 'name') {
+          return pokemon.name.toLowerCase().includes(searchTerm);
+        } else if (searchType === 'type') {
+          return pokemon.types.some(type => type.toLowerCase().includes(searchTerm));
+        }
+        return false;
+      });
+
+      updateResultCount();
+      renderPage(1);
+    });
+
+    // 當搜尋類型改變時更新提示文字並重新觸發搜尋
+    document.getElementById('search-type').addEventListener('change', () => {
+      updatePlaceholder();
+      const searchInput = document.getElementById('search');
+      if (searchInput.value.trim()) {
+        searchInput.dispatchEvent(new Event('input'));
+      } else {
+        filteredData = pokemonData;
+        updateResultCount();
+        renderPage(1);
+      }
+    });
+
+    // 初始化
+    loadPokemonData();
+  </script>
+</body>
+</html>

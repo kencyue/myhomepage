@@ -1,0 +1,7 @@
+{
+  "name": "隨機旅程 (Random Trip)",
+  "description": "不知道下個假期去哪裡？讓 AI 隨機為您推薦世界各地的絕美景點，或是探索您身邊的隱藏秘境。",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

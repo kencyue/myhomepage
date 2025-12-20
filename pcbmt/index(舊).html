@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CSV 材料代號分類工具 (多檔合併)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root { --border: 1px solid #ccc; }
+  body { font-family: Arial,Helvetica,sans-serif; padding: 20px; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+  body.dragover { background: #e0f7fa; }
+  #hint { text-align: center; margin-bottom: 12px; color: #666; }
+  #stats { background: #ffeb3b; padding: 8px 12px; font-weight: bold; margin-bottom: 12px; display: none; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .tab-btn { padding: 6px 10px; border: var(--border); border-bottom: none; background: #f0f0f0; cursor: pointer; }
+  .tab-btn.active { background: #fff; font-weight: bold; }
+  .tab-content { border: var(--border); max-height: 60vh; overflow: auto; display: none; }
+  .tab-content.active { display: block; }
+  table { border-collapse: collapse; width: 100%; }
+  th,td { border: 1px solid #ddd; padding: 4px 8px; font-size: 0.85rem; text-align: left; }
+  thead { position: sticky; top: 0; background: #fff; }
+  #searchBar { margin-bottom: 10px; display: none; }
+  #searchBar input { padding: 6px 10px; width: 100%; max-width: 300px; }
+</style>
+</head>
+<body>
+<h2>CSV 材料代號分類工具（可合併多個檔案）</h2>
+<p id="hint">拖放一個或多個 CSV 至頁面，或使用 <kbd>Ctrl+O</kbd> 選檔</p>
+<input type="file" id="fileInput" accept=".csv" multiple style="display:none" />
+<div id="stats"></div>
+<div id="searchBar"><input type="text" id="searchInput" placeholder="搜尋 / 篩選 (即時)" /></div>
+<div id="preview"></div>
+
+<script>
+(()=>{
+  const fileInput=document.getElementById('fileInput');
+  const statsDiv=document.getElementById('stats');
+  const previewDiv=document.getElementById('preview');
+  const hint=document.getElementById('hint');
+  const searchBar=document.getElementById('searchBar');
+  const searchInput=document.getElementById('searchInput');
+  let currentTable=null;
+  let currentHeaders=null;
+  let currentGroups=null;
+
+  ['dragover','drop'].forEach(evt=>document.addEventListener(evt,e=>e.preventDefault()));
+  document.addEventListener('dragenter',()=>document.body.classList.add('dragover'));
+  document.addEventListener('dragleave',e=>{ if(e.target===document) document.body.classList.remove('dragover'); });
+  document.addEventListener('drop',e=>{ document.body.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+  document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='o'){e.preventDefault();fileInput.click();} });
+  fileInput.addEventListener('change',e=>handleFiles(e.target.files));
+
+  function handleFiles(fileList){
+    if(!fileList.length) return;
+    const files=Array.from(fileList);
+    let headers=null; let combined=[]; let processed=0;
+
+    files.forEach(file=>{
+      Papa.parse(file,{encoding:'utf-8',skipEmptyLines:true,complete:res=>{const rows=res.data;if(!rows.length){processed++;check();return;} if(!headers){headers=rows[0];} else if(headers.length!==rows[0].length){alert(`檔案 ${file.name} 欄位數不符，已跳過`);processed++;check();return;} combined.push(...rows.slice(1));processed++;check();}});
+    });
+    function check(){ if(processed===files.length) processRows([headers,...combined]); }
+  }
+
+  function processRows(allRows){
+    hint.style.display='none';
+    const headers=allRows[0];
+    currentHeaders=headers;
+    const mIdx=headers.findIndex(h=>h.includes('材料代號'));
+    const idIdx=headers.findIndex(h=>h.includes('管理號碼'));
+    if(mIdx===-1||idIdx===-1){alert('找不到 材料代號 或 管理號碼 欄');return;}
+
+    const raw=[]; const flag=new Map();
+    for(let i=1;i<allRows.length;i++){
+      const cells=allRows[i]; if(!cells.length||cells.every(c=>c==='')) continue;
+      const id=cells[idIdx]; const mat=cells[mIdx]; raw.push({id,cells,mat});
+      const isPCB=/4045[05]-/.test(mat); const isMotor=/40301-/.test(mat);
+      if(!flag.has(id)) flag.set(id,{pcb:false,motor:false}); const f=flag.get(id);
+      if(isPCB) f.pcb=true; if(isMotor) f.motor=true;
+    }
+
+    const groups={總表:raw.map(r=>r.cells),PCB:[],馬達:[],混件:[]};
+    currentGroups=groups;
+    const uniq={PCB:new Set(),馬達:new Set(),混件:new Set()};
+    flag.forEach((v,id)=>{const rows=raw.filter(r=>r.id===id).map(r=>r.cells); if(v.pcb&&v.motor){uniq.混件.add(id);groups.混件.push(...rows);} else if(v.pcb){uniq.PCB.add(id);groups.PCB.push(...rows);} else if(v.motor){uniq.馬達.add(id);groups.馬達.push(...rows);} });
+
+    statsDiv.style.display='block';
+    statsDiv.innerHTML=`合併列數：${raw.length}｜PCB 件數：<font color='red'>${uniq.PCB.size}</font>（列數：${groups.PCB.length}）｜馬達 件數：：<font color='red'>${uniq.馬達.size}</font>（列數：${groups.馬達.length}）｜PCB+馬達 件數：<font color='red'>${uniq.混件.size}</font>（列數：${groups.混件.length}） <button id="downloadBtn">📁 匯出 xlsx</button> <button id="csvBtn">⬇️ 匯出總表 CSV</button>`;
+
+    document.getElementById('downloadBtn').onclick=()=>{
+      const wb=XLSX.utils.book_new();
+      Object.entries(groups).forEach(([name,arr])=>{ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers,...arr]),name); });
+      XLSX.writeFile(wb,'分類結果.xlsx');
+    };
+
+    document.getElementById('csvBtn').onclick=()=>{
+      if(!currentGroups||!currentHeaders) return;
+      const rows=[currentHeaders,...currentGroups['總表']];
+      const csvContent='\uFEFF'+rows.map(r=>r.map(v=>'"'+v.replace(/"/g,'""')+'"').join(',')).join('\r\n');
+      const blob=new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='總表.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    buildTabs(headers,groups);
+  }
+
+  function buildTabs(headers,groups){
+    previewDiv.innerHTML=''; searchBar.style.display='block';
+    const tabs=document.createElement('div');tabs.className='tabs'; const panels=document.createElement('div');
+    previewDiv.appendChild(searchBar); previewDiv.appendChild(tabs); previewDiv.appendChild(panels);
+
+    searchInput.value=''; searchInput.oninput=()=>filterRows(searchInput.value.toLowerCase());
+
+    const createTable=rows=>{const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`; const tb=document.createElement('tbody'); rows.forEach(r=>{const tr=document.createElement('tr'); r.forEach(c=>{const td=document.createElement('td');td.textContent=c;tr.appendChild(td);}); tb.appendChild(tr);}); tbl.appendChild(tb); return tbl;};
+
+    const order=['總表','PCB','馬達','混件'];
+    order.forEach((name,idx)=>{
+      const rows=groups[name];
+      const btn=document.createElement('button');btn.className='tab-btn';btn.textContent=name;
+      const panel=document.createElement('div');panel.className='tab-content';panel.appendChild(createTable(rows));
+      tabs.appendChild(btn);panels.appendChild(panel);
+      btn.onclick=()=>{[...tabs.children].forEach(b=>b.classList.remove('active'));[...panels.children].forEach(p=>p.classList.remove('active')); btn.classList.add('active'); panel.classList.add('active'); currentTable=panel.querySelector('table'); filterRows(searchInput.value.toLowerCase());};
+      if(idx===0) btn.onclick();
+    });
+
+    function filterRows(keyword){ if(!currentTable) return; [...currentTable.querySelectorAll('tbody tr')].forEach(tr=>{tr.style.display=keyword===''||[...tr.cells].some(td=>td.textContent.toLowerCase().includes(keyword))?'':'none';}); }
+  }
+})();
+</script>
+</body>
+</html>

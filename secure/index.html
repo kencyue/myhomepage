@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>空調教室／學員休息室安全檢查表 (Firestore)</title>
+  <!-- 引入 Vue 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  
+  <style>
+    /* 全局樣式和變量 */
+    :root {
+      font-size: clamp(14px, 3.5vw, 20px);
+      --primary: #4a90e2; /* 藍色，更現代 */
+      --success: #50e3c2; /* 青綠色 */
+      --warning: #f8e71c; /* 黃色 */
+      --danger: #d0021b; /* 紅色 */
+      --background: #f4f6f9;
+      --text: #333;
+      --border: #e0e0e0;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 0.75rem;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.5;
+      /* 確保 body 高度等於視窗高度，避免不必要的捲軸 */
+      height: 100vh;
+      overflow-y: auto; 
+    }
+
+    #app {
+      max-width: 600px;
+      margin: 0 auto; 
+      padding: 0.75rem; /* 修正: 減少垂直 padding */
+      box-sizing: border-box;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem; /* 修正: 減少整體間距 (從 1.25rem 降至 0.75rem) */
+    }
+
+    h1 {
+      margin: 0 0 0.5rem; /* 修正: 減少標題下邊距 */
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #333;
+    }
+
+    /* 輸入和記住我按鈕排版 */
+    .input-remember-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+      padding: 0.5rem; 
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.6rem 0.8rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+    }
+
+    .remember-btn {
+      padding: 0.6rem 1rem;
+      background: #f0f0f0;
+      color: var(--text);
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+      flex-shrink: 0;
+    }
+
+    .remember-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* 檢查按鈕網格 */
+    .check-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0; /* 修正: 移除上邊距，依靠 #app gap */
+    }
+
+    .check-button {
+      padding: 1rem 0.6rem; 
+      text-align: center;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: background 0.3s, border-color 0.3s, transform 0.1s;
+    }
+
+    .check-button.active {
+      background: var(--success);
+      color: #333;
+      border-color: var(--success);
+      box-shadow: 0 4px 6px rgba(0, 227, 194, 0.2);
+    }
+
+    .check-button:active {
+      transform: scale(0.98);
+    }
+
+    /* 完成按鈕 */
+    .action-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background 0.3s, transform 0.1s, opacity 0.3s;
+      margin-top: 0.5rem; /* 修正: 減少上邊距 (從 1rem 降至 0.5rem) */
+    }
+
+    .action-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .action-btn:active:not(:disabled) {
+      transform: scale(0.98);
+      background: #3983d3;
+    }
+
+    /* 錯誤和提示信息 */
+    .loading-message, .error-message {
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      margin: 0.25rem 0; /* 修正: 減少上下邊距 */
+    }
+    
+    .loading-message {
+        color: #555;
+        background-color: #e0f7fa;
+    }
+
+    .error-message {
+      color: var(--danger);
+      background-color: #ffebee;
+      font-weight: 500;
+    }
+
+    /* 紀錄表格 */
+    .record-table {
+      width: 100%;
+      overflow-x: auto; 
+      margin-top: 0.75rem; /* 修正: 減少上邊距 (從 1.5rem 降至 0.75rem) */
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 0.1px; 
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      table-layout: fixed; 
+    }
+
+    th, td {
+      padding: 0.6rem 0.2rem; 
+      text-align: center;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    /* 調整欄位寬度以適應小螢幕 */
+    table thead th:nth-child(1), table tbody td:nth-child(1) { width: 15%; } 
+    table thead th:nth-child(2), table tbody td:nth-child(2) { width: 10%; } 
+    table thead th:nth-child(3), table tbody td:nth-child(3) { width: 10%; } 
+    table thead th:nth-child(4), table tbody td:nth-child(4) { width: 10%; } 
+    table thead th:nth-child(5), table tbody td:nth-child(5) { width: 55%; } 
+
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      border-color: var(--primary);
+    }
+
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    /* 分頁按鈕 */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        padding: 0.75rem 0; /* 修正: 減少上下 padding */
+        gap: 0.5rem;
+    }
+    .pager-btn {
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background: #fff;
+      transition: background 0.3s, transform 0.1s;
+    }
+
+    .pager-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .pager-btn:hover:not(.active) {
+        background: #f0f0f0;
+    }
+    .pager-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* RWD 調整 */
+    @media (max-width: 414px) {
+      #app {
+        padding: 0.5rem; /* 修正: 進一步減少手機上的 padding */
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .check-button {
+        font-size: 0.85rem;
+        padding: 0.75rem 0.5rem;
+      }
+      
+      table {
+          font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <h1>空調教室／學員休息室安全檢查表</h1>
+
+  <!-- 地理位置檢查狀態 -->
+  <p v-if="withinRange === null" class="loading-message">
+    🌍 檢查您的地理位置中… <button @click="checkGeolocation" class="pager-btn">重試</button>
+  </p>
+  <p v-if="withinRange === false" class="error-message">
+    🚨 您不在指定教室範圍內 (50m)，僅能觀看檢查紀錄。 <button @click="checkGeolocation" class="pager-btn">重試</button>
+  </p>
+
+  <!-- 檢查表單 (僅在範圍內顯示) -->
+  <template v-if="withinRange">
+    <div class="input-remember-row">
+      <input type="text" v-model="employeeId" placeholder="請輸入 6 位數員工代號" maxlength="6" @input="onEmployeeIdInput" />
+      <button class="remember-btn" :class="{active:rememberMe}" @click="toggleRemember">{{ rememberMe ? '✅ 已記住' : '記住我' }}</button>
+    </div>
+
+    <div class="check-buttons">
+      <div class="check-button" :class="{active:checklist.acSwitch}" @click="toggleCheck('acSwitch')">❄️ 冷氣開關 {{ checklist.acSwitch?'✅':'' }}</div>
+      <div class="check-button" :class="{active:checklist.lighting}" @click="toggleCheck('lighting')">💡 照明燈具 {{ checklist.lighting?'✅':'' }}</div>
+      <div class="check-button" :class="{active:checklist.doorLock}" @click="toggleCheck('doorLock')">🔐 教室門鎖 {{ checklist.doorLock?'✅':'' }}</div>
+    </div>
+
+    <button class="action-btn" @click="punch" :disabled="!allChecked || employeeId.length !== 6">完成退室檢查</button>
+    <p v-if="!allChecked || employeeId.length !== 6" class="error-message">
+        {{ employeeId.length !== 6 ? '員工代號必須為 6 位數' : '請完成所有檢查項目後再送出' }}
+    </p>
+  </template>
+
+  <!-- 紀錄表格 -->
+  <div class="record-table">
+    <div v-if="loading" class="loading-message">🚀 資料讀取中…</div>
+    <table v-else>
+      <thead>
+        <tr><th>員工代號</th><th>冷氣開關</th><th>照明燈具</th><th>教室門鎖</th><th>退室檢查時間</th></tr>
+      </thead>
+      <tbody>
+        <tr v-for="r in paginatedRecords" :key="r.id">
+          <td>{{ formatEmployeeId(r.employeeId) }}</td>
+          <td>{{ r.acSwitch==='Y'?'✅':'❌' }}</td>
+          <td>{{ r.lighting==='Y'?'✅':'❌' }}</td>
+          <td>{{ r.doorLock==='Y'?'✅':'❌' }}</td>
+          <td>{{ formatDate(r.time) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <!-- 分頁控制 -->
+    <div v-if="!loading && totalPages > 1" class="pagination">
+        <button v-for="p in totalPages" :key="p" @click="goToPage(p)" class="pager-btn" :class="{active:p===currentPage}">{{ p }}</button>
+    </div>
+    <div v-if="!loading && records.length === 0" class="loading-message">
+        目前沒有檢查紀錄。
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // 導入 Firebase 必要的模組
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  // 您的 Firebase 配置 (由用戶提供)
+  const firebaseConfig = {
+    apiKey: "AIzaSyB3zbbQPryMDD3WWEwSDy33XDz2ohmUd-k",
+    authDomain: "fir-51fa5.firebaseapp.com",
+    projectId: "fir-51fa5",
+    storageBucket: "fir-51fa5.firebasestorage.app",
+    messagingSenderId: "87934569004",
+    appId: "1:87934569004:web:275f884f89737b786c1f89",
+    measurementId: "G-8G5P02LHPN"
+  };
+
+  // 初始化 Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const COLLECTION_NAME = 'classroom_safety_checks'; // Firestore 集合名稱
+
+  // Vue 應用程式邏輯
+  Vue.createApp({
+    data() {
+      return {
+        employeeId: '',
+        rememberMe: false,
+        checklist: { acSwitch: false, lighting: false, doorLock: false },
+        records: [],
+        currentPage: 1,
+        pageSize: 10,
+        loading: true,
+        withinRange: null,
+        unsubscribe: null, 
+      };
+    },
+    computed: {
+      allChecked() { return Object.values(this.checklist).every(Boolean); },
+      paginatedRecords() { 
+        const s = (this.currentPage - 1) * this.pageSize; 
+        return this.records.slice(s, s + this.pageSize); 
+      },
+      totalPages() { 
+        return Math.max(1, Math.ceil(this.records.length / this.pageSize)); 
+      }
+    },
+    async mounted() {
+      // 載入 localStorage
+      const saved = localStorage.getItem('employeeId');
+      if (saved) {
+        this.employeeId = saved;
+        this.rememberMe = true;
+      }
+      
+      try {
+        await this.checkGeolocation();
+        this.loadRecords(); // 設置 onSnapshot 監聽
+      } catch (error) {
+        console.error('Initialization error:', error);
+      }
+    },
+    methods: {
+      // --- 核心功能 (檢查, 提交, RFS) ---
+      checkGeolocation() {
+        return new Promise((resolve) => {
+          const CENTER = { lat: 25.0086665, lng: 121.4785635 }; 
+          const R = 50; 
+          const hav = (a, b) => {
+            const rad = d => d * Math.PI / 180, R0 = 6371000;
+            const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+            const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+            return 2 * R0 * Math.asin(Math.sqrt(h));
+          };
+          if (navigator.geolocation) {
+            this.withinRange = null; 
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const distance = hav({ lat: position.coords.latitude, lng: position.coords.longitude }, CENTER);
+                this.withinRange = distance <= R;
+                resolve(this.withinRange);
+              }, 
+              (error) => {
+                console.error('Geolocation error:', error);
+                this.withinRange = false;
+                resolve(false);
+              }, 
+              { timeout: 8000, enableHighAccuracy: true }
+            );
+          } else {
+            this.withinRange = false;
+            resolve(false);
+          }
+        });
+      },
+      onEmployeeIdInput() { 
+        this.employeeId = this.employeeId.replace(/\D/g, '').slice(0, 6); 
+        if (this.rememberMe) {
+            localStorage.setItem('employeeId', this.employeeId);
+        }
+      },
+      toggleCheck(k) { 
+        this.checklist[k] = !this.checklist[k]; 
+      },
+      toggleRemember() {
+        this.rememberMe = !this.rememberMe;
+        if (this.rememberMe && this.employeeId.length === 6) {
+          localStorage.setItem('employeeId', this.employeeId);
+        } else {
+          localStorage.removeItem('employeeId');
+        }
+      },
+      async punch() {
+        if (this.employeeId.length !== 6 || !this.allChecked) { 
+          console.error('員工代號或檢查項目未完成。');
+          return; 
+        }
+        
+        const payload = {
+          employeeId: this.employeeId,
+          acSwitch: this.checklist.acSwitch ? 'Y' : 'N',
+          lighting: this.checklist.lighting ? 'Y' : 'N',
+          doorLock: this.checklist.doorLock ? 'Y' : 'N',
+          time: Timestamp.fromDate(new Date()) 
+        };
+        
+        try {
+          await addDoc(collection(db, COLLECTION_NAME), payload);
+          
+          console.log('退室檢查已完成！ (資料將由 onSnapshot 自動更新)'); 
+          alert('退室檢查已完成！'); 
+          this.resetForm(); 
+        } catch (error) { 
+          console.error('Firestore 寫入失敗:', error); 
+          alert('寫入失敗，請稍後再試'); 
+        }
+      },
+      resetForm() {
+        this.checklist = { acSwitch: false, lighting: false, doorLock: false };
+        if (!this.rememberMe) { 
+          this.employeeId = ''; 
+        }
+      },
+      loadRecords() {
+        this.loading = true;
+        
+        const q = query(collection(db, COLLECTION_NAME), orderBy('time', 'desc'));
+        
+        if (this.unsubscribe) {
+            this.unsubscribe();
+        }
+
+        this.unsubscribe = onSnapshot(q, (snapshot) => {
+            this.records = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    employeeId: data.employeeId,
+                    acSwitch: data.acSwitch,
+                    lighting: data.lighting,
+                    doorLock: data.doorLock,
+                    time: data.time ? data.time.toDate().toISOString() : new Date().toISOString()
+                };
+            });
+
+            this.loading = false;
+            this.currentPage = 1; 
+
+        }, (error) => {
+            console.error('Firestore Realtime Listen error:', error);
+            this.records = [];
+            this.loading = false;
+        });
+      },
+      goToPage(p) { 
+        this.currentPage = p; 
+      },
+      formatDate(str) {
+        const d = new Date(str), pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      },
+      formatEmployeeId(id) { 
+        return String(id).padStart(6, '0'); 
+      }
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>

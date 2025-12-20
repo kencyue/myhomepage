@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>題庫管理系統</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 載入 SortableJS (用於拖曳排序) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --inter-font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        body {
+            font-family: var(--inter-font);
+            background-color: #f7f9fc;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loading-ring { display: inline-block; width: 24px; height: 24px; }
+        .loading-ring:after {
+            content: " "; display: block; width: 20px; height: 20px; margin: 2px; border-radius: 50%;
+            border: 3px solid #fff; border-color: #fff transparent #fff transparent;
+            animation: loading-ring 1.2s linear infinite;
+        }
+        @keyframes loading-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* SortableJS 專用樣式 */
+        .sortable-ghost {
+            opacity: 0.2 !important;
+            background-color: #e5e7eb;
+            border: 1px dashed #3b82f6;
+            transform: scale(1);
+        }
+        .sortable-chosen {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #3b82f6 !important;
+            cursor: grabbing !important;
+        }
+        
+        /* 確保旋轉的元素擁有轉換類別 */
+        .toggle-btn i, .toggle-btn svg {
+            transition: transform 200ms ease-in-out;
+        }
+        .toggle-btn .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        
+        <!-- 標題與導航 -->
+        <header class="mb-8 p-4 bg-white rounded-xl shadow-lg border-t-4 border-blue-500">
+            <!-- 【V25 修正】增加 ID，內容由 JS 動態設定 -->
+            <h1 id="app-title-text" class="text-3xl font-extrabold text-gray-900 flex items-center mb-4">
+                <i data-lucide="book-open-check" class="w-8 h-8 mr-2 text-blue-500"></i>
+                題庫管理系統
+            </h1>
+            <nav id="main-nav" class="flex space-x-4 border-b pb-2">
+                <!-- 導航按鈕將由 JS 根據 isAdmin 渲染 -->
+            </nav>
+            
+            <!-- 【V23 修正】調整用戶 ID 和按鈕的版面以避免擠壓 -->
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 gap-2">
+                <p id="user-info" class="text-sm text-gray-500 flex items-center flex-shrink-0">
+                    用戶 ID: <span id="user-id">正在驗證...</span>
+                    <span id="user-role" class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-700"></span>
+                </p>
+                <!-- Auth Buttons Container -->
+                <div id="auth-buttons-container" class="flex space-x-2">
+                    <button id="login-admin-btn" class="hidden px-3 py-1 bg-green-500 text-white text-sm font-semibold rounded-lg shadow hover:bg-green-600 transition duration-150">
+                        <i data-lucide="log-in" class="w-4 h-4 mr-1 inline-block"></i>
+                        管理員登入
+                    </button>
+                    <button id="logout-btn" class="hidden px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg shadow hover:bg-red-600 transition duration-150">
+                        <i data-lucide="log-out" class="w-4 h-4 mr-1 inline-block"></i>
+                        登出
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 視圖容器 -->
+        <div id="views-container">
+
+            <!-- 1. 題庫列表視圖 (Home / Quiz List - R/W for Admin) -->
+            <div id="quiz-list-view" class="view hidden">
+                <main class="space-y-6 fade-in">
+                    
+                    <!-- 列表控制區 (新增按鈕 + 搜尋 + 發布) -->
+                    <div id="list-controls" class="p-4 bg-white rounded-xl shadow-lg flex flex-col gap-4">
+                        <div class="flex flex-wrap gap-3 sm:gap-4">
+                             <button id="add-quiz-btn" class="flex-1 sm:flex-initial px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150 flex items-center justify-center" data-view="quiz-form">
+                                <i data-lucide="plus-circle" class="w-5 h-5 mr-1 inline-block"></i>
+                                新增
+                            </button>
+                            <!-- 發布按鈕 -->
+                            <button id="publish-quiz-btn" class="flex-1 sm:flex-initial px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 flex items-center justify-center">
+                                <i data-lucide="cloud-upload" class="w-5 h-5 mr-1 inline-block"></i>
+                                發布
+                            </button>
+                            <!-- 【V21 新增】刪除所有題目按鈕 -->
+                            <button id="delete-all-quiz-btn" class="flex-1 sm:flex-initial px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition duration-150 flex items-center justify-center hidden">
+                                <i data-lucide="skull" class="w-5 h-5 mr-1 inline-block"></i>
+                                刪除
+                            </button>
+                        </div>
+                        
+                        <!-- 類別篩選與搜尋 -->
+                        <div class="flex flex-wrap gap-4">
+                            <select id="private-product-category-filter" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                                <option value="">所有商品類別</option>
+                            </select>
+                            <select id="private-question-category-filter" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                                <option value="">所有題目類別</option>
+                            </select>
+                        </div>
+
+
+                        <div class="flex flex-col sm:flex-row gap-4 items-center w-full">
+                            <div class="relative flex-1 w-full">
+                                <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search-input" placeholder="搜尋題目、題號或選項內容..."
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" />
+                            </div>
+                            <p id="total-questions" class="flex-shrink-0 text-sm text-gray-600 flex items-center">
+                                共 0 題
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 題庫列表 (SortableJS 容器) -->
+                    <div id="questions-list" class="space-y-4">
+                        <div id="loading-indicator" class="flex justify-center items-center py-10 text-gray-500">
+                            <div class="loading-ring mr-3"></div> 正在載入題庫...
+                        </div>
+                    </div>
+
+                    <div id="no-questions-message" class="hidden text-center py-10 text-gray-500 bg-white rounded-xl shadow-lg">
+                        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 text-gray-400"></i>
+                        <p class="text-lg font-medium">私人題庫為空或無匹配結果</p>
+                        <p>點擊上方「新增題目」開始建立您的題庫。</p>
+                    </div>
+                    
+                    <div id="reordering-indicator" class="hidden text-center p-4 bg-yellow-100 text-yellow-800 rounded-lg font-semibold">
+                        <i data-lucide="loader" class="w-4 h-4 mr-1 inline-block animate-spin"></i>
+                        正在更新排序...請稍候
+                    </div>
+                </main>
+            </div>
+
+
+            <!-- 2. 新增/編輯題目視圖 (Quiz Form - R/W for Admin) -->
+            <div id="quiz-form-view" class="view hidden">
+                <main class="max-w-3xl mx-auto">
+                    <section id="form-section" class="p-6 bg-white rounded-xl shadow-lg fade-in">
+                        <h2 id="form-title" class="text-2xl font-bold mb-6 text-gray-800 border-b pb-3">新增題目</h2>
+                        
+                        <!-- CSV 匯入區 -->
+                        <div class="mb-6 p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+                            <input type="file" id="csv-input" accept=".csv" class="hidden">
+                            <p class="text-sm text-gray-600 mb-2">快速匯入大量題目，請確保 CSV 格式正確，且類別已設定。</p>
+                            <button type="button" id="import-csv-btn" class="w-full px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition duration-150 flex items-center justify-center">
+                                <i data-lucide="file-text" class="w-5 h-5 mr-2 inline-block"></i>
+                                匯入 CSV 檔案
+                            </button>
+                        </div>
+
+                        <form id="quiz-form">
+                            <!-- 隱藏欄位用於儲存編輯中的題目 ID -->
+                            <input type="hidden" id="question-id" value="">
+
+                            <!-- 商品類別 (Dropdown) -->
+                            <div class="mb-4">
+                                <label for="product-category-select" class="block text-sm font-medium text-gray-700 mb-1">商品類別</label>
+                                <select id="product-category-select" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                                    <option value="" disabled selected>請選擇商品類別</option>
+                                </select>
+                            </div>
+
+                            <!-- 題目類別 (Dropdown) -->
+                            <div class="mb-4">
+                                <label for="question-category-select" class="block text-sm font-medium text-gray-700 mb-1">題目類別</label>
+                                <select id="question-category-select" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                                    <option value="" disabled selected>請選擇題目類別</option>
+                                </select>
+                            </div>
+
+                            <!-- 題號 (Question Number) -->
+                            <div class="mb-4">
+                                <label for="question-number" class="block text-sm font-medium text-gray-700 mb-1">題號</label>
+                                <input type="text" id="question-number" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                                    placeholder="例如: P001" />
+                            </div>
+
+                            <!-- 題目 (Question Text) -->
+                            <div class="mb-4">
+                                <label for="question-text" class="block text-sm font-medium text-gray-700 mb-1">題目內容</label>
+                                <textarea id="question-text" rows="4" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                                    placeholder="請輸入題目完整內容..."></textarea>
+                            </div>
+
+                            <!-- 選項 (Options) -->
+                            <div id="options-container" class="space-y-3 mb-6 p-4 border rounded-xl bg-gray-50">
+                                <label class="block text-base font-bold text-gray-800 mb-2">選項與答案 (請勾選正確答案)</label>
+                                <template id="option-template">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="radio" name="correct-answer" value="1" required
+                                            class="text-blue-600 focus:ring-blue-500 w-5 h-5 flex-shrink-0" />
+                                        <input type="text" class="option-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                            placeholder="選項內容" required />
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div id="form-error-message" class="text-red-600 text-sm mb-4 hidden"></div>
+
+                            <!-- 儲存與重設按鈕 -->
+                            <div class="flex space-x-3 mt-6">
+                                <button type="submit" id="submit-button"
+                                    class="flex-1 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out disabled:bg-gray-400">
+                                    <i data-lucide="save" class="w-5 h-5 mr-1 inline-block"></i>
+                                    <span id="submit-button-text">儲存題目</span>
+                                </button>
+                                <button type="button" id="form-cancel-button"
+                                    class="px-4 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-150 ease-in-out">
+                                    <i data-lucide="arrow-left" class="w-5 h-5 mr-1 inline-block"></i>
+                                    返回列表
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                </main>
+            </div>
+
+
+            <!-- 3. 類別管理視圖 (Category Manager - R/W for Admin) -->
+            <div id="category-manager-view" class="view hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- 商品類別管理 -->
+                    <div class="p-6 bg-white rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2 flex items-center">
+                            <i data-lucide="package-open" class="w-5 h-5 mr-2 text-blue-500"></i>
+                            商品類別
+                        </h2>
+                        <form id="product-category-form" class="mb-4 flex space-x-2">
+                            <input type="text" id="product-category-name" required placeholder="新增商品類別名稱"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                            <!-- 修正：將 type="submit" 改為 type="button"，並加入 ID -->
+                            <button type="button" id="add-product-cat-btn" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-150">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </form>
+                        <ul id="product-categories-list" class="space-y-2 max-h-96 overflow-y-auto pr-2">
+                            <!-- Categories rendered here -->
+                            <li class="text-center py-4 text-gray-400" id="product-cat-loading">載入中...</li>
+                        </ul>
+                    </div>
+
+                    <!-- 題目類別管理 -->
+                    <div class="p-6 bg-white rounded-xl shadow-lg">
+                        <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2 flex items-center">
+                            <i data-lucide="list-checks" class="w-5 h-5 mr-2 text-purple-500"></i>
+                            題目類別
+                        </h2>
+                        <form id="question-category-form" class="mb-4 flex space-x-2">
+                            <input type="text" id="question-category-name" required placeholder="新增題目類別名稱"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500" />
+                            <!-- 修正：將 type="submit" 改為 type="button"，並加入 ID -->
+                            <button type="button" id="add-question-cat-btn" class="px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition duration-150">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </form>
+                        <ul id="question-categories-list" class="space-y-2 max-h-96 overflow-y-auto pr-2">
+                            <!-- Categories rendered here -->
+                            <li class="text-center py-4 text-gray-400" id="question-cat-loading">載入中...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 4. 公開題庫視圖 (Quiz Public - Read Only for All) -->
+            <div id="quiz-public-view" class="view hidden">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-3 flex items-center">
+                    <i data-lucide="eye" class="w-6 h-6 mr-2 text-indigo-500"></i>
+                    公開題庫 (唯讀)
+                </h2>
+                <div class="p-4 bg-yellow-50 rounded-lg mb-6">
+                    <p class="text-sm text-yellow-800">此頁面顯示管理員發布的公開題目。您目前的身份為 <span id="public-role-info">查看者</span>。</p>
+                </div>
+                
+                <!-- 【V16 新增】公開題庫篩選與搜尋控制區 -->
+                <div id="public-controls" class="p-4 bg-white rounded-xl shadow-lg flex flex-col gap-4 mb-6">
+                    <!-- 類別篩選 -->
+                    <div class="flex flex-wrap gap-4">
+                        <select id="public-product-category-filter" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                            <option value="">所有商品類別</option>
+                        </select>
+                        <select id="public-question-category-filter" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                            <option value="">所有題目類別</option>
+                        </select>
+                    </div>
+
+                    <!-- 搜尋 -->
+                    <div class="flex flex-col sm:flex-row gap-4 items-center w-full">
+                        <div class="relative flex-1 w-full">
+                            <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="public-search-input" placeholder="搜尋公開題庫、題號或選項內容..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" />
+                        </div>
+                        <p id="public-total-questions" class="flex-shrink-0 text-sm text-gray-600 flex items-center">
+                            共 0 題
+                        </p>
+                    </div>
+                </div>
+
+                <div id="public-questions-list" class="space-y-4">
+                    <div id="public-loading-indicator" class="flex justify-center items-center py-10 text-gray-500">
+                        <div class="loading-ring mr-3"></div> 正在載入公開題庫...
+                    </div>
+                </div>
+                <div id="no-public-questions-message" class="hidden text-center py-10 text-gray-500 bg-white rounded-xl shadow-lg">
+                    <i data-lucide="server-off" class="w-10 h-10 mx-auto mb-3 text-gray-400"></i>
+                    <p class="text-lg font-medium">公開題庫目前為空或無匹配結果</p>
+                    <p>管理員尚未發布任何題目。</p>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- 自定義確認彈窗 (Modal) -->
+        <div id="confirmation-modal" class="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all fade-in">
+                    <div class="text-center">
+                        <i data-lucide="alert-triangle" class="w-10 h-10 mx-auto text-red-500"></i>
+                        <h3 class="mt-2 text-lg leading-6 font-medium text-gray-900" id="modal-title">確認操作</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500" id="modal-message">您確定要執行此操作嗎？</p>
+                        </div>
+                    </div>
+                    <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse space-y-3 sm:space-y-0 sm:space-x-3 sm:space-x-reverse">
+                        <button type="button" id="confirm-action-button"
+                            class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
+                            確定
+                        </button>
+                        <button type="button" id="cancel-action-button"
+                            class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:w-auto sm:text-sm transition duration-150">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 訊息提示 (Toast) -->
+        <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2">
+            <!-- Toast 訊息將會被動態加入 -->
+        </div>
+
+    </div>
+
+    <!-- Firebase 模組載入與應用程式邏輯 -->
+    <script type="module">
+        // 修正: 確保所有模組都使用相同的版本 URL
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserSessionPersistence, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, 
+            query, onSnapshot, orderBy, serverTimestamp, setLogLevel, writeBatch, getDocs 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // 忽略 getAnalytics 的導入，因為它在應用程式中沒有被使用。
+
+        // --- 全域變數與設定 ---
+        
+        // 【V27 修正】移除 SINGLE_ADMIN_UID 變數宣告，直接使用字串。
+
+        // 替換為用戶提供的真實 Firebase 配置
+        const realFirebaseConfig = {
+            apiKey: "AIzaSyAQovEJtTyf-3ByOgx_I-Eg-nNZdbVgR0g",
+            authDomain: "quiz-c7757.firebaseapp.com",
+            projectId: "quiz-c7757",
+            storageBucket: "quiz-c7757.firebasestorage.app",
+            messagingSenderId: "81173867086",
+            appId: "1:81173867086:web:03f1b9aa58eda908aef11f",
+            measurementId: "G-QKWHRC967L"
+        };
+        
+        const appId = realFirebaseConfig.appId.split(':')[1] || 'default-quiz-app-id'; 
+        
+        let app, db, auth, userId = null;
+        let isAuthReady = false;
+        let isAdmin = false; 
+        let questions = []; 
+        let publicQuestions = []; 
+        let productCategories = [];
+        let questionCategories = [];
+        let currentView = 'quiz-list'; 
+        let sortableInstance = null; 
+        
+        // 【V15 修正】將 dom 聲明為空物件，等待 DOMContentLoaded 後再賦值
+        let dom = {}; 
+
+        /** 延遲初始化所有 DOM 元素 */
+        function initializeDomElements() {
+            dom.views = {
+                'quiz-list': document.getElementById('quiz-list-view'), 
+                'quiz-form': document.getElementById('quiz-form-view'), 
+                'category-manager': document.getElementById('category-manager-view'), 
+                'quiz-public': document.getElementById('quiz-public-view'), 
+            };
+            dom.mainNav = document.getElementById('main-nav');
+            dom.appTitle = document.getElementById('app-title-text'); 
+            dom.navButtons = null; // 導航按鈕在 setupNavigation 中被賦值
+            dom.userRole = document.getElementById('user-role');
+            dom.publicRoleInfo = document.getElementById('public-role-info');
+            dom.loginBtn = document.getElementById('login-admin-btn');
+            dom.logoutBtn = document.getElementById('logout-btn');
+            
+            dom.quizList = {
+                searchInput: document.getElementById('search-input'),
+                questionsList: document.getElementById('questions-list'),
+                loadingIndicator: document.getElementById('loading-indicator'),
+                noQuestionsMessage: document.getElementById('no-questions-message'),
+                totalQuestions: document.getElementById('total-questions'),
+                reorderingIndicator: document.getElementById('reordering-indicator'),
+                publishButton: document.getElementById('publish-quiz-btn'),
+                productFilter: document.getElementById('private-product-category-filter'), // V16 New
+                questionFilter: document.getElementById('private-question-category-filter'), // V16 New
+                deleteAllButton: document.getElementById('delete-all-quiz-btn'), // V21 New
+            };
+            
+            dom.quizForm = {
+                form: document.getElementById('quiz-form'),
+                formTitle: document.getElementById('form-title'),
+                questionIdInput: document.getElementById('question-id'),
+                productCategorySelect: document.getElementById('product-category-select'),
+                questionCategorySelect: document.getElementById('question-category-select'),
+                submitButton: document.getElementById('submit-button'),
+                submitButtonText: document.getElementById('submit-button-text'),
+                optionsContainer: document.getElementById('options-container'),
+                optionTemplate: document.getElementById('option-template'),
+                formErrorMessage: document.getElementById('form-error-message'),
+                cancelButton: document.getElementById('form-cancel-button'),
+                csvInput: document.getElementById('csv-input'),
+                importCsvButton: document.getElementById('import-csv-btn'),
+            };
+            
+            dom.category = {
+                productForm: document.getElementById('product-category-form'),
+                productInput: document.getElementById('product-category-name'),
+                productList: document.getElementById('product-categories-list'),
+                productAddButton: document.getElementById('add-product-cat-btn'),
+                questionForm: document.getElementById('question-category-form'),
+                questionInput: document.getElementById('question-category-name'),
+                questionList: document.getElementById('question-categories-list'),
+                questionAddButton: document.getElementById('add-question-cat-btn'),
+            };
+            
+            dom.publicQuiz = { // V16 New Block
+                questionsList: document.getElementById('public-questions-list'),
+                searchInput: document.getElementById('public-search-input'),
+                productFilter: document.getElementById('public-product-category-filter'),
+                questionFilter: document.getElementById('public-question-category-filter'),
+                totalQuestions: document.getElementById('public-total-questions'),
+                loadingIndicator: document.getElementById('public-loading-indicator'),
+                noQuestionsMessage: document.getElementById('no-public-questions-message'),
+            }
+            
+            dom.modal = document.getElementById('confirmation-modal');
+            dom.confirmButton = document.getElementById('confirm-action-button');
+            dom.cancelButton = document.getElementById('cancel-action-button');
+
+            console.log("[App Init] DOM elements successfully initialized.");
+        }
+
+        // --- Helper 函數 (Toast/Modal) (保持與 V14 一致) ---
+
+        /** 顯示 Toast 訊息 */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colorMap = { success: 'bg-green-500', error: 'bg-red-600', info: 'bg-blue-500' };
+            const iconMap = { success: 'check-circle', error: 'x-circle', info: 'info' };
+
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-lg shadow-xl text-white ${colorMap[type]} flex items-center fade-in`;
+            toast.innerHTML = `<i data-lucide="${iconMap[type]}" class="w-5 h-5 mr-2"></i><span class="text-sm">${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('fade-in');
+                toast.classList.add('opacity-0', 'transition', 'duration-500', 'ease-out');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        }
+
+        /** 顯示確認彈窗 */
+        function showModal(title, message, confirmText = '確定') {
+            return new Promise((resolve) => {
+                dom.modal.querySelector('#modal-title').textContent = title;
+                dom.modal.querySelector('#modal-message').textContent = message;
+                dom.confirmButton.textContent = confirmText;
+                dom.modal.classList.remove('hidden');
+
+                const onConfirm = () => {
+                    dom.modal.classList.add('hidden');
+                    dom.confirmButton.removeEventListener('click', onConfirm);
+                    dom.cancelButton.removeEventListener('click', onCancel);
+                    resolve(true);
+                };
+
+                const onCancel = () => {
+                    dom.modal.classList.add('hidden');
+                    dom.confirmButton.removeEventListener('click', onConfirm);
+                    dom.cancelButton.removeEventListener('click', onCancel);
+                    resolve(false);
+                };
+
+                dom.confirmButton.addEventListener('click', onConfirm);
+                dom.cancelButton.addEventListener('click', onCancel);
+            });
+        }
+        
+        // --- Firebase 登入/登出功能 ---
+
+        async function loginAsAdmin() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                showToast(`登入成功！使用者: ${result.user.email}`, 'success');
+            } catch (error) {
+                console.error("管理員登入失敗:", error);
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showToast(`登入失敗: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function logout() {
+            try {
+                await signOut(auth);
+                // 登出後強制回到匿名狀態以滿足 read: if request.auth != null; 規則
+                await signInAnonymously(auth);
+                showToast('已安全登出。您現在是查看者。', 'info');
+            } catch (error) {
+                console.error("登出失敗:", error);
+                showToast(`登出失敗: ${error.message}`, 'error');
+            }
+        }
+        
+        // --- Firebase 初始化與認證 ---
+        
+        setLogLevel('debug');
+        app = initializeApp(realFirebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        console.log("[App Init] Firebase services initialized. Starting auth check.");
+
+        // 初始化: 確保用戶處於某種身份 (匿名或已登入)
+        setPersistence(auth, browserSessionPersistence)
+            .then(() => {
+                 if (!auth.currentUser) {
+                    console.log("[Auth Flow] No current user found. Attempting anonymous sign-in...");
+                    signInAnonymously(auth).catch((error) => {
+                        console.error("匿名登入失敗:", error);
+                        if (error.code === 'auth/admin-restricted-operation') {
+                            showToast('錯誤: 匿名登入被禁用。請在 Firebase Authentication 中啟用「匿名」登入提供者，否則訪客無法讀取公開資料。', 'error');
+                        }
+                    });
+                 }
+            })
+            .catch((error) => console.error("Firebase 認證失敗:", error));
+
+        /** 根據角色設定導航菜單 */
+        function setupNavigation() {
+            dom.mainNav.innerHTML = '';
+            let navHtml = '';
+
+            if (isAdmin) {
+                navHtml += `
+                    <button id="nav-quiz-list" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition duration-150" data-view="quiz-list">
+                        <i data-lucide="home" class="w-4 h-4 mr-1 inline-block"></i>
+                        首頁
+                    </button>
+                    <button id="nav-category-manager" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition duration-150" data-view="category-manager">
+                        <i data-lucide="settings-2" class="w-4 h-4 mr-1 inline-block"></i>
+                        類別
+                    </button>
+                `;
+            }
+            
+            navHtml += `
+                <button id="nav-public-quiz" class="nav-btn px-4 py-2 text-sm font-medium rounded-lg transition duration-150" data-view="quiz-public">
+                    <i data-lucide="eye" class="w-4 h-4 mr-1 inline-block"></i>
+                    公開題庫
+                </button>
+            `;
+
+            dom.mainNav.innerHTML = navHtml;
+            dom.navButtons = dom.mainNav.querySelectorAll('.nav-btn');
+            
+            dom.navButtons.forEach(btn => {
+                btn.addEventListener('click', () => switchView(btn.dataset.view));
+            });
+
+            // 非管理員或匿名用戶預設進入公開題庫頁面
+            currentView = isAdmin ? 'quiz-list' : 'quiz-public';
+            switchView(currentView);
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userId = user.uid;
+                
+                // 核心邏輯：嚴格檢查 UID 是否為單一管理員
+                isAdmin = (user.uid === 'KNuzd0Jiq3b80vVV9fmqby8lgJx2'); // 【V27 修正：直接使用字串】
+                
+                document.getElementById('user-id').textContent = user.isAnonymous ? `(匿名) ${userId.substring(0, 8)}...` : userId;
+                
+                const roleText = isAdmin ? '管理員 (Admin)' : (user.isAnonymous ? '查看者 (匿名)' : '查看者 (登入)');
+                dom.userRole.textContent = roleText;
+                dom.publicRoleInfo.textContent = roleText;
+
+                // 【V25 修正】動態更新應用程式標題
+                const displayTitle = isAdmin ? '題庫管理系統' : '題庫題目練習';
+                const titleIcon = isAdmin ? 'book-open-check' : 'graduation-cap'; 
+                dom.appTitle.innerHTML = `<i data-lucide="${titleIcon}" class="w-8 h-8 mr-2 text-blue-500"></i>${displayTitle}`;
+                
+                // 顯示登入/登出按鈕邏輯
+                if (isAdmin) {
+                    dom.loginBtn.classList.add('hidden');
+                    dom.logoutBtn.classList.remove('hidden');
+                    // V21: 顯示刪除所有題目按鈕
+                    dom.quizList.deleteAllButton.classList.remove('hidden'); 
+                } else if (!user.isAnonymous) {
+                    dom.loginBtn.classList.add('hidden');
+                    dom.logoutBtn.classList.remove('hidden');
+                    // V21: 隱藏刪除所有題目按鈕
+                    dom.quizList.deleteAllButton.classList.add('hidden'); 
+                } else {
+                    dom.loginBtn.classList.remove('hidden');
+                    dom.logoutBtn.classList.add('hidden');
+                    // V21: 隱藏刪除所有題目按鈕
+                    dom.quizList.deleteAllButton.classList.add('hidden'); 
+                }
+
+                dom.userRole.classList.toggle('bg-blue-500', isAdmin);
+                dom.userRole.classList.toggle('text-white', isAdmin);
+                dom.userRole.classList.toggle('bg-gray-200', !isAdmin);
+                dom.userRole.classList.toggle('text-gray-700', !isAdmin);
+
+                isAuthReady = true;
+                if (db) {
+                    if (isAdmin) setupRealtimeListener('quiz'); 
+                    setupRealtimeListener('categories'); 
+                    setupRealtimeListener('public'); 
+                }
+                
+                setupNavigation();
+                lucide.createIcons(); // 重新生成新的圖示
+                console.log(`[Auth State] User signed in. UID: ${userId}, Is Admin: ${isAdmin}`);
+            } else {
+                userId = '未登入';
+                isAdmin = false;
+                document.getElementById('user-id').textContent = userId;
+                dom.userRole.textContent = '未登入';
+                dom.publicRoleInfo.textContent = '未登入';
+
+                // 【V25 修正】動態更新應用程式標題
+                const displayTitle = '題庫題目練習';
+                const titleIcon = 'graduation-cap';
+                dom.appTitle.innerHTML = `<i data-lucide="${titleIcon}" class="w-8 h-8 mr-2 text-blue-500"></i>${displayTitle}`;
+                
+                dom.loginBtn.classList.remove('hidden');
+                dom.logoutBtn.classList.add('hidden');
+                isAuthReady = true;
+                setupNavigation(); 
+                lucide.createIcons(); // 重新生成新的圖示
+                console.log("[Auth State] User signed out or anonymous.");
+            }
+        });
+
+
+        // --- Firestore 路徑定義 (保持與 v8 一致) ---
+
+        /** 獲取私人題目集合路徑 (Private - R/W for Admin) */
+        function getQuizCollectionPath() {
+            // 【V27 修正：直接使用字串】
+            const adminId = 'KNuzd0Jiq3b80vVV9fmqby8lgJx2'; 
+            return `artifacts/${appId}/users/${adminId}/quiz_bank`;
+        }
+        
+        /** 獲取公開題目集合路徑 (Public - Read Only for All) */
+        function getPublicQuizCollectionPath() {
+            return `artifacts/${appId}/public/data/shared_quiz_bank`;
+        }
+
+        /** 獲取公共類別集合路徑 (Public - R/W for Admin, Read for All) */
+        function getCategoryCollectionPath(type) {
+            return `artifacts/${appId}/public/data/${type}_categories`;
+        }
+
+        // --- 類別 (Categories) 相關邏輯 ---
+
+        async function addCategory(collectionType, name) {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能新增類別。', 'error'); return; }
+            const collectionPath = getCategoryCollectionPath(collectionType);
+            if (!collectionPath || !name.trim()) {
+                 if (!name.trim()) showToast('類別名稱不能為空。', 'error');
+                 return;
+            }
+
+            console.log(`[Attempt Add] 類型: ${collectionType}, 路徑: ${collectionPath}, 名稱: ${name.trim()}, UID: ${userId}, IsAdmin: ${isAdmin}`);
+
+            try {
+                await addDoc(collection(db, collectionPath), {
+                    name: name.trim(),
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                });
+                showToast(`${collectionType === 'product' ? '商品' : '題目'}類別新增成功！`, 'success');
+                dom.category[collectionType === 'product' ? 'productInput' : 'questionInput'].value = '';
+            } catch (e) {
+                console.error(`[Add Error] 嘗試新增類別失敗:`, e);
+                
+                let errorMessage = '新增失敗：未知錯誤。';
+                if (e.code && e.code === 'permission-denied') {
+                    errorMessage = '權限不足 (PERMISSION_DENIED)。請檢查 Firebase Console 中的安全規則是否已正確發布，且管理員 UID 正確。';
+                } else if (e.message && e.message.includes('PERMISSION_DENIED')) {
+                    errorMessage = '權限不足 (Firebase API 拒絕)。請檢查您的 Firebase 規則是否允許您的帳戶寫入此路徑。';
+                } else if (e.message) {
+                    errorMessage = `新增失敗: ${e.message}`;
+                }
+                
+                showToast(errorMessage, 'error');
+            }
+        }
+
+        async function deleteCategory(collectionType, id, name) {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能刪除類別。', 'error'); return; }
+            const confirmed = await showModal('確認刪除', `您確定要刪除類別 "${name}" 嗎？\n\n注意：刪除後，所有使用此類別的題目將會遺失類別關聯。`, '確定刪除');
+            if (!confirmed) return;
+
+            const collectionPath = getCategoryCollectionPath(collectionType);
+            if (!collectionPath) return;
+
+            try {
+                await deleteDoc(doc(db, collectionPath, id));
+                showToast(`類別 "${name}" 刪除成功！`, 'success');
+            } catch (e) {
+                console.error("刪除類別失敗: ", e);
+                const errorMessage = e.message.includes('PERMISSION_DENIED') ? '權限不足，操作已被資料庫拒絕。' : e.message;
+                showToast(`刪除類別失敗: ${errorMessage}`, 'error');
+            }
+        }
+        
+        function renderCategoryList(type) {
+            const list = type === 'product' ? productCategories : questionCategories;
+            const listElement = type === 'product' ? dom.category.productList : dom.category.questionList;
+            
+            const loadingElement = document.getElementById(`${type}-cat-loading`);
+            if (loadingElement) loadingElement.remove(); 
+
+            listElement.innerHTML = '';
+
+            if (list.length === 0) {
+                listElement.innerHTML = `<li class="text-center py-4 text-gray-500">尚無${type === 'product' ? '商品' : '題目'}類別。</li>`;
+                return;
+            }
+
+            list.forEach(cat => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center p-3 bg-gray-50 rounded-lg shadow-sm";
+                li.innerHTML = `
+                    <span class="text-gray-700 font-medium truncate">${cat.name}</span>
+                    <button class="delete-cat-btn text-red-500 hover:text-red-700 transition duration-150 p-1 ${isAdmin ? '' : 'hidden'}" 
+                            data-type="${type}" data-id="${cat.id}" data-name="${cat.name}">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                listElement.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        /**
+         * 渲染所有下拉選單
+         * 【V16 修正】同時更新題目表單和兩個列表的篩選器
+         */
+        function renderCategorySelects() {
+            // 1. 題目表單下拉選單
+            const formProductSelect = dom.quizForm.productCategorySelect;
+            const formQuestionSelect = dom.quizForm.questionCategorySelect;
+            
+            // 2. 私人題庫篩選器
+            const privateProductFilter = dom.quizList.productFilter;
+            const privateQuestionFilter = dom.quizList.questionFilter;
+            
+            // 3. 公開題庫篩選器
+            const publicProductFilter = dom.publicQuiz.productFilter;
+            const publicQuestionFilter = dom.publicQuiz.questionFilter;
+
+
+            [formProductSelect, privateProductFilter, publicProductFilter].forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">所有商品類別</option>'; // 預設選項
+                productCategories.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.id}" ${cat.id === currentValue ? 'selected' : ''}>${cat.name}</option>`;
+                });
+                if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                     select.value = currentValue;
+                }
+            });
+
+            [formQuestionSelect, privateQuestionFilter, publicQuestionFilter].forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">所有題目類別</option>'; // 預設選項
+                questionCategories.forEach(cat => {
+                    select.innerHTML += `<option value="${cat.id}" ${cat.id === currentValue ? 'selected' : ''}>${cat.name}</option>`;
+                });
+                if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                    select.value = currentValue;
+                }
+            });
+
+            // 確保編輯狀態下的表單選中正確
+            if (dom.quizForm.questionIdInput.value) {
+                const questionToEdit = questions.find(q => q.id === dom.quizForm.questionIdInput.value);
+                if (questionToEdit) {
+                    formProductSelect.value = questionToEdit.productCategoryId || '';
+                    formQuestionSelect.value = questionToEdit.questionCategoryId || '';
+                }
+            }
+        }
+
+
+        // --- 題目 (Quiz) 相關邏輯 (與 V12 保持一致) ---
+
+        async function saveQuestion(event) {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能儲存題目。', 'error'); return; }
+            event.preventDefault();
+            dom.quizForm.formErrorMessage.classList.add('hidden');
+            dom.quizForm.submitButton.disabled = true;
+            dom.quizForm.submitButtonText.textContent = '處理中...';
+
+            const collectionPath = getQuizCollectionPath();
+            if (!collectionPath) return;
+
+            const questionId = dom.quizForm.questionIdInput.value.trim();
+            const isEditing = !!questionId;
+
+            try {
+                const optionInputs = document.querySelectorAll('#options-container .option-input');
+                const correctOptionRadio = document.querySelector('input[name="correct-answer"]:checked');
+
+                if (!correctOptionRadio) throw new Error("請勾選正確答案。");
+                if (!dom.quizForm.productCategorySelect.value) throw new Error("請選擇商品類別。");
+                if (!dom.quizForm.questionCategorySelect.value) throw new Error("請選擇題目類別。");
+                
+                for (const input of optionInputs) {
+                    if (input.value.trim() === "") throw new Error("所有選項內容皆不可為空。");
+                }
+
+                const questionData = {
+                    productCategoryId: dom.quizForm.productCategorySelect.value,
+                    questionCategoryId: dom.quizForm.questionCategorySelect.value,
+                    questionNumber: document.getElementById('question-number').value.trim(),
+                    questionText: document.getElementById('question-text').value.trim(),
+                    option1: optionInputs[0].value.trim(),
+                    option2: optionInputs[1].value.trim(),
+                    option3: optionInputs[2].value.trim(),
+                    option4: optionInputs[3].value.trim(),
+                    correctAnswer: parseInt(correctOptionRadio.value, 10),
+                    updatedAt: serverTimestamp(),
+                };
+
+                if (!isEditing) {
+                    const maxSequence = questions.length > 0 ? Math.max(...questions.map(q => q.sequence || 0)) : 0;
+                    questionData.sequence = maxSequence + 1;
+                    questionData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, collectionPath), questionData);
+                    showToast('題目新增成功！', 'success');
+                } else {
+                    const docRef = doc(db, collectionPath, questionId);
+                    await updateDoc(docRef, questionData);
+                    showToast('題目更新成功！', 'success');
+                }
+
+                resetForm();
+                switchView('quiz-list');
+
+            } catch (e) {
+                console.error("儲存題目失敗: ", e);
+                const errorMessage = e.message.includes('PERMISSION_DENIED') ? '權限不足，操作已被資料庫拒絕。' : `儲存失敗: ${e.message}`;
+                dom.quizForm.formErrorMessage.textContent = errorMessage;
+                dom.quizForm.formErrorMessage.classList.remove('hidden');
+                showToast(errorMessage, 'error');
+            } finally {
+                dom.quizForm.submitButton.disabled = false;
+                dom.quizForm.submitButtonText.textContent = isEditing ? '更新題目' : '儲存題目';
+            }
+        }
+
+        async function deleteQuestion(questionId) {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能刪除題目。', 'error'); return; }
+            const confirmed = await showModal('確認刪除', '您確定要刪除這道題目嗎？此操作無法撤銷。', '確定刪除');
+            if (!confirmed) return;
+
+            const collectionPath = getQuizCollectionPath();
+            if (!collectionPath) return;
+
+            try {
+                await deleteDoc(doc(db, collectionPath, questionId));
+                showToast('題目刪除成功！', 'success');
+            } catch (e) {
+                console.error("刪除題目失敗: ", e);
+                showToast(`刪除題目失敗: ${e.message.includes('PERMISSION_DENIED') ? '權限不足，操作已被資料庫拒絕。' : e.message}`, 'error');
+            }
+        }
+        
+        /** 【V21 新增】刪除所有私人題庫中的題目 */
+        async function deleteAllQuestions() {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能執行此危險操作。', 'error'); return; }
+            
+            const confirmed = await showModal(
+                '⚠️ 極度危險操作：確認刪除所有資料', 
+                `您確定要**永久刪除**私人題庫中的所有 ${questions.length} 筆題目嗎？此操作無法恢復！`, 
+                '確認刪除所有資料'
+            );
+            if (!confirmed) return;
+
+            const collectionPath = getQuizCollectionPath();
+            if (!collectionPath) return;
+
+            const deleteButton = dom.quizList.deleteAllButton;
+            const originalHtml = deleteButton.innerHTML;
+            deleteButton.disabled = true;
+            deleteButton.innerHTML = `<div class="loading-ring w-4 h-4"></div> 刪除中...`;
+
+            try {
+                // 獲取所有文件（只讀取 ID）
+                const quizCollectionRef = collection(db, collectionPath);
+                const snapshot = await getDocs(query(quizCollectionRef));
+                const docsToDelete = snapshot.docs;
+                
+                if (docsToDelete.length === 0) {
+                    showToast('資料庫中沒有題目需要刪除。', 'info');
+                    return;
+                }
+
+                let totalDeleted = 0;
+                // 分批刪除 (每次最多 500 筆)
+                for (let i = 0; i < docsToDelete.length; i += 500) {
+                    const batch = writeBatch(db);
+                    const batchDocs = docsToDelete.slice(i, i + 500);
+
+                    batchDocs.forEach(doc => {
+                        batch.delete(doc.ref);
+                        totalDeleted++;
+                    });
+                    await batch.commit();
+                }
+
+                showToast(`成功刪除所有 ${totalDeleted} 筆私人題目！`, 'success');
+                
+            } catch (e) {
+                console.error("刪除所有題目失敗:", e);
+                showToast(`刪除失敗: ${e.message.includes('PERMISSION_DENIED') ? '權限不足，操作已被資料庫拒絕。' : e.message}`, 'error');
+            } finally {
+                deleteButton.innerHTML = originalHtml;
+                deleteButton.disabled = false;
+            }
+        }
+
+        
+        async function handleCsvFileSelect(event) {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能匯入 CSV。', 'error'); return; }
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => doCsvImport(e.target.result);
+            reader.readAsText(file, 'UTF-8');
+            dom.quizForm.csvInput.value = '';
+        }
+
+        async function doCsvImport(csvText) {
+            dom.quizForm.importCsvButton.disabled = true;
+            dom.quizForm.importCsvButton.innerHTML = `<div class="loading-ring w-4 h-4"></div> 正在匯入...`;
+            dom.quizForm.formErrorMessage.classList.add('hidden');
+            
+            const collectionPath = getQuizCollectionPath();
+            if (!collectionPath) {
+                dom.quizForm.importCsvButton.innerHTML = `<i data-lucide="file-text" class="w-5 h-5 mr-2 inline-block"></i> 匯入 CSV 檔案`;
+                dom.quizForm.importCsvButton.disabled = false;
+                return;
+            }
+
+            try {
+                // ... (CSV 解析邏輯保持不變)
+                const lines = csvText.trim().split('\n').filter(line => line.trim() !== '');
+                if (lines.length < 2) throw new Error("CSV 檔案內容不足 (需要標題和至少一行數據)。");
+                
+                const headers = lines[0].split(',').map(h => h.trim());
+                const dataLines = lines.slice(1);
+                
+                const expectedHeaders = ['商品類別名稱', '題目類別名稱', '題號', '題目內容', '選項1', '選項2', '選項3', '選項4', '答案(1-4)'];
+                if (headers.length !== expectedHeaders.length || headers.some((h, i) => h !== expectedHeaders[i])) {
+                    throw new Error("CSV 標題不匹配。請確保標題為: " + expectedHeaders.join(', '));
+                }
+
+                const categoryMap = {
+                    product: new Map(productCategories.map(c => [c.name, c.id])),
+                    question: new Map(questionCategories.map(c => [c.name, c.id]))
+                };
+                
+                let importCount = 0;
+                let errorCount = 0;
+                let maxSequence = questions.length > 0 ? Math.max(...questions.map(q => q.sequence || 0)) : 0;
+
+                const batch = writeBatch(db);
+                const quizCollectionRef = collection(db, collectionPath);
+
+                dataLines.forEach((line, index) => {
+                    const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim()) || [];
+
+                    if (values.length !== expectedHeaders.length) {
+                        console.warn(`跳過第 ${index + 2} 行: 欄位數量不匹配 (${values.length} vs ${expectedHeaders.length})。內容: ${line}`);
+                        errorCount++;
+                        return;
+                    }
+                    
+                    try {
+                        const productCatName = values[0]; // 獲取類別名稱
+                        const questionCatName = values[1];
+
+                        const productCatId = categoryMap.product.get(productCatName);
+                        const questionCatId = categoryMap.question.get(questionCatName);
+                        const correctAnswer = parseInt(values[8], 10);
+                        
+                        if (!productCatId) throw new Error(`找不到商品類別 ID: ${productCatName}`);
+                        if (!questionCatId) throw new Error(`找不到題目類別 ID: ${questionCatName}`);
+                        if (isNaN(correctAnswer) || correctAnswer < 1 || correctAnswer > 4) throw new Error(`答案 (1-4) 無效: ${values[8]}`);
+
+                        maxSequence++;
+
+                        const newQuestionData = {
+                            productCategoryId: productCatId,
+                            questionCategoryId: questionCatId,
+                            questionNumber: values[2],
+                            questionText: values[3],
+                            option1: values[4],
+                            option2: values[5],
+                            option3: values[6],
+                            option4: values[7],
+                            correctAnswer: correctAnswer,
+                            sequence: maxSequence,
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp(),
+                        };
+                        
+                        // 【V20 修正】將 batch.add 替換為 doc(collectionRef) + batch.set
+                        const newDocRef = doc(quizCollectionRef); 
+                        batch.set(newDocRef, newQuestionData);
+                        importCount++;
+
+                    } catch (innerError) {
+                        // 【V22 修正：新增 console.log 輸出錯誤行】
+                        console.error(`第 ${index + 2} 行處理失敗: ${innerError.message}. 原始資料行: ${line}`);
+                        errorCount++;
+                    }
+                });
+                
+                if (importCount > 0) {
+                    await batch.commit();
+                    showToast(`CSV 匯入完成！成功 ${importCount} 題，失敗 ${errorCount} 題。`, errorCount > 0 ? 'info' : 'success');
+                } else if (errorCount > 0) {
+                     showToast(`CSV 匯入失敗，所有題目均無效。`, 'error');
+                } else {
+                     showToast(`CSV 檔案中沒有找到可匯入的題目。`, 'info');
+                }
+                
+            } catch (e) {
+                console.error("CSV 匯入失敗: ", e);
+                const errorMessage = e.message.includes('PERMISSION_DENIED') ? '權限不足，操作已被資料庫拒絕。' : `CSV 匯入發生嚴重錯誤: ${e.message}`;
+                dom.quizForm.formErrorMessage.textContent = errorMessage;
+                dom.quizForm.formErrorMessage.classList.remove('hidden');
+                showToast(errorMessage, 'error');
+            } finally {
+                dom.quizForm.importCsvButton.innerHTML = `<i data-lucide="file-text" class="w-5 h-5 mr-2 inline-block"></i> 匯入 CSV 檔案`;
+                dom.quizForm.importCsvButton.disabled = false;
+            }
+        }
+        
+        /** 發布公開題庫 (Public Collection Sync) */
+        async function publishQuizBank() {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能發布題目。', 'error'); return; }
+            const confirmed = await showModal(
+                '確認發布', 
+                `您確定要將私人題庫中的 ${questions.length} 筆題目發布到公開題庫嗎？這將會覆蓋所有現有的公開題目。`, 
+                '確認發布'
+            );
+            if (!confirmed) return;
+
+            const publicCollectionPath = getPublicQuizCollectionPath();
+            const publishButton = dom.quizList.publishButton;
+            const originalHtml = publishButton.innerHTML;
+            publishButton.disabled = true;
+            publishButton.innerHTML = `<div class="loading-ring w-4 h-4"></div> 發布中...`;
+
+
+            try {
+                const publicCollectionRef = collection(db, publicCollectionPath);
+
+                // 1. 刪除所有現有公開題目
+                const existingPublicDocs = await getDocs(query(publicCollectionRef));
+                const deleteBatch = writeBatch(db);
+                existingPublicDocs.docs.forEach(doc => deleteBatch.delete(doc.ref));
+                await deleteBatch.commit();
+
+                // 2. 批量寫入新的私人題目到公開集合
+                const publishBatch = writeBatch(db);
+                let publishedCount = 0;
+                
+                questions.forEach(q => {
+                    const { id, sequence, createdAt, updatedAt, ...rest } = q; 
+                    const newDocRef = doc(publicCollectionRef); 
+                    
+                    publishBatch.set(newDocRef, {
+                        ...rest,
+                        sequence: sequence,
+                        publisherId: userId, 
+                        publishedAt: serverTimestamp(),
+                    });
+                    publishedCount++;
+                });
+
+                await publishBatch.commit();
+                showToast(`成功發布 ${publishedCount} 筆題目到公開題庫！`, 'success');
+
+            } catch (e) {
+                console.error("發布失敗:", e);
+                showToast(`發布失敗: ${e.message.includes('PERMISSION_DENIED') ? '權限不足，操作已被資料庫拒絕。' : e.message}`, 'error');
+            } finally {
+                publishButton.innerHTML = originalHtml;
+                publishButton.disabled = false;
+            }
+        }
+        
+        /** 設定即時監聽器 */
+        function setupRealtimeListener(type) {
+            if (!isAuthReady || !db) return;
+
+            if (type === 'quiz' && isAdmin) { 
+                const collectionPath = getQuizCollectionPath();
+                if (!collectionPath) return;
+                
+                const q = query(collection(db, collectionPath), orderBy("sequence", "asc"));
+
+                onSnapshot(q, (querySnapshot) => {
+                    if (dom.quizList && dom.quizList.loadingIndicator) {
+                        dom.quizList.loadingIndicator.classList.add('hidden');
+                    }
+                    
+                    questions = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        questions.push({ id: doc.id, ...data });
+                    });
+                    // 【V16 修正】獲取篩選器當前值並傳遞給渲染函數
+                    renderQuestions(
+                        dom.quizList.searchInput.value,
+                        dom.quizList.productFilter.value,
+                        dom.quizList.questionFilter.value
+                    );
+                    initializeSortable(); 
+                }, (error) => {
+                    console.error("題目監聽失敗: ", error);
+                    if (dom.quizList && dom.quizList.loadingIndicator) {
+                        dom.quizList.loadingIndicator.innerHTML = '<span class="text-red-500">載入錯誤。</span>';
+                    }
+                });
+            } else if (type === 'public') { 
+                const publicCollectionPath = getPublicQuizCollectionPath();
+                if (!publicCollectionPath) return;
+
+                const q = query(collection(db, publicCollectionPath), orderBy("sequence", "asc"));
+
+                onSnapshot(q, (querySnapshot) => {
+                    if (document.getElementById('public-loading-indicator')) {
+                        document.getElementById('public-loading-indicator').classList.add('hidden');
+                    }
+                    
+                    publicQuestions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // V17 診斷日誌 (Success)
+                    console.log(`[Public Listener Success] 讀取公開題庫成功, 總筆數: ${publicQuestions.length}, 當前用戶UID: ${userId}`);
+
+                    // 【V16 修正】無論當前視圖是否為公開題庫，都進行渲染（僅在視圖顯示時才更新 DOM）
+                    renderPublicQuestions(
+                        dom.publicQuiz.searchInput.value,
+                        dom.publicQuiz.productFilter.value,
+                        dom.publicQuiz.questionFilter.value
+                    );
+                }, (error) => {
+                     // V17 診斷日誌 (Error)
+                     console.error(`[Public Listener Error] 公開題庫讀取失敗！錯誤信息: ${error.message}. 請檢查 Firebase 規則是否已發布。`);
+                     // 僅顯示錯誤訊息，不影響頁面載入
+                });
+
+            } else if (type === 'categories') {
+                onSnapshot(query(collection(db, getCategoryCollectionPath('product')), orderBy("createdAt", "asc")), (snapshot) => {
+                    productCategories = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderCategoryList('product');
+                    renderCategorySelects();
+                    // 類別更新後重新渲染列表以更新篩選結果
+                    if (isAdmin) renderQuestions(dom.quizList.searchInput.value, dom.quizList.productFilter.value, dom.quizList.questionFilter.value);
+                    renderPublicQuestions(dom.publicQuiz.searchInput.value, dom.publicQuiz.productFilter.value, dom.publicQuiz.questionFilter.value);
+                });
+                
+                onSnapshot(query(collection(db, getCategoryCollectionPath('question')), orderBy("createdAt", "asc")), (snapshot) => {
+                    questionCategories = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderCategoryList('question');
+                    renderCategorySelects();
+                    // 類別更新後重新渲染列表以更新篩選結果
+                    if (isAdmin) renderQuestions(dom.quizList.searchInput.value, dom.quizList.productFilter.value, dom.quizList.questionFilter.value);
+                    renderPublicQuestions(dom.publicQuiz.searchInput.value, dom.publicQuiz.productFilter.value, dom.publicQuiz.questionFilter.value);
+                });
+            }
+        }
+        
+        /**
+         * 渲染私人題庫列表 (Admin Only)
+         * @param {string} filterText 搜尋過濾文字
+         * @param {string} productCatId 商品類別ID (用於篩選)
+         * @param {string} questionCatId 題目類別ID (用於篩選)
+         */
+        function renderQuestions(filterText = '', productCatId = '', questionCatId = '') {
+            const normalizedFilter = filterText.toLowerCase().trim();
+
+            const filteredQuestions = questions.filter(q => {
+                // 1. 類別篩選
+                const categoryMatch = 
+                    (!productCatId || q.productCategoryId === productCatId) &&
+                    (!questionCatId || q.questionCategoryId === questionCatId);
+                
+                if (!categoryMatch) return false;
+
+                // 2. 文本搜尋
+                if (!normalizedFilter) return true;
+                
+                return Object.values(q).some(val => 
+                    (typeof val === 'string' && val.toLowerCase().includes(normalizedFilter))
+                );
+            });
+
+            dom.quizList.questionsList.innerHTML = '';
+            dom.quizList.totalQuestions.textContent = `共 ${filteredQuestions.length} 題`;
+
+            if (filteredQuestions.length === 0) {
+                dom.quizList.noQuestionsMessage.classList.remove('hidden');
+            } else {
+                dom.quizList.noQuestionsMessage.classList.add('hidden');
+            }
+            
+            filteredQuestions.forEach((q, index) => {
+                // 【V24 修正】現在 isAdminView = true 不再添加 cursor-grab，而是由 drag-handle 提供
+                dom.quizList.questionsList.appendChild(createQuestionCard(q, index, true)); 
+            });
+
+            lucide.createIcons();
+        }
+        
+        /**
+         * 渲染公開題庫列表 (All Users)
+         * @param {string} filterText 搜尋過濾文字
+         * @param {string} productCatId 商品類別ID (用於篩選)
+         * @param {string} questionCatId 題目類別ID (用於篩選)
+         */
+        function renderPublicQuestions(filterText = '', productCatId = '', questionCatId = '') {
+            const normalizedFilter = filterText.toLowerCase().trim();
+
+            const filteredPublicQuestions = publicQuestions.filter(q => {
+                // 1. 類別篩選
+                const categoryMatch = 
+                    (!productCatId || q.productCategoryId === productCatId) &&
+                    (!questionCatId || q.questionCategoryId === questionCatId);
+                
+                if (!categoryMatch) return false;
+
+                // 2. 文本搜尋
+                if (!normalizedFilter) return true;
+                
+                return Object.values(q).some(val => 
+                    (typeof val === 'string' && val.toLowerCase().includes(normalizedFilter))
+                );
+            });
+            
+            dom.publicQuiz.totalQuestions.textContent = `共 ${filteredPublicQuestions.length} 題`;
+
+
+            // 僅在當前視圖是公開題庫時才更新 DOM
+            if (currentView === 'quiz-public') {
+                dom.publicQuiz.questionsList.innerHTML = '';
+                
+                if (filteredPublicQuestions.length === 0) {
+                    dom.publicQuiz.noQuestionsMessage.classList.remove('hidden');
+                } else {
+                    dom.publicQuiz.noQuestionsMessage.classList.add('hidden');
+                    
+                    filteredPublicQuestions.forEach((q, index) => {
+                        dom.publicQuiz.questionsList.appendChild(createQuestionCard(q, index, false));
+                    });
+                }
+                lucide.createIcons();
+            }
+        }
+        
+        function initializeOptions() {
+            dom.quizForm.optionsContainer.innerHTML = '';
+            for (let i = 1; i <= 4; i++) {
+                const optionDiv = dom.quizForm.optionTemplate.content.cloneNode(true).children[0];
+                const radio = optionDiv.querySelector('input[type="radio"]');
+                const input = optionDiv.querySelector('.option-input');
+
+                radio.value = i;
+                input.id = `option-${i}`;
+                input.placeholder = `選項 ${i} 內容`;
+
+                const label = document.createElement('label');
+                label.setAttribute('for', `option-${i}`);
+                label.textContent = `選項 ${i}:`;
+                label.className = "text-sm font-medium text-gray-700 w-16 flex-shrink-0 pt-2";
+                optionDiv.prepend(label);
+
+                dom.quizForm.optionsContainer.appendChild(optionDiv);
+            }
+        }
+        
+        /** * 重設題目表單和篩選器狀態 
+         * 【V19 修正】清空私人題庫的篩選器
+         */
+        function resetForm() {
+            dom.quizForm.form.reset();
+            dom.quizForm.questionIdInput.value = '';
+            dom.quizForm.formTitle.textContent = '新增題目';
+            dom.quizForm.submitButtonText.textContent = '儲存題目';
+            dom.quizForm.submitButton.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+            dom.quizForm.submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            dom.quizForm.formErrorMessage.classList.add('hidden');
+            initializeOptions();
+            renderCategorySelects(); 
+
+            // V19 修正：清空私人題庫篩選器
+            dom.quizList.productFilter.value = "";
+            dom.quizList.questionFilter.value = "";
+            dom.quizList.searchInput.value = "";
+            if(isAdmin) renderQuestions("", "", ""); // 觸發重新渲染以清除篩選
+        }
+
+        function loadQuestionForEdit(question) {
+            if (!isAdmin) { showToast('操作失敗：只有管理員才能編輯題目。', 'error'); return; }
+            switchView('quiz-form'); 
+
+            dom.quizForm.questionIdInput.value = question.id;
+            document.getElementById('question-number').value = question.questionNumber;
+            document.getElementById('question-text').value = question.questionText;
+
+            dom.quizForm.productCategorySelect.value = question.productCategoryId || '';
+            dom.quizForm.questionCategorySelect.value = question.questionCategoryId || '';
+
+            initializeOptions();
+            const optionInputs = document.querySelectorAll('#options-container .option-input');
+            optionInputs[0].value = question.option1 || '';
+            optionInputs[1].value = question.option2 || '';
+            optionInputs[2].value = question.option3 || '';
+            optionInputs[3].value = question.option4 || '';
+
+            const correctRadio = document.querySelector(`input[name="correct-answer"][value="${question.correctAnswer}"]`);
+            if (correctRadio) correctRadio.checked = true;
+
+            dom.quizForm.formTitle.textContent = '編輯題目';
+            dom.quizForm.submitButtonText.textContent = '更新題目';
+            dom.quizForm.submitButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            dom.quizForm.submitButton.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+
+            document.getElementById('quiz-form-view').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        /**
+         * 建立題目卡片
+         * @param {object} q 題目數據
+         * @param {number} index 序號
+         * @param {boolean} isAdminView 是否為管理員介面 (影響顯示和互動)
+         */
+        function createQuestionCard(q, index, isAdminView) {
+            const productCatName = productCategories.find(c => c.id === q.productCategoryId)?.name || '未知商品類別';
+            const questionCatName = questionCategories.find(c => c.id === q.questionCategoryId)?.name || '未知題目類別';
+
+            const options = [q.option1, q.option2, q.option3, q.option4];
+            let optionsHtml = '';
+            
+            // 【V24 新增】拖曳把手 HTML，僅在管理員視圖顯示
+            const dragHandleHtml = isAdminView 
+                ? `<div class="drag-handle p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 cursor-grab flex-shrink-0 mr-3 transition duration-150" title="拖曳排序">
+                        <i data-lucide="grip-vertical" class="w-5 h-5"></i>
+                   </div>`
+                : '';
+
+            if (isAdminView) {
+                 // 管理員視圖：直接顯示選項和正確答案標記 (列表顯示選項為 li)
+                optionsHtml = options.map((opt, i) => {
+                    const isCorrect = (i + 1) === q.correctAnswer;
+                    return `
+                        <li class="p-2 rounded-lg text-sm ${isCorrect ? 'bg-green-50 border border-green-200 text-green-800 font-semibold' : 'bg-gray-50 text-gray-700'}">
+                            <span class="font-mono text-xs mr-2 ${isCorrect ? 'text-green-600' : 'text-gray-400'}">${['A', 'B', 'C', 'D'][i]}.</span> ${opt}
+                            ${isCorrect ? '<i data-lucide="check-circle" class="w-4 h-4 inline-block ml-1 text-green-500"></i>' : ''}
+                        </li>
+                    `;
+                }).join('');
+            } else {
+                // 【V23 修正】公開觀看者視圖：使用按鈕實現互動問答模式
+                optionsHtml = options.map((opt, i) => {
+                    return `
+                        <button class="public-option-btn w-full text-left p-3 rounded-lg text-sm bg-gray-50 text-gray-700 hover:bg-gray-100 transition duration-150"
+                                data-question-id="${q.id}" 
+                                data-answer="${i + 1}" 
+                                data-correct-answer="${q.correctAnswer}">
+                            <span class="font-mono text-xs mr-2 text-gray-400">${['A', 'B', 'C', 'D'][i]}.</span> ${opt}
+                            <i data-lucide="check" class="w-4 h-4 ml-2 inline-block text-green-500 hidden correct-indicator"></i>
+                            <i data-lucide="x" class="w-4 h-4 ml-2 inline-block text-red-500 hidden incorrect-indicator"></i>
+                        </button>
+                    `;
+                }).join('');
+                
+                // 將 optionsHtml 包裹在 ul 中，以保持結構一致
+                optionsHtml = `<div class="space-y-2">${optionsHtml}</div>`;
+            }
+
+            const card = document.createElement('div');
+            card.id = `q-${q.id}`;
+            // 移除 card.classList.add('cursor-grab')
+            card.className = "quiz-card bg-white p-5 rounded-xl shadow hover:shadow-lg transition duration-200 ease-in-out border-t-2 border-gray-100 fade-in";
+            
+            if (isAdminView) {
+                card.dataset.id = q.id;
+            }
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-3 pb-3 border-b">
+                    <div>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2">${productCatName}</span>
+                        <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">${questionCatName}</span>
+                    </div>
+                    <span class="text-sm font-bold text-gray-600">題號: ${q.questionNumber}</span>
+                </div>
+                
+                <div class="flex items-start justify-between">
+                    <!-- 【V24 修正】將把手與問題內容放在一個 flex 容器中 -->
+                    <div class="flex items-start flex-1"> 
+                         ${dragHandleHtml} 
+                        <p class="text-lg font-medium text-gray-800 mb-4 flex-1">
+                           <span class="mr-2 text-gray-400">${index + 1}.</span> ${q.questionText}
+                        </p>
+                    </div>
+                    <button class="toggle-btn text-gray-500 hover:text-gray-800 p-1 flex-shrink-0" data-toggle-id="details-${q.id}">
+                        <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div id="details-${q.id}" class="toggle-details space-y-2 mb-4 hidden">
+                    ${optionsHtml}
+                    <div class="text-xs text-gray-400 mt-2">ID: ${q.id}</div>
+                </div>
+
+                ${isAdminView ? 
+                    `<div class="flex justify-end space-x-3 pt-3 border-t">
+                        <button class="edit-btn px-3 py-1 text-sm bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition duration-150 flex items-center" 
+                                data-id="${q.id}">
+                            <i data-lucide="pen-tool" class="w-4 h-4 mr-1"></i> 編輯
+                        </button>
+                        <button class="delete-btn px-3 py-1 text-sm bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition duration-150 flex items-center" 
+                                data-id="${q.id}">
+                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> 刪除
+                        </button>
+                    </div>` : ''}
+            `;
+            return card;
+        }
+
+        /**
+         * 【V23 新增】處理觀看者在公開題庫點擊答案的事件
+         */
+        function handlePublicQuizClick(event) {
+            const target = event.target.closest('.public-option-btn');
+            if (!target || target.disabled) return;
+
+            const questionCard = target.closest('.quiz-card');
+            const allOptions = questionCard.querySelectorAll('.public-option-btn');
+            const selectedAnswer = parseInt(target.dataset.answer, 10);
+            const correctAnswer = parseInt(target.dataset.correctAnswer, 10);
+            
+            // 1. 處理所有選項的狀態
+            allOptions.forEach(btn => {
+                btn.disabled = true; // 禁用所有選項
+                const btnAnswer = parseInt(btn.dataset.answer, 10);
+                
+                // 移除 Hover 效果
+                btn.classList.remove('hover:bg-gray-100');
+
+                if (btnAnswer === selectedAnswer) {
+                    // 這是用戶點擊的選項
+                    if (btnAnswer === correctAnswer) {
+                        // 點擊正確
+                        btn.classList.remove('bg-gray-50', 'text-gray-700');
+                        btn.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800', 'font-semibold');
+                        btn.querySelector('.correct-indicator').classList.remove('hidden');
+                        showToast('回答正確！', 'success');
+                    } else {
+                        // 點擊錯誤
+                        btn.classList.remove('bg-gray-50', 'text-gray-700');
+                        btn.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800', 'font-semibold');
+                        btn.querySelector('.incorrect-indicator').classList.remove('hidden');
+                        showToast('回答錯誤！', 'error');
+                    }
+                } else if (btnAnswer === correctAnswer) {
+                    // 標記正確答案 (僅當用戶點擊錯誤時顯示，以供學習)
+                    if (selectedAnswer !== correctAnswer) {
+                         btn.classList.remove('bg-gray-50', 'text-gray-700');
+                         btn.classList.add('bg-green-50', 'border-dashed', 'border-green-200', 'text-green-700', 'font-medium');
+                         btn.querySelector('.correct-indicator').classList.remove('hidden');
+                    }
+                } else {
+                    // 未選擇的錯誤答案
+                    btn.classList.remove('bg-gray-50', 'text-gray-700');
+                    btn.classList.add('bg-gray-100', 'text-gray-500');
+                }
+            });
+
+            // 展開詳細資訊區以顯示結果（如果還沒展開）
+            const detailsId = `details-${target.dataset.questionId}`;
+            const details = document.getElementById(detailsId);
+            if (details && details.classList.contains('hidden')) {
+                const toggleBtn = questionCard.querySelector(`.toggle-btn[data-toggle-id="${detailsId}"]`);
+                details.classList.remove('hidden');
+                if (toggleBtn) {
+                    const icon = toggleBtn.querySelector('i') || toggleBtn.querySelector('svg');
+                    icon.classList.add('rotate-180');
+                }
+            }
+            
+            lucide.createIcons();
+        }
+
+
+        function switchView(viewName) {
+            currentView = viewName;
+            
+            Object.values(dom.views).forEach(view => view.classList.add('hidden'));
+
+            if (dom.views[viewName]) {
+                dom.views[viewName].classList.remove('hidden');
+                
+                if (viewName === 'quiz-public') {
+                    // 【V16 修正】當切換到公開頁面時，立即使用當前的篩選值重新渲染
+                    renderPublicQuestions(
+                        dom.publicQuiz.searchInput.value,
+                        dom.publicQuiz.productFilter.value,
+                        dom.publicQuiz.questionFilter.value
+                    );
+                } else if (viewName === 'quiz-list') {
+                    initializeSortable();
+                    // 【V16 修正】當切換到私人頁面時，立即使用當前的篩選值重新渲染
+                     renderQuestions(
+                        dom.quizList.searchInput.value,
+                        dom.quizList.productFilter.value,
+                        dom.quizList.questionFilter.value
+                    );
+                }
+            }
+
+            if (dom.navButtons) {
+                dom.navButtons.forEach(btn => {
+                    if (btn.dataset.view === viewName) {
+                        btn.classList.add('bg-blue-500', 'text-white', 'shadow-md');
+                        btn.classList.remove('text-gray-700', 'hover:bg-gray-100');
+                    } else {
+                        btn.classList.remove('bg-blue-500', 'text-white', 'shadow-md');
+                        btn.classList.add('text-gray-700', 'hover:bg-gray-100');
+                    }
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function initializeSortable() {
+            if (sortableInstance) {
+                sortableInstance.destroy();
+                sortableInstance = null;
+            }
+
+            if (!isAdmin || dom.views['quiz-list'].classList.contains('hidden')) return;
+
+            if (typeof Sortable === 'undefined') {
+                console.error("SortableJS 未載入。無法啟用拖曳排序。");
+                return;
+            }
+            
+            sortableInstance = Sortable.create(dom.quizList.questionsList, {
+                animation: 150,
+                handle: '.drag-handle', // 【V24 修正】使用新的拖曳把手類別
+                draggable: '.quiz-card',
+                filter: '.toggle-btn, .edit-btn, .delete-btn', 
+                preventOnFilter: true, 
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: handleSortEnd 
+            });
+        }
+        
+        async function handleSortEnd(evt) {
+            if (!isAdmin) return; 
+            dom.quizList.reorderingIndicator.classList.remove('hidden');
+            
+            try {
+                const newOrderedCards = Array.from(dom.quizList.questionsList.querySelectorAll('.quiz-card'));
+                const batch = writeBatch(db);
+                const quizCollectionRef = collection(db, getQuizCollectionPath());
+                let updatesNeeded = 0;
+
+                newOrderedCards.forEach((card, index) => {
+                    const id = card.dataset.id;
+                    // Note: We should fetch the original sequence from the 'questions' array if we weren't updating the DOM directly
+                    // Since we rely on the Firestore listener to update the entire array, we can safely trust the index here for the new sequence.
+                    const newSequence = index + 1;
+                    
+                    const originalQuestion = questions.find(q => q.id === id);
+                    if (originalQuestion && originalQuestion.sequence !== newSequence) {
+                        const docRef = doc(quizCollectionRef, id);
+                        batch.update(docRef, { sequence: newSequence });
+                        updatesNeeded++;
+                    }
+                });
+
+                if (updatesNeeded > 0) {
+                    await batch.commit();
+                    showToast('排序更新成功！', 'success');
+                } else {
+                    showToast('順序沒有改變，無需更新。', 'info');
+                }
+
+            } catch (error) {
+                console.error("更新排序失敗: ", error);
+                showToast('更新排序失敗。', 'error');
+            } finally {
+                dom.quizList.reorderingIndicator.classList.add('hidden');
+            }
+        }
+        
+        /** 處理列表中的按鈕交互 (編輯/刪除/展開) */
+        function handleListInteraction(event) {
+            const target = event.target.closest('button');
+            if (!target) return;
+            
+            // 避免在拖曳選中的卡片上觸發按鈕
+            if (target.closest('.sortable-chosen')) return;
+
+            if (target.classList.contains('edit-btn')) {
+                if (!isAdmin) { showToast('操作失敗：只有管理員才能編輯題目。', 'error'); return; }
+                const questionId = target.dataset.id;
+                const questionToEdit = questions.find(q => q.id === questionId);
+                if (questionToEdit) loadQuestionForEdit(questionToEdit);
+            } else if (target.classList.contains('delete-btn')) {
+                if (!isAdmin) { showToast('操作失敗：只有管理員才能刪除題目。', 'error'); return; }
+                deleteQuestion(target.dataset.id);
+            } else if (target.classList.contains('toggle-btn')) {
+                const detailsId = target.dataset.toggleId;
+                const details = document.getElementById(detailsId);
+                const icon = target.querySelector('i') || target.querySelector('svg');
+
+                if (details && icon) {
+                    const isHidden = details.classList.contains('hidden');
+                    details.classList.toggle('hidden', !isHidden);
+                    icon.classList.toggle('rotate-180', isHidden);
+                }
+            }
+        }
+
+        // --- 初始設置與事件綁定 ---
+
+        /** 綁定所有事件監聽器 */
+        function setupEventListeners() {
+            console.log("[Setup] Binding event listeners.");
+            
+            // 認證按鈕事件
+            dom.loginBtn.addEventListener('click', loginAsAdmin);
+            dom.logoutBtn.addEventListener('click', logout);
+            
+            // 列表頁按鈕事件
+            document.getElementById('add-quiz-btn').addEventListener('click', () => {
+                if (!isAdmin) { showToast('操作失敗：只有管理員才能新增題目。', 'error'); return; }
+                resetForm(); 
+                switchView('quiz-form');
+            });
+            dom.quizList.publishButton.addEventListener('click', publishQuizBank);
+            // 【V21 新增】刪除所有題目事件
+            dom.quizList.deleteAllButton.addEventListener('click', deleteAllQuestions); 
+
+            // 題目表單事件
+            dom.quizForm.form.addEventListener('submit', saveQuestion);
+            dom.quizForm.cancelButton.addEventListener('click', () => {
+                resetForm();
+                switchView(isAdmin ? 'quiz-list' : 'quiz-public');
+            });
+            
+            // CSV 匯入事件
+            dom.quizForm.importCsvButton.addEventListener('click', () => dom.quizForm.csvInput.click());
+            dom.quizForm.csvInput.addEventListener('change', handleCsvFileSelect);
+
+            // 【V16 新增】私人題庫篩選/搜尋事件
+            let privateSearchTimeout;
+            const triggerPrivateRender = () => {
+                 clearTimeout(privateSearchTimeout);
+                 privateSearchTimeout = setTimeout(() => {
+                    renderQuestions(
+                        dom.quizList.searchInput.value,
+                        dom.quizList.productFilter.value,
+                        dom.quizList.questionFilter.value
+                    );
+                 }, 300);
+            };
+
+            dom.quizList.searchInput.addEventListener('input', triggerPrivateRender);
+            dom.quizList.productFilter.addEventListener('change', triggerPrivateRender);
+            dom.quizList.questionFilter.addEventListener('change', triggerPrivateRender);
+            
+            // 【V16 新增】公開題庫篩選/搜尋事件 (與私人邏輯相同)
+            let publicSearchTimeout;
+            const triggerPublicRender = () => {
+                 clearTimeout(publicSearchTimeout);
+                 publicSearchTimeout = setTimeout(() => {
+                    renderPublicQuestions(
+                        dom.publicQuiz.searchInput.value,
+                        dom.publicQuiz.productFilter.value,
+                        dom.publicQuiz.questionFilter.value
+                    );
+                 }, 300);
+            };
+
+            dom.publicQuiz.searchInput.addEventListener('input', triggerPublicRender);
+            dom.publicQuiz.productFilter.addEventListener('change', triggerPublicRender);
+            dom.publicQuiz.questionFilter.addEventListener('change', triggerPublicRender);
+
+
+            dom.quizList.questionsList.addEventListener('click', handleListInteraction);
+            document.getElementById('public-questions-list').addEventListener('click', handleListInteraction);
+            // 【V23 新增】公開題庫的選項點擊事件
+            document.getElementById('public-questions-list').addEventListener('click', handlePublicQuizClick);
+            
+            // ** V15 診斷：類別新增事件（保留診斷日誌）**
+            dom.category.productAddButton.addEventListener('click', () => {
+                console.log("[Diagnostic] Product Add Button clicked.");
+                const nameInput = dom.category.productInput;
+                if (nameInput.checkValidity()) {
+                    addCategory('product', nameInput.value);
+                } else {
+                    nameInput.reportValidity(); // 如果輸入框為空，顯示瀏覽器預設錯誤提示
+                }
+            });
+            
+            dom.category.questionAddButton.addEventListener('click', () => {
+                console.log("[Diagnostic] Question Add Button clicked.");
+                const nameInput = dom.category.questionInput;
+                if (nameInput.checkValidity()) {
+                    addCategory('question', nameInput.value);
+                } else {
+                    nameInput.reportValidity();
+                }
+            });
+            
+            // 類別列表代理事件 (刪除)
+            document.getElementById('category-manager-view').addEventListener('click', (event) => {
+                const target = event.target.closest('.delete-cat-btn');
+                if (!target) return;
+                deleteCategory(target.dataset.type, target.dataset.id, target.dataset.name);
+            });
+        }
+
+        // 頁面加載完成後執行
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDomElements(); // 優先初始化 DOM 元素
+            setupEventListeners();
+            initializeOptions(); // 【V18 修正：將表單初始化移到這裡】
+            lucide.createIcons();
+        });
+
+    </script>
+</body>
+</html>

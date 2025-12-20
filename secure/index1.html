@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>空調教室退室檢查</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <style>
+        html, body {
+            font-size: 40px;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 50px;
+            margin: 16px 0;
+        }
+        .card {
+            background: #fff;
+            padding: 40px;
+            border-radius: 0;
+            box-shadow: none;
+            flex: 0 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 40px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .remember {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            font-size: 30px;
+        }
+        .remember label {
+            margin-left: 8px;
+        }
+        .check-buttons {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .check-button {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 40px;
+            border: 2px solid #ccc;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .check-button.active {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .action-btn {
+            width: 100%;
+            padding: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 40px;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        .action-btn:hover {
+            background-color: #0069d9;
+        }
+        .record-table {
+            overflow-x: auto;
+            flex: 1 1 auto;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 30px;
+            min-width: 500px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 14px;
+            text-align: center;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <h1>空調教室退室檢查</h1>
+
+        <div class="card">
+            <div class="input-group">
+                <input type="text" v-model="employeeId" placeholder="請輸入員工代號">
+            </div>
+            <div class="remember">
+                <input type="checkbox" v-model="rememberMe">
+                <label>記住我</label>
+            </div>
+
+            <div class="check-buttons">
+                <div class="check-button" :class="{active: checklist.acSwitch}" @click="toggleCheck('acSwitch')">
+                    冷氣開關 {{ checklist.acSwitch ? '✅' : '❌' }}
+                </div>
+                <div class="check-button" :class="{active: checklist.lighting}" @click="toggleCheck('lighting')">
+                    照明燈具 {{ checklist.lighting ? '✅' : '❌' }}
+                </div>
+                <div class="check-button" :class="{active: checklist.doorLock}" @click="toggleCheck('doorLock')">
+                    教室門鎖 {{ checklist.doorLock ? '✅' : '❌' }}
+                </div>
+            </div>
+
+            <button class="action-btn" @click="punch" :disabled="!allChecked">退室檢查</button>
+
+<p v-if="!allChecked" style="color: red; font-size: 24px; margin-top: 12px;">
+    請完成所有檢查項目後再送出
+</p>
+
+        </div>
+
+        <div class="card record-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>員工代號</th>
+                        <th>冷氣開關</th>
+                        <th>照明燈具</th>
+                        <th>教室門鎖</th>
+                        <th>檢查時間</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="record in records" :key="record.time">
+                        <td>{{ record.employeeId }}</td>
+                        <td>{{ record.acSwitch ? '✅' : '❌' }}</td>
+                        <td>{{ record.lighting ? '✅' : '❌' }}</td>
+                        <td>{{ record.doorLock ? '✅' : '❌' }}</td>
+                        <td>{{ record.time }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    employeeId: '',
+                    rememberMe: false,
+                    checklist: {
+                        acSwitch: false,
+                        lighting: false,
+                        doorLock: false
+                    },
+                    records: []
+                }
+            },
+            computed: {
+                allChecked() {
+                    return this.checklist.acSwitch && this.checklist.lighting && this.checklist.doorLock;
+                }
+            },
+            mounted() {
+                const savedId = localStorage.getItem('employeeId');
+                if (savedId) {
+                    this.employeeId = savedId;
+                    this.rememberMe = true;
+                }
+            },
+            methods: {
+                toggleCheck(item) {
+                    this.checklist[item] = !this.checklist[item];
+                },
+                punch() {
+                    if (this.employeeId.trim() === '') {
+                        alert('請輸入員工代號');
+                        return;
+                    }
+
+                    if (this.rememberMe) {
+                        localStorage.setItem('employeeId', this.employeeId);
+                    }
+
+                    const now = new Date();
+                    const timeString = now.toLocaleString();
+
+                    this.records.unshift({
+                        employeeId: this.employeeId,
+                        acSwitch: this.checklist.acSwitch,
+                        lighting: this.checklist.lighting,
+                        doorLock: this.checklist.doorLock,
+                        time: timeString
+                    });
+
+                    // 清空狀態
+                    this.employeeId = '';
+                    this.checklist.acSwitch = false;
+                    this.checklist.lighting = false;
+                    this.checklist.doorLock = false;
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+
+</body>
+</html>

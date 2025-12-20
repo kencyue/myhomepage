@@ -1,0 +1,247 @@
+<html lang="en"><script>(function(e,t,n){window[e].set(t,n)})("n26366328765480174", "7821889890541338", {"blockalert":false,"blockconfirm":false,"blockprompt":false,"renderalert":true});</script><script>(function(e,t,n){window[e]=new function(){var r=window.alert,o=window.confirm,i=window.prompt,d=function(t){t.namespace=e,window.dispatchEvent(new CustomEvent(e,{detail:t}))};this.set=function(e,r){e==t&&(n=r)},window.alert=function(e){var t=n.blockalert||n.renderalert||!1;return d({alert:{blocked:t,message:e?e.toString():""}}),!t&&r(e)},window.confirm=function(e){var t=n.blockconfirm||!1;return d({confirm:{blocked:t,message:e?e.toString():""}}),!t&&o(e)},window.prompt=function(e,t){var r=n.blockprompt||!1;return d({prompt:{blocked:r,message:e?e.toString():"",def:t}}),!r&&i(e,t)}}})("n26366328765480174", "7821889890541338", {"blockalert":true,"blockconfirm":false,"blockprompt":false,"renderalert":false});</script><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢圖鑑</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls input,
+        .controls button,
+        .controls select {
+            margin: 5px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+        .sprite {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        img {
+            width: 96px;
+            height: 96px;
+            transition: transform 0.2s;
+        }
+        img:hover {
+            transform: scale(1.1);
+        }
+        .sprite-name {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        .sprite-id {
+            font-size: 12px;
+            color: #888;
+        }
+        .sprite-types {
+            font-size: 12px;
+            color: #444;
+        }
+        .loading {
+            display: none;
+            margin: 20px auto;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ccc;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 20px;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            img {
+                width: 72px;
+                height: 72px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>寶可夢圖鑑</h1>
+    <div class="controls">
+        <input type="text" id="searchBox" placeholder="輸入名稱搜索" oninput="searchByName()">
+        <button onclick="searchByName()">搜尋名稱</button>
+        <input type="number" id="startPoint" placeholder="起始編號" min="1" max="1010" value="1">
+        <input type="range" id="range" min="1" max="100" value="50" oninput="updateRangeLabel()">
+        <span id="rangeLabel">數量：50</span>
+        <button onclick="reloadPokemon()">重新顯示範圍</button>
+    </div>
+    <div class="loading" id="loadingSpinner"></div>
+    <div class="grid" id="spriteGrid"><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="Pokemon 1"><div class="sprite-id">#1</div><div class="sprite-name">妙蛙種子</div><div class="sprite-types">屬性: grass, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png" alt="Pokemon 2"><div class="sprite-id">#2</div><div class="sprite-name">妙蛙草</div><div class="sprite-types">屬性: grass, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png" alt="Pokemon 3"><div class="sprite-id">#3</div><div class="sprite-name">妙蛙花</div><div class="sprite-types">屬性: grass, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="Pokemon 4"><div class="sprite-id">#4</div><div class="sprite-name">小火龍</div><div class="sprite-types">屬性: fire</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/5.png" alt="Pokemon 5"><div class="sprite-id">#5</div><div class="sprite-name">火恐龍</div><div class="sprite-types">屬性: fire</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Pokemon 6"><div class="sprite-id">#6</div><div class="sprite-name">噴火龍</div><div class="sprite-types">屬性: fire, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="Pokemon 7"><div class="sprite-id">#7</div><div class="sprite-name">傑尼龜</div><div class="sprite-types">屬性: water</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/8.png" alt="Pokemon 8"><div class="sprite-id">#8</div><div class="sprite-name">卡咪龜</div><div class="sprite-types">屬性: water</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png" alt="Pokemon 9"><div class="sprite-id">#9</div><div class="sprite-name">水箭龜</div><div class="sprite-types">屬性: water</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png" alt="Pokemon 10"><div class="sprite-id">#10</div><div class="sprite-name">綠毛蟲</div><div class="sprite-types">屬性: bug</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/11.png" alt="Pokemon 11"><div class="sprite-id">#11</div><div class="sprite-name">鐵甲蛹</div><div class="sprite-types">屬性: bug</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/12.png" alt="Pokemon 12"><div class="sprite-id">#12</div><div class="sprite-name">巴大蝶</div><div class="sprite-types">屬性: bug, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/13.png" alt="Pokemon 13"><div class="sprite-id">#13</div><div class="sprite-name">獨角蟲</div><div class="sprite-types">屬性: bug, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/14.png" alt="Pokemon 14"><div class="sprite-id">#14</div><div class="sprite-name">鐵殼蛹</div><div class="sprite-types">屬性: bug, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/15.png" alt="Pokemon 15"><div class="sprite-id">#15</div><div class="sprite-name">大針蜂</div><div class="sprite-types">屬性: bug, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/16.png" alt="Pokemon 16"><div class="sprite-id">#16</div><div class="sprite-name">波波</div><div class="sprite-types">屬性: normal, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/17.png" alt="Pokemon 17"><div class="sprite-id">#17</div><div class="sprite-name">比比鳥</div><div class="sprite-types">屬性: normal, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/18.png" alt="Pokemon 18"><div class="sprite-id">#18</div><div class="sprite-name">大比鳥</div><div class="sprite-types">屬性: normal, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/19.png" alt="Pokemon 19"><div class="sprite-id">#19</div><div class="sprite-name">小拉達</div><div class="sprite-types">屬性: normal</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/20.png" alt="Pokemon 20"><div class="sprite-id">#20</div><div class="sprite-name">拉達</div><div class="sprite-types">屬性: normal</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/21.png" alt="Pokemon 21"><div class="sprite-id">#21</div><div class="sprite-name">烈雀</div><div class="sprite-types">屬性: normal, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/22.png" alt="Pokemon 22"><div class="sprite-id">#22</div><div class="sprite-name">大嘴雀</div><div class="sprite-types">屬性: normal, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/23.png" alt="Pokemon 23"><div class="sprite-id">#23</div><div class="sprite-name">阿柏蛇</div><div class="sprite-types">屬性: poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/24.png" alt="Pokemon 24"><div class="sprite-id">#24</div><div class="sprite-name">阿柏怪</div><div class="sprite-types">屬性: poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Pokemon 25"><div class="sprite-id">#25</div><div class="sprite-name">皮卡丘</div><div class="sprite-types">屬性: electric</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png" alt="Pokemon 26"><div class="sprite-id">#26</div><div class="sprite-name">雷丘</div><div class="sprite-types">屬性: electric</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/27.png" alt="Pokemon 27"><div class="sprite-id">#27</div><div class="sprite-name">穿山鼠</div><div class="sprite-types">屬性: ground</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/28.png" alt="Pokemon 28"><div class="sprite-id">#28</div><div class="sprite-name">穿山王</div><div class="sprite-types">屬性: ground</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/29.png" alt="Pokemon 29"><div class="sprite-id">#29</div><div class="sprite-name">尼多蘭</div><div class="sprite-types">屬性: poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/30.png" alt="Pokemon 30"><div class="sprite-id">#30</div><div class="sprite-name">尼多娜</div><div class="sprite-types">屬性: poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/31.png" alt="Pokemon 31"><div class="sprite-id">#31</div><div class="sprite-name">尼多后</div><div class="sprite-types">屬性: poison, ground</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/32.png" alt="Pokemon 32"><div class="sprite-id">#32</div><div class="sprite-name">尼多朗</div><div class="sprite-types">屬性: poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/33.png" alt="Pokemon 33"><div class="sprite-id">#33</div><div class="sprite-name">尼多力諾</div><div class="sprite-types">屬性: poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/34.png" alt="Pokemon 34"><div class="sprite-id">#34</div><div class="sprite-name">尼多王</div><div class="sprite-types">屬性: poison, ground</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/35.png" alt="Pokemon 35"><div class="sprite-id">#35</div><div class="sprite-name">皮皮</div><div class="sprite-types">屬性: fairy</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/36.png" alt="Pokemon 36"><div class="sprite-id">#36</div><div class="sprite-name">皮可西</div><div class="sprite-types">屬性: fairy</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/37.png" alt="Pokemon 37"><div class="sprite-id">#37</div><div class="sprite-name">六尾</div><div class="sprite-types">屬性: fire</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/38.png" alt="Pokemon 38"><div class="sprite-id">#38</div><div class="sprite-name">九尾</div><div class="sprite-types">屬性: fire</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png" alt="Pokemon 39"><div class="sprite-id">#39</div><div class="sprite-name">胖丁</div><div class="sprite-types">屬性: normal, fairy</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/40.png" alt="Pokemon 40"><div class="sprite-id">#40</div><div class="sprite-name">胖可丁</div><div class="sprite-types">屬性: normal, fairy</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/41.png" alt="Pokemon 41"><div class="sprite-id">#41</div><div class="sprite-name">超音蝠</div><div class="sprite-types">屬性: poison, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/42.png" alt="Pokemon 42"><div class="sprite-id">#42</div><div class="sprite-name">大嘴蝠</div><div class="sprite-types">屬性: poison, flying</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/43.png" alt="Pokemon 43"><div class="sprite-id">#43</div><div class="sprite-name">走路草</div><div class="sprite-types">屬性: grass, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/44.png" alt="Pokemon 44"><div class="sprite-id">#44</div><div class="sprite-name">臭臭花</div><div class="sprite-types">屬性: grass, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/45.png" alt="Pokemon 45"><div class="sprite-id">#45</div><div class="sprite-name">霸王花</div><div class="sprite-types">屬性: grass, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/46.png" alt="Pokemon 46"><div class="sprite-id">#46</div><div class="sprite-name">派拉斯</div><div class="sprite-types">屬性: bug, grass</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/47.png" alt="Pokemon 47"><div class="sprite-id">#47</div><div class="sprite-name">派拉斯特</div><div class="sprite-types">屬性: bug, grass</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/48.png" alt="Pokemon 48"><div class="sprite-id">#48</div><div class="sprite-name">毛球</div><div class="sprite-types">屬性: bug, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/49.png" alt="Pokemon 49"><div class="sprite-id">#49</div><div class="sprite-name">摩魯蛾</div><div class="sprite-types">屬性: bug, poison</div></div><div class="sprite"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/50.png" alt="Pokemon 50"><div class="sprite-id">#50</div><div class="sprite-name">地鼠</div><div class="sprite-types">屬性: ground</div></div></div>
+
+    <script>
+        const grid = document.getElementById('spriteGrid');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const totalSprites = 1010; // 總寶可夢數量
+        const searchBox = document.getElementById('searchBox');
+        const startPoint = document.getElementById('startPoint');
+        const range = document.getElementById('range');
+        const rangeLabel = document.getElementById('rangeLabel');
+
+        // 每次載入的數量
+        const BATCH_SIZE = 50;
+
+        // 確保載入資料後顯示轉圈圈
+        function showLoading(show) {
+            loadingSpinner.style.display = show ? 'block' : 'none';
+        }
+
+        // 儲存所有寶可夢資料到 localStorage
+        async function savePokemonData(batchStart, batchEnd) {
+            const pokemonData = [];
+            for (let i = batchStart; i <= batchEnd; i++) {
+                const { chineseName, types } = await fetchPokemonData(i);
+                pokemonData.push({ id: i, name: chineseName, types });
+            }
+            let allPokemonData = JSON.parse(localStorage.getItem('allPokemonData')) || [];
+            allPokemonData = [...allPokemonData, ...pokemonData];
+            localStorage.setItem('allPokemonData', JSON.stringify(allPokemonData));
+        }
+
+        async function fetchPokemonData(id) {
+            const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+            const speciesData = await speciesResponse.json();
+            const chineseName = speciesData.names.find(name => name.language.name === 'zh-Hant')?.name || `Pokemon ${id}`;
+
+            const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+            const pokemonData = await pokemonResponse.json();
+            const types = pokemonData.types.map(typeInfo => typeInfo.type.name).join(', ');
+
+            return { chineseName, types };
+        }
+
+        // 設置 Cookie
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // 設定過期時間
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        // 讀取 Cookie
+        function getCookie(name) {
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookies = decodedCookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(name + "=") == 0) {
+                    return cookie.substring(name.length + 1, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        // 加載已經存在於 localStorage 的寶可夢資料
+        function loadPokemonFromCache() {
+            const allPokemon = JSON.parse(localStorage.getItem('allPokemonData')) || [];
+            const query = searchBox.value.trim().toLowerCase();
+            const start = parseInt(startPoint.value, 10) || 1;
+            const count = parseInt(range.value, 10);
+
+            const filteredPokemon = allPokemon.filter(pokemon => {
+                const matchesSearch = pokemon.name.toLowerCase().includes(query);
+                return matchesSearch;
+            }).slice(start - 1, start - 1 + count);
+
+            grid.innerHTML = '';
+            filteredPokemon.forEach(pokemon => {
+                const spriteDiv = document.createElement('div');
+                spriteDiv.className = 'sprite';
+
+                const img = document.createElement('img');
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
+                img.alt = `Pokemon ${pokemon.id}`;
+
+                const spriteId = document.createElement('div');
+                spriteId.className = 'sprite-id';
+                spriteId.textContent = `#${pokemon.id}`;
+
+                const spriteName = document.createElement('div');
+                spriteName.className = 'sprite-name';
+                spriteName.textContent = pokemon.name;
+
+                const spriteTypes = document.createElement('div');
+                spriteTypes.className = 'sprite-types';
+                spriteTypes.textContent = `屬性: ${pokemon.types}`;
+
+                spriteDiv.appendChild(img);
+                spriteDiv.appendChild(spriteId);
+                spriteDiv.appendChild(spriteName);
+                spriteDiv.appendChild(spriteTypes);
+                grid.appendChild(spriteDiv);
+            });
+        }
+
+        async function loadAllPokemon() {
+            showLoading(true);
+            let batchStart = 1;
+            let batchEnd = BATCH_SIZE;
+            while (batchStart <= totalSprites) {
+                await savePokemonData(batchStart, batchEnd); // 儲存當前批次資料
+                loadPokemonFromCache(); // 更新顯示
+                batchStart += BATCH_SIZE;
+                batchEnd += BATCH_SIZE;
+                if (batchEnd > totalSprites) batchEnd = totalSprites;
+            }
+            setCookie("pokemonLoaded", "true", 365); // 設定 cookie 表示資料已載入
+            showLoading(false); // 資料載入完成後隱藏轉圈圈
+        }
+
+        function reloadPokemon() {
+            loadPokemonFromCache(); // 顯示已載入的資料
+        }
+
+        function searchByName() {
+            loadPokemonFromCache(); // 根據搜尋框重新篩選並顯示資料
+        }
+
+        function updateRangeLabel() {
+            rangeLabel.textContent = `數量：${range.value}`;
+        }
+
+        // 檢查是否已經載入過資料
+        if (getCookie("pokemonLoaded") !== "true") {
+            loadAllPokemon(); // 沒有載入過資料則開始載入
+        } else {
+            loadPokemonFromCache(); // 已經載入過資料直接顯示
+        }
+    </script>
+
+
+</body></html>

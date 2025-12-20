@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <title>刪除安全檢查紀錄</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>刪除安全檢查紀錄</h1>
+
+        <div v-if="loading" style="font-size: 20px;">資料讀取中…</div>
+
+        <table v-else>
+            <thead>
+                <tr>
+                    <th>員工代號</th>
+                    <th>冷氣開關</th>
+                    <th>照明燈具</th>
+                    <th>教室門鎖</th>
+                    <th>退室檢查時間</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="record in records" :key="record.rowIndex">
+                    <td>{{ formatEmployeeId(record.employeeId) }}</td>
+                    <td>{{ record.acSwitch }}</td>
+                    <td>{{ record.lighting }}</td>
+                    <td>{{ record.doorLock }}</td>
+                    <td>{{ formatDate(record.time) }}</td>
+                    <td>
+                        <button @click="deleteRecord(record.rowIndex)">刪除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxsP13Zk4Blnv3cSKKbMOd91UKAG6sfo1T-Beus9x1YauLV5yMiadbBcvkcy8ZfeTuT/exec';
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    records: [],
+                    loading: true
+                };
+            },
+            mounted() {
+                this.loadRecords();
+            },
+            methods: {
+                loadRecords() {
+                    this.loading = true;
+                    fetch(GAS_API_URL)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.records = data;
+                        })
+                        .catch(error => {
+                            console.error('Error loading records:', error);
+                        })
+                        .finally(() => {
+                            this.loading = false;
+                        });
+                },
+                deleteRecord(row) {
+    if (confirm(`確定要刪除第 ${row} 列紀錄嗎？`)) {
+        // 先樂觀更新 → 先從前端移除
+        this.records = this.records.filter(record => record.rowIndex !== row);
+
+        // 再發 request 真正刪除
+        fetch(`${GAS_API_URL}?action=delete&row=${row}`)
+            .then(response => response.text())
+            .then(data => {
+                console.log('Delete Response:', data);
+                alert('刪除成功');
+                // this.loadRecords(); // 可以不用重抓，除非你怕同步問題
+            })
+            .catch(error => {
+                console.error('Error deleting record:', error);
+                alert('刪除失敗，將重新載入資料');
+                this.loadRecords(); // 出錯就重抓
+            });
+    }
+},
+                formatDate(datetimeStr) {
+                    const d = new Date(datetimeStr);
+                    const pad = n => n.toString().padStart(2, '0');
+                    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                },
+                formatEmployeeId(id) {
+                    return String(id).padStart(6, '0');
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
