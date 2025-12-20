@@ -23,19 +23,19 @@
           "order": 3
         },
         {
-          "url": "https://kencyue.neocities.org/parts/",
+          "url": "parts/",
           "text": "材料查詢",
           "img": "images/database.png",
           "order": 4
         },
         {
-          "url": "https://kencyue.neocities.org/parts/e2p",
+          "url": "parts/e2p",
           "text": "E2P查詢",
           "img": "images/chip.png",
           "order": 5
         },
         {
-          "url": "https://kencyue.neocities.org/parts/compare",
+          "url": "parts/compare",
           "text": "E2P比較",
           "img": "images/compare.png",
           "order": 6
@@ -71,55 +71,55 @@
           "order": 11
         },
         {
-          "url": "https://kencyue.neocities.org/tools/cooling.html",
+          "url": "tools/cooling.html",
           "text": "冷房能力試算",
           "img": "images/cooling.png",
           "order": 12
         },
         {
-          "url": "https://kencyue.neocities.org/tools/airspeed_to_airvolume_converter",
+          "url": "tools/airspeed_to_airvolume_converter",
           "text": "風速風量轉換",
           "img": "images/airspeed.png",
           "order": 13
         },
         {
-          "url": "https://kencyue.neocities.org/tools/dewpoint_converter.html",
+          "url": "tools/dewpoint_converter.html",
           "text": "溫溼露點轉換",
           "img": "images/humidity.png",
           "order": 14
         },
         {
-          "url": "https://kencyue.neocities.org/tools/dry_wet_rh.html",
+          "url": "tools/dry_wet_rh.html",
           "text": "乾溼溼度轉換",
           "img": "images/rh.png",
           "order": 15
         },
         {
-          "url": "https://kencyue.neocities.org/tools/cadr.html",
+          "url": "tools/cadr.html",
           "text": "CADR計算",
           "img": "images/cadr.png",
           "order": 16
         },
         {
-          "url": "https://kencyue.neocities.org/tools/pt_lookup.html",
+          "url": "tools/pt_lookup.html",
           "text": "冷媒PT表",
           "img": "images/gauge.png",
           "order": 17
         },
         {
-          "url": "https://kencyue.neocities.org/tools/vacuum.html",
+          "url": "tools/vacuum.html",
           "text": "真空度轉換",
           "img": "images/vacuum.png",
           "order": 18
         },
         {
-          "url": "https://kencyue.neocities.org/tools/modbus.html",
+          "url": "tools/modbus.html",
           "text": "全熱Modbus",
           "img": "images/modbus.png",
           "order": 19
         },
         {
-          "url": "https://kencyue.neocities.org/modbus/index3.html",
+          "url": "modbus/index3.html",
           "text": "空調空質Modbus",
           "img": "images/modbus_co.png",
           "order": 20
@@ -131,31 +131,31 @@
           "order": 21
         },
         {
-          "url": "https://kencyue.neocities.org/MQC/rule",
+          "url": "MQC/rule",
           "text": "MQC登錄規則",
           "img": "https://cdn-icons-png.freepik.com/512/7785/7785900.png",
           "order": 22
         },
         {
-          "url": "https://kencyue.neocities.org/tools/qrcode/",
+          "url": "tools/qrcode/",
           "text": "QR掃描",
           "img": "images/qrcode.png",
           "order": 23
         },
         {
-          "url": "https://kencyue.neocities.org/bookmarks_leak.html",
+          "url": "bookmarks_leak.html",
           "text": "漏點位置圖",
           "img": "images/leak.png",
           "order": 24
         },
         {
-          "url": "https://kencyue.neocities.org/tools/password.html",
+          "url": "tools/password.html",
           "text": "二代治具密碼",
           "img": "images/password.png",
           "order": 25
         },
         {
-          "url": "https://kencyue.neocities.org/secure/",
+          "url": "secure/",
           "text": "安全檢查表",
           "img": "images/checklist.png",
           "order": 26
@@ -167,31 +167,31 @@
           "order": 27
         },
         {
-          "url": "https://kencyue.neocities.org/calc/index.html",
+          "url": "calc/index.html",
           "text": "計算機",
           "img": "images/calc.png",
           "order": 28
         },
         {
-          "url": "https://kencyue.neocities.org/tools/cut_images/index.html",
+          "url": "tools/cut_images/index.html",
           "text": "手機截圖裁切",
           "img": "images/crop.png",
           "order": 29
         },
         {
-          "url": "https://kencyue.neocities.org/tools/cut_images/anycrop",
+          "url": "tools/cut_images/anycrop",
           "text": "圖片裁切",
           "img": "images/cropp.png",
           "order": 30
         },
         {
-          "url": "https://kencyue.neocities.org/tools/paint/index.html",
+          "url": "tools/paint/index.html",
           "text": "圖片標注",
           "img": "images/paint.png",
           "order": 31
         },
         {
-          "url": "https://kencyue.neocities.org/pcbmt",
+          "url": "pcbmt",
           "text": "馬達PCB統計",
           "img": "images/analysis.png",
           "order": 32
@@ -203,13 +203,13 @@
           "order": 33
         },
         {
-          "url": "https://kencyue.neocities.org/tools/sn",
+          "url": "tools/sn",
           "text": "機種機號",
           "img": "images/sn.png",
           "order": 34
         },
         {
-          "url": "https://kencyue.neocities.org/tools/keyparts",
+          "url": "tools/keyparts",
           "text": "常用code",
           "img": "images/promo.png",
           "order": 35
@@ -226,7 +226,7 @@
       "group": "私人工具",
       "items": [
         {
-          "url": "https://kencyue.neocities.org/tools/clipboard.html",
+          "url": "tools/clipboard.html",
           "text": "個人資訊",
           "img": "images/profile.png",
           "order": 1
@@ -250,9 +250,9 @@
           "order": 4
         },
         {
-          "url": "https://kencyue.neocities.org/tools/qrcode/qrs",
+          "url": "tools/qrcode/qrs",
           "text": "QR掃描儲存",
-          "img": "https://kencyue.neocities.org/images/qrsave.png",
+          "img": "images/qrsave.png",
           "order": 5
         },
         {
@@ -274,37 +274,37 @@
           "order": 8
         },
         {
-          "url": "https://kencyue.neocities.org/news/",
+          "url": "news/",
           "text": "即時新聞",
           "img": "images/news.png",
           "order": 9
         },
         {
-          "url": "https://kencyue.neocities.org/currency/",
+          "url": "currency/",
           "text": "匯率轉換",
           "img": "images/exchange.png",
           "order": 10
         },
         {
-          "url": "https://kencyue.neocities.org/tools/tc/",
+          "url": "tools/tc/",
           "text": "簡繁轉換",
           "img": "images/zhcn.png",
           "order": 11
         },
         {
-          "url": "https://kencyue.neocities.org/tools/tc",
+          "url": "tools/tc",
           "text": "繁簡轉換",
           "img": "images/translate.png",
           "order": 12
         },
         {
-          "url": "https://kencyue.neocities.org/tools/dvddata",
+          "url": "tools/dvddata",
           "text": "備份光碟檢索",
           "img": "images/disk.png",
           "order": 13
         },
         {
-          "url": "https://kencyue.neocities.org/gbook/",
+          "url": "gbook/",
           "text": "留言板",
           "img": "images/guestbook.png",
           "order": 14
@@ -316,13 +316,13 @@
           "order": 15
         },
         {
-          "url": "https://kencyue.neocities.org/restaurant/restaurant",
+          "url": "restaurant/restaurant",
           "text": "中午吃什麼",
           "img": "images/lunch.png",
           "order": 16
         },
         {
-          "url": "https://kencyue.neocities.org/travelmap/",
+          "url": "travelmap/",
           "text": "隨機景點",
           "img": "images/landscape.png",
           "order": 17
@@ -346,13 +346,13 @@
           "order": 20
         },
         {
-          "url": "https://kencyue.neocities.org/japanese/50",
+          "url": "japanese/50",
           "text": "50音",
           "img": "images/japanese1.png",
           "order": 21
         },
         {
-          "url": "https://kencyue.neocities.org/language/index",
+          "url": "language/index",
           "text": "旅遊日文",
           "img": "images/fuji.png",
           "order": 22
@@ -405,9 +405,9 @@
       "group": "其他",
       "items": [
         {
-          "url": "https://kencyue.neocities.org/quiz/",
+          "url": "quiz/",
           "text": "題庫",
-          "img": "https://kencyue.neocities.org/favicon.ico",
+          "img": "favicon.ico",
           "order": 1
         }
       ]
