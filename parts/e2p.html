@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PANASONIC 空調 E2P CODE 查詢</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 1rem;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    .search-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    select, input {
+      font-size: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    #status {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color: green;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6rem;
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+    th {
+      background-color: #e9ecef;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    @media (max-width: 768px) {
+      td {
+        font-size: 0.6rem;
+        padding: 0.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>PANASONIC 空調 E2P CODE 查詢</h2>
+
+  <div class="search-area">
+    <div style="display: flex; gap: 0.5rem;">
+      <select id="prefixSelector">
+	    <option value=""></option>
+        <option value="CU-">CU-</option>
+        <option value="CS-">CS-</option>
+        <option value="CW-">CW-</option>
+      </select>
+      <input type="text" id="searchSuffix" placeholder="輸入機種後綴，或E2P號碼" />
+    </div>
+  </div>
+<img src="example.png" alt="範例圖片" style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+  <div id="status">資料載入中...</div>
+  <table id="resultTable"></table>
+
+  <script src="papaparse.min.js"></script>
+  <script>
+    let dataRows = [];
+    let loaded = false;
+
+    function loadCSV() {
+      const status = document.getElementById("status");
+      const table = document.getElementById("resultTable");
+      table.innerHTML = '';
+      dataRows = [];
+      loaded = false;
+
+      fetch("e2p.csv")
+        .then(response => response.text())
+        .then(csvText => {
+          Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+              dataRows = results.data;
+              loaded = true;
+              status.textContent = `資料載入完成，共 ${dataRows.length} 筆`;
+              search(); // 載入完成自動搜尋
+            }
+          });
+        });
+    }
+
+    function search() {
+      const status = document.getElementById("status");
+      const table = document.getElementById("resultTable");
+      const prefix = document.getElementById("prefixSelector").value;
+      const suffix = document.getElementById("searchSuffix").value.trim();
+      const keyword = (prefix + suffix).toLowerCase();
+
+      table.innerHTML = '';
+
+      if (!loaded) {
+        status.textContent = "資料尚未載入完成";
+        return;
+      }
+
+      if (keyword.length < 4) {
+        status.textContent = "請輸入至少 4 個字元";
+        return;
+      }
+
+      const result = dataRows.filter(row => {
+        const valuesToSearch = Object.values(row).join(' ').toLowerCase();
+        return valuesToSearch.includes(keyword);
+      });
+
+      if (result.length === 0) {
+        status.textContent = "找到 0 筆";
+        table.innerHTML = '<tr><td>查無資料</td></tr>';
+        return;
+      }
+
+      status.textContent = `找到 ${result.length} 筆`;
+
+      const allHeaders = Object.keys(result[0]);
+      const thead = document.createElement('tr');
+      allHeaders.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        thead.appendChild(th);
+      });
+      table.appendChild(thead);
+
+      result.forEach(row => {
+        const tr = document.createElement('tr');
+        allHeaders.forEach((h, colIndex) => {
+          const td = document.createElement('td');
+          if (colIndex === 1) {
+            const parts = row[h].split('-');
+            if (parts.length > 1) {
+              td.innerHTML = `${parts[0]}-<span style="color:red">${parts.slice(1).join('-')}</span>`;
+            } else {
+              td.textContent = row[h];
+            }
+          } else {
+            td.textContent = row[h];
+          }
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+    }
+
+    // 事件監聽
+    document.getElementById("searchSuffix").addEventListener("input", search);
+    document.getElementById("prefixSelector").addEventListener("change", search);
+
+    // 自動載入資料
+    loadCSV();
+  </script>
+
+</body>
+</html>

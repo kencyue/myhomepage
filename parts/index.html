@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PANASONIC 四大商品材料查詢</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 1rem;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    h2 { font-size: 1.3rem; margin-bottom: 1rem; }
+    .search-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    input, select {
+      font-size: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    #status {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color: green;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6rem;
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+    th { background-color: #e9ecef; }
+    tr:hover { background-color: #f1f1f1; }
+
+    /* ✅ 讓儲存格看起來可點擊 */
+    td { cursor: pointer; }
+
+    @media (max-width: 768px) {
+      td {
+        font-size: 0.6rem;
+        padding: 0.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>PANASONIC 四大商品材料查詢</h2>
+
+  <div class="search-area">
+    <select id="csvSelector" onchange="loadCSV()">
+      <option value="">請選擇資料庫</option>
+      <option value="co.csv">冷氣</option>
+      <option value="fy.csv">除溼機</option>
+      <option value="nr.csv">冰箱</option>
+      <option value="wm.csv">洗衣機</option>
+      <option value="tv.csv">電視機</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="輸入關鍵字，例如：CS-UX 40456 主控板" />
+  </div>
+
+  <div id="status">請選擇資料庫</div>
+  <table id="resultTable"></table>
+
+  <script src="papaparse.min.js"></script>
+  <script>
+    let dataRows = [];
+    let loaded   = false;
+
+    /* ✅ 通用複製函式 */
+    function copyToClipboard(txt) {
+      navigator.clipboard.writeText(txt).then(() => {
+        const status = document.getElementById("status");
+        const old    = status.textContent;
+        status.textContent = `已複製：${txt}`;
+        setTimeout(() => { status.textContent = old; }, 1500);
+      }).catch(() => alert("無法複製內容，請手動選取"));
+    }
+
+function loadCSV() {
+  const selectedFile = document.getElementById("csvSelector").value;
+  const status = document.getElementById("status");
+  const table = document.getElementById("resultTable");
+  const input = document.getElementById("searchInput");
+
+  table.innerHTML = '';
+  dataRows = [];
+  loaded = false;
+
+  input.disabled = true;
+  input.placeholder = "資料載入中...";
+
+  if (!selectedFile) {
+    status.textContent = "請選擇資料庫";
+    input.placeholder = "請先選擇資料庫";
+    return;
+  }
+
+  status.textContent = " ";
+
+  fetch(selectedFile)
+    .then(response => response.text())
+    .then(csvText => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          dataRows = results.data;
+          loaded = true;
+          status.textContent = `資料載入完成，共 ${dataRows.length} 筆`;
+
+          input.disabled = false;
+          input.placeholder = "輸入關鍵字，例如：CS-UX 40456 主控板";
+
+          search(); // 自動搜尋
+        }
+      });
+    });
+}
+
+
+    function search() {
+      const status = document.getElementById("status");
+      const table = document.getElementById("resultTable");
+      const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+
+      table.innerHTML = '';
+
+      if (!loaded) {
+        status.textContent = "請先選擇資料庫並等待資料載入完成";
+        return;
+      }
+
+      if (keyword.length < 5) {
+        status.textContent = "請輸入至少 5 個字";
+        return;
+      }
+
+      const keywords = keyword.split(/\s+/);
+      const result = dataRows.filter(row => {
+        const valuesToSearch = [row["機種"], row["材料代號"], row["台松料號"], row["材料名稱"]];
+        const rowText = valuesToSearch.join(' ').toLowerCase();
+        return keywords.every(kw => rowText.includes(kw));
+      });
+
+      if (result.length === 0) {
+        status.textContent = "找到 0 筆";
+        table.innerHTML = '<tr><td>查無資料</td></tr>';
+        return;
+      }
+
+      status.textContent = `找到 ${result.length} 筆`;
+
+      const allHeaders = ["機種", "材料代號", "台松料號", "材料名稱"];
+      const thead = document.createElement('tr');
+      allHeaders.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        thead.appendChild(th);
+      });
+      table.appendChild(thead);
+
+      result.forEach(row => {
+        const tr = document.createElement('tr');
+        allHeaders.forEach(h => {
+          const td = document.createElement('td');
+          td.textContent = row[h];
+          /* ✅ 點擊即複製 */
+          td.addEventListener('click', () => copyToClipboard(td.textContent));
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+    }
+
+    /* 即時搜尋監聽器 */
+    document.getElementById("searchInput").addEventListener("input", search);
+  </script>
+
+</body>
+</html>
