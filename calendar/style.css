@@ -1,0 +1,149 @@
+  body { font-family: 'Inter', sans-serif; margin: 1rem; background: #f4f7fa; color: #333; }
+    h2 { font-size: 1.5rem; color: #1a202c; margin-bottom: 1rem; text-align: center; }
+    #calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 0 auto; padding: .5rem; background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,.1); 
+      user-select: none;
+  -webkit-user-select: none; /* Safari / iOS */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE / Edge 舊版 */
+    }
+    .day { border: 1px solid #e2e8f0; padding: .4rem; text-align: center; min-height: 80px; border-radius: 6px; cursor: pointer; background: #fff; transition: transform .2s, box-shadow .2s; font-size: .8rem; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;}
+    .day:hover { transform: translateY(0px); box-shadow: 0 4px 8px rgba(0,0,0,.1); }
+    .today { background: #fefcbf; border: 2px solid #f6ad55; font-weight: bold; }
+    .day.holiday > strong { color: #e53e3e; }
+    .lunar.holiday { color: #e53e3e; font-weight: bold; }
+    .dept-holiday { background: #e6fffa; font-weight: bold; }
+    .lunar { font-size: .65rem; color: #718096; margin-top: 4px; word-break: break-word; }
+    .weekday-header { background: #edf2f7; font-weight: 600; text-align: center; padding: .4rem; border-radius: 6px; color: #2d3748; font-size: .9rem; }
+    #month-title {display:none; font-size: 1.2rem; font-weight: 600; color: #1a202c; margin: .5rem 0; text-align: center; }
+    #loading { display: none; text-align: center; margin: .5rem; color: #718096; }
+    .controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .5rem; margin-bottom: 1rem; }
+    select, button { font-size: 1rem; padding: .3rem .6rem; border: 1px solid #cbd5e0; border-radius: 6px; background: #fff; cursor: pointer; }
+    button:hover { background: #edf2f7; transform: translateY(-1px); }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-toggle { padding: .3rem .6rem; border: 1px solid #cbd5e0; border-radius: 6px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-weight: 500; color: #2d3748; font-size: .9rem; }
+    .dropdown-toggle::after { content: '▼'; font-size: .7rem; margin-left: .3rem; }
+    .dropdown-menu { position: absolute; top: 100%; left: 0; border: 1px solid #cbd5e0; border-radius: 6px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,.1); display: none; z-index: 1000; width: 100%; }
+    .dropdown-menu div { padding: .4rem; cursor: pointer; font-weight: 500; font-size: .9rem; }
+    .dropdown-menu div:hover { background: #edf2f7; }
+    .dept-ALL { min-width: 90px; }
+    #modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; justify-content: center; align-items: center; }
+    #modal .content { background: #fff; padding: 1rem; border-radius: 10px; width: 84%; max-width: 420px; }
+    #modal h3 { margin: 0 0 .5rem; font-size: 1.1rem; color: #1a202c; }
+    .event-item { display: flex; justify-content: space-between; margin: .25rem 0; font-size: .85rem; }
+    .event-item span { flex: 1; }
+    .event-item button { background: #e53e3e; color: #fff; border: none; border-radius: 6px; padding: .2rem .5rem; cursor: pointer; font-size: .8rem; }
+    .event-item button:hover { background: #c53030; }
+    #modal .add-section { margin-top: .5rem; }
+    #modal input, #modal select { width: 100%; padding: .4rem; margin: .25rem 0; border: 1px solid #cbd5e0; border-radius: 6px; font-size: .9rem; }
+    #modal .btn-row { display: flex; justify-content: space-between; gap: .5rem; margin-top: .5rem; }
+    #modal .btn-primary { background: #3182ce; color: #fff; padding: .4rem; border-radius: 6px; border: none; flex: 1; font-size: .9rem; }
+    #modal .btn-primary:hover { background: #2b6cb0; }
+    #modal .btn-secondary { background: #a0aec0; color: #fff; padding: .4rem; border-radius: 6px; border: none; flex: 1; font-size: .9rem; }
+    #modal .btn-secondary:hover { background: #718096; }
+    .dept-SG2 { color: #3182ce; } .dept-SG3 { color: #38a169; } .dept-SG4 { color: #805ad5; } .dept-ALL { color: #2d3748; } .dept-SG5 { color: #ed8936; }
+    .weekend { color: #e53e3e; }
+    #user-info { font-size:0.9rem; color:#2d3748; margin-left:.5rem; }
+    /* 小圓點 */
+    .event-dots { display:flex; gap:2px; flex-wrap:wrap; justify-content:center; margin-top:2px;}
+    .dot { width:8px; height:8px; border-radius:50%; }
+    .dot.SG2 { background:#3182ce; }
+    .dot.SG3 { background:#38a169; }
+    .dot.SG4 { background:#805ad5; }
+    .dot.SG5 { background: #ed8936; }
+    .dot.ALL { background:#2d3748; } 
+    .dot.KEN { background: #d53f8c; }  /* 🔹 品紅 */
+    .dept-KEN { color: #d53f8c; }
+
+
+    .icon-btn {
+  background: none;
+  border: 1px solid #555;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* === 月份切換轉場效果 === */
+#calendar {
+  transition: opacity .3s ease;
+}
+
+.fade-in-left {
+  animation: fadeInLeft .3s ease;
+}
+.fade-in-right {
+  animation: fadeInRight .3s ease;
+}
+
+@keyframes fadeInLeft {
+  from { transform: translateX(-20%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeInRight {
+  from { transform: translateX(20%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+#new-desc {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;          /* 允許使用者上下調整高度 */
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+#new-dept {
+  width: 150px;
+}
+.hover-tooltip {
+  position: absolute;
+  background: rgba(40, 60, 120, 0.92); /* 🔹macOS風格藍灰半透明底 */
+  color: #f5f9ff;                     /* 淺白藍字 */
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  opacity: 0;
+  backdrop-filter: blur(6px);         /* 🔹毛玻璃效果 */
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* 🔹取消手機點擊殘影／灰框 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 🔹如果有 :focus 邊框，也可以一起關掉 */
+:focus {
+  outline: none;
+}
+
+.selected-day {
+  outline: 2px solid #0099ff;
+  background-color: rgba(0,153,255,0.15);
+  border-radius: 6px;
+}
+
+/* 手機螢幕 (寬度小於600px) 時覆寫 */
+@media (max-width: 600px) {
+  .day {
+    min-height: 60px;
+  }
+}
