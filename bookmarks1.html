@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ken的首頁</title>
+  <link rel="shortcut icon" href="images/tool-box.png" type="image/x-icon">
+  <style>
+    /* --- 基礎樣式 --- */
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(135deg,#a2c5ff,#e1bee7);min-height:100vh;display:flex;flex-direction:column;}
+    .toolbar{height:28px;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:13px;cursor:pointer;}
+    .traffic-lights{display:flex;gap:6px;}
+    .circle{width:12px;height:12px;border-radius:50%;}
+    .red{background:#ff5f56;}.yellow{background:#ffbd2e;}.green{background:#27c93f;}
+
+    /* --- 頁籤容器 (Tab Container Wrapper) --- */
+    .tab-container-wrapper {
+        margin: 12px 12px 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12); 
+        background: rgba(255, 255, 255, 0.8); 
+        border-radius: 12px 12px 0 0;
+        /* ★ 新增：禁用文字選取功能 ★ */
+    -webkit-user-select: none; /* Safari/Chrome/Opera */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE/Edge */
+            user-select: none; /* 標準語法 */
+    }
+    .tabs{
+        display:flex;
+        flex-wrap:wrap;
+        background:transparent;
+        margin:0;
+        overflow:hidden;
+        gap:0;
+        padding: 0 10px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    /* --- 頁籤單體樣式 --- */
+    .tab{
+        flex:0 0 auto; 
+        padding:10px 18px;
+        text-align:center;
+        font-size:14px;
+        font-weight:600;
+        cursor:pointer;
+        background:#cccccc; 
+        color: #333;
+        border-radius: 8px 8px 0 0;
+        transition:all .3s;
+        margin-right: 4px;
+        border: 1px solid #c0c0c0; 
+        border-bottom: none; 
+        transform: translateY(1px); 
+    }
+    .tab:hover {
+        background: #b8b8b8; 
+    }
+    .tab.active{
+        background:#ffffff; 
+        color:#4a90e2;
+        border-color: #ffffff; 
+        transform: translateY(0); 
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.05); 
+        position: relative;
+        z-index: 11; 
+        margin-bottom: -1px; 
+    }
+
+    /* --- 內容區塊容器 --- */
+    #groupsContainer {
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+        background: #ffffff; 
+        margin: -1px 12px 12px; 
+        border-radius: 0 0 12px 12px; 
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        padding: 10px 0 0 0; 
+    }
+    
+    .group-block{margin:0;}
+    .group-title{font-weight:bold;margin:6px 12px;font-size:14px;}
+    
+    /* --- 平滑切換樣式 --- */
+    .group-content-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(100%);
+        transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        padding-top: 10px;
+    }
+
+    .group-content-wrapper.active {
+        position: static; 
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0);
+    }
+
+    /* --- 書籤網格樣式 --- */
+    .bookmark-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;justify-content:center;padding:0 12px 12px;margin-top:0;}
+    .bookmark-item{text-decoration:none;color:#333;font-size:12px;display:flex;flex-direction:column;align-items:center;width:70px;padding:6px;border-radius:10px;background:rgba(230,230,230,0.85);
+        transition:transform .2s;gap:4px;}
+    .bookmark-item:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+    .bookmark-item img{width:44px;height:44px;border-radius:8px;object-fit:contain;}
+    .bookmark-item span{text-align:center;max-width:80px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+
+    /* --- 編輯浮窗 (Modal) 基本樣式 --- */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;}
+    .modal{
+        display:none;
+        position:fixed;
+        top:50%;
+        left:50%;
+        transform:translate(-50%,-50%);
+        background:#fff;
+        border-radius:12px;
+        z-index:1000;
+        width:95%;
+        max-width:900px;
+        max-height:88vh;
+        overflow:hidden;
+        box-shadow:0 10px 30px rgba(0,0,0,0.3);
+        flex-direction:column;
+        transition: all 0.3s;
+    }
+    
+    .modal-header{padding:16px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;}
+    .modal-body{flex:1;overflow-y:auto;}
+    .modal-footer{padding:16px 20px;border-top:1px solid #eee;text-align:right;background:#fafafa;}
+
+    .editor-tabs{display:flex;background:#f1f3f5;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:10;}
+    .editor-tab{padding:12px 20px;font-weight:600;cursor:pointer;background:#e2e6ea;transition:all .2s;cursor: grab;}
+    .editor-tab.active{background:#fff;border-bottom:3px solid #4a90e2;color:#4a90e2;}
+    .editor-panel{display:none;padding:20px;}
+    .editor-panel.active{display:block;}
+
+    /* 編輯器卡片列表樣式 (取代表格) */
+    .editor-panel table, .editor-panel th, .editor-panel td, .table-responsive {
+        display: none; 
+    }
+    
+    .card-list {
+        margin-top: 15px;
+        user-select: none;
+    }
+
+    .bookmark-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        /* ★ 移除 cursor: grab;，只保留在 handle 上 ★ */
+    }
+    
+    /* SortableJS 拖曳輔助樣式 */
+    .sortable-ghost {
+        opacity: 0.2;
+        background: #a2c5ff;
+        border: 2px dashed #4a90e2;
+    }
+
+    .card-header {
+        padding: 12px 15px;
+        background: #f1f1f1;
+        /* ★ 移除 touch-action: none;，允許滾動 ★ */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+    }
+
+    /* 拖曳手柄 (Handle) 樣式 */
+    .drag-handle {
+        font-size: 16px;
+        color: #888;
+        margin-right: 10px;
+        cursor: grab; /* 僅在手柄上顯示拖曳手勢 */
+    }
+
+    .card-title {
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 10px;
+        /* ★ 確保點擊 title 不會意外觸發 toggle ★ */
+        cursor: default; 
+    }
+
+    .toggle-icon {
+        font-size: 18px;
+        transition: transform 0.3s;
+        font-family: Arial, sans-serif;
+        cursor: pointer;
+        padding-left: 10px;
+    }
+    .bookmark-card.active .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .card-content {
+        padding: 0 15px;
+        max-height: 0; 
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out;
+    }
+
+    .bookmark-card.active .card-content {
+        max-height: 500px; 
+        padding: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .card-field {
+        margin-bottom: 10px;
+    }
+    .card-field label {
+        display: block;
+        font-size: 13px;
+        color: #555;
+        margin-bottom: 3px;
+        font-weight: 600;
+    }
+    .card-field input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 13px;
+    }
+    .card-actions {
+        padding-top: 10px;
+        text-align: right;
+    }
+
+    /* --- 手機 RWD 樣式 for Modal (微調) --- */
+    @media (max-width:600px){
+      .bookmark-item{width:70px;padding:4px;}
+      .bookmark-item img{width:36px;height:36px;}
+      .bookmark-item span{font-size:11px;max-width:65px;}
+      
+      .modal {
+          width: 100%;
+          max-width: 100%;
+          height: 100%; /* ⭐ 修改：從 100vh 改為 100% ⭐ */
+          max-height: 100%; /* ⭐ 修改：從 100vh 改為 100% ⭐ */
+          top: 0;
+          left: 0;
+          transform: none; 
+          border-radius: 0; 
+      }
+      .modal-header { padding: 12px 15px; }
+      .modal-footer {
+          padding: 12px 15px;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+      }
+      .modal-footer button {
+          flex: 1 1 auto;
+          margin: 4px 2px;
+      }
+      .editor-panel{ padding: 15px; }
+      .editor-tab { padding: 10px 15px; font-size: 13px; }
+
+      .card-header { padding: 10px 12px; }
+      .card-content.active { padding: 12px; }
+      
+      .drag-handle { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar" id="toolbar">
+    <div class="traffic-lights">
+      <div class="circle red"></div><div class="circle yellow"></div><div class="circle green"></div>
+    </div>
+    <div id="pageTitle">Ken的首頁</div>
+    <div id="time"></div>
+  </div>
+
+  <div class="tab-container-wrapper">
+    <div id="mainTabs" class="tabs"></div>
+  </div>
+  
+  <div id="groupsContainer"></div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 style="margin:0;">編輯書籤</h3>
+      <button id="closeBtn" style="background:none;border:none;font-size:24px;cursor:pointer;">×</button>
+    </div>
+    <div style="padding:0 20px 10px;">
+      <label>頁面標題: <input id="titleInput" style="width:70%;padding:6px;font-size:14px;"></label>
+    </div>
+    <div class="modal-body">
+      <div class="editor-tabs" id="editorTabs"></div>
+      <div id="editorPanels"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="addGroupBtn" class="btn-primary">新增組別</button>
+      <button id="saveBtn" class="btn-primary">儲存全部</button>
+      <button id="backupBtn">備份</button>
+      <button id="restoreBtn">還原</button>
+      <input type="file" id="restoreFile" style="display:none"/>
+      <button id="resetBtn">清除快取</button>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+let data = { title: "Ken的首頁", groups: [] };
+let currentMainTab = null;
+let currentEditorTab = 0;
+const columnHeaders = ["URL", "敘述", "Icon URL", "序號"];
+
+// ----------------------------------------------------------------------
+// --- 編輯器卡片列表功能 ---
+// ----------------------------------------------------------------------
+
+// 產生單一書籤卡片的 HTML 結構
+function createBookmarkCardHtml(url = '', text = '', img = '', order = '') {
+    const uniqueId = Date.now() + Math.random().toString(36).substring(2, 9);
+
+    let content = '';
+    const initialValues = [url, text, img, order];
+    const inputTypes = ['', '', '', 'number'];
+
+    columnHeaders.forEach((label, index) => {
+        content += `
+            <div class="card-field">
+                <label for="input-${uniqueId}-${index}">${label}</label>
+                <input id="input-${uniqueId}-${index}" data-field="${index}" value="${initialValues[index] || ''}" type="${inputTypes[index] || 'text'}">
+            </div>
+        `;
+    });
+
+    return `
+        <div class="bookmark-card">
+            <div class="card-header">
+                <div class="drag-handle">☰</div>
+                <div class="card-title">${text || '未命名書籤'}</div>
+                <div class="toggle-icon" onclick="toggleCard(this)">▼</div>
+            </div>
+            <div class="card-content">
+                ${content}
+                <div class="card-actions">
+                    <button onclick="removeCard(this)" class="btn-danger">刪除</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 展開/收合卡片 (點擊 icon 觸發)
+function toggleCard(iconElement) {
+    const card = iconElement.closest('.bookmark-card');
+    card.classList.toggle('active');
+}
+
+// 刪除卡片
+function removeCard(buttonElement) {
+    if (confirm("確定刪除此書籤項目？")) {
+        buttonElement.closest('.bookmark-card').remove();
+    }
+}
+
+// 新增列 (卡片)
+function addRow(i) {
+    const panel = document.querySelectorAll(".editor-panel")[i];
+    const cardList = panel.querySelector(".card-list");
+    const newCardHtml = createBookmarkCardHtml();
+    cardList.insertAdjacentHTML('beforeend', newCardHtml);
+
+    const addedCard = cardList.lastElementChild;
+    addedCard.classList.add('active');
+
+    const titleInput = addedCard.querySelector('input[data-field="1"]');
+    if (titleInput) {
+        titleInput.addEventListener('input', (e) => {
+            const newTitle = e.target.value.trim() || '未命名書籤';
+            addedCard.querySelector('.card-title').textContent = newTitle;
+        });
+    }
+}
+
+
+// ----------------------------------------------------------------------
+// --- 主要邏輯 (openEditor 中初始化 SortableJS) ---
+// ----------------------------------------------------------------------
+
+async function initData() {
+    const local = localStorage.getItem("bookmarksData");
+    if (local) {
+        try {
+            const parsed = JSON.parse(local);
+            if (parsed && Array.isArray(parsed.groups)) {
+                data = parsed;
+                return;
+            }
+        } catch(e) {}
+    }
+
+    try {
+        const res = await fetch("bookmarks.json?t=" + Date.now());
+        if (res.ok) {
+            const json = await res.json();
+            if (json && Array.isArray(json.groups)) {
+                data = json;
+                localStorage.setItem("bookmarksData", JSON.stringify(data));
+            }
+        }
+    } catch(err) {
+        console.error("無法讀取 bookmarks.json", err);
+    }
+}
+
+function renderMain() {
+    document.getElementById("pageTitle").textContent = data.title || "Ken的首頁";
+
+    const tabsContainer = document.getElementById("mainTabs");
+    tabsContainer.innerHTML = "";
+    const contentContainer = document.getElementById("groupsContainer");
+    contentContainer.innerHTML = "";
+
+    if (data.groups.length === 0) {
+        tabsContainer.innerHTML = "<div style='padding:30px;text-align:center;color:#666; background:rgba(255,255,255,0.9); border-radius:12px; margin: 12px;'>尚未建立任何組別</div>";
+        return;
+    }
+    
+    const initialGroup = currentMainTab || data.groups[0]?.group;
+    
+    data.groups.forEach((g, i) => {
+        const tab = document.createElement("div");
+        tab.className = "tab";
+        tab.textContent = g.group;
+        if (g.group === initialGroup) {
+            tab.classList.add("active");
+            currentMainTab = g.group;
+        }
+        tab.onclick = () => {
+            document.querySelectorAll("#mainTabs .tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            currentMainTab = g.group;
+            showGroup(g.group); 
+        };
+        tabsContainer.appendChild(tab);
+
+        const groupWrapper = document.createElement("div");
+        groupWrapper.className = "group-content-wrapper";
+        groupWrapper.dataset.groupName = g.group; 
+
+        if (!g.items || g.items.length === 0) {
+            groupWrapper.innerHTML = "<div style='text-align:center;padding:60px;color:#888;'>此組別暫無書籤</div>";
+        } else {
+            const block = document.createElement("div");
+            block.className = "group-block";
+            block.innerHTML = `<div class="bookmark-grid"></div>`;
+            const grid = block.querySelector(".bookmark-grid");
+
+            g.items
+                .sort((a,b) => (a.order||0) - (b.order||0))
+                .filter(x => x.order !== 0)
+                .forEach(item => {
+                    const a = document.createElement("a");
+                    a.className = "bookmark-item";
+                    a.href = item.url;
+                    a.target = item.blank ? "_blank" : "_self";
+                    
+                    let icon = item.img || '';
+                    try {
+                        if (!icon) icon = `${new URL(item.url).origin}/favicon.ico`;
+                    } catch(e) {
+                        icon = 'images/tool-box.png';
+                    }
+                    
+                    a.innerHTML = `<img src="${icon}" onerror="this.src='images/tool-box.png'"><span>${item.text}</span>`;
+                    grid.appendChild(a);
+                });
+            groupWrapper.appendChild(block);
+        }
+        contentContainer.appendChild(groupWrapper);
+    });
+
+    showGroup(currentMainTab);
+}
+
+function showGroup(groupName) {
+    const allWrappers = document.querySelectorAll("#groupsContainer .group-content-wrapper");
+    
+    allWrappers.forEach(wrapper => {
+        if (wrapper.dataset.groupName === groupName) {
+            wrapper.classList.add("active");
+        } else {
+            wrapper.classList.remove("active");
+        }
+    });
+}
+
+function openEditor() {
+    document.getElementById("titleInput").value = data.title || "";
+
+    const tabs = document.getElementById("editorTabs");
+    const panels = document.getElementById("editorPanels");
+    tabs.innerHTML = "";
+    panels.innerHTML = "";
+    
+    // 如果當前選中的頁籤索引超出範圍，則重置
+    if (data.groups.length > 0 && currentEditorTab >= data.groups.length) {
+        currentEditorTab = data.groups.length - 1;
+    }
+    if (data.groups.length === 0) currentEditorTab = 0;
+
+
+    data.groups.forEach((g, i) => {
+        const tab = document.createElement("div");
+        tab.className = "editor-tab";
+        tab.dataset.index = i;
+        if (i === currentEditorTab) tab.classList.add("active");
+        
+        tab.textContent = g.group;
+        
+        tab.onclick = (e) => {
+            // 點擊事件現在可以簡化
+            document.querySelectorAll(".editor-tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".editor-panel").forEach(p => p.classList.remove("active"));
+            tab.classList.add("active");
+            document.querySelector(`.editor-panel[data-index="${i}"]`).classList.add("active");
+            currentEditorTab = i;
+        };
+        tabs.appendChild(tab);
+
+        // ... (Panel 建立邏輯不變) ...
+        const panel = document.createElement("div");
+        panel.className = "editor-panel";
+        panel.dataset.index = i;
+        if (i === currentEditorTab) panel.classList.add("active");
+
+        panel.innerHTML = `
+            <h4 contenteditable="true" style="margin:0 0 15px;padding:8px;background:#f8f9fa;border-radius:6px;">${g.group}</h4>
+            <div class="card-list"></div>
+            <button onclick="addRow(${i})" class="btn-primary" style="margin-top: 10px;">新增一列</button>
+            <button onclick="deleteGroup(${i})" class="btn-danger" style="margin-top: 10px;">刪除整個組別</button>
+        `;
+        
+        // 【⭐ 修正：新增事件監聽器，確保 Tab 名稱與 H4 同步 ⭐】
+        const groupNameH4 = panel.querySelector("h4");
+        groupNameH4.addEventListener('input', (e) => {
+            const newName = e.target.innerText.trim();
+            const tabElement = document.querySelector(`.editor-tab[data-index="${i}"]`);
+            if (tabElement) {
+                tabElement.textContent = newName || '未命名組別';
+            }
+        });
+        // 【⭐ 修正：結束 ⭐】
+
+        const cardList = panel.querySelector(".card-list");
+        if(Array.isArray(g.items)) {
+            let cardsHtml = '';
+            g.items.forEach(item => {
+                cardsHtml += createBookmarkCardHtml(item.url, item.text, item.img, item.order);
+            });
+            cardList.innerHTML = cardsHtml;
+            
+            cardList.querySelectorAll('.bookmark-card').forEach(card => {
+                const titleInput = card.querySelector('input[data-field="1"]');
+                if (titleInput) {
+                    titleInput.addEventListener('input', (e) => {
+                        const newTitle = e.target.value.trim() || '未命名書籤';
+                        card.querySelector('.card-title').textContent = newTitle;
+                    });
+                }
+            });
+
+            if (Sortable) {
+                // 書籤卡片依然需要手柄來拖曳
+                new Sortable(cardList, {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    forceFallback: true 
+                });
+            }
+        }
+        panels.appendChild(panel);
+    });
+    
+    // 關鍵：對 Tab 容器應用 SortableJS，讓整個 Tab 可拖曳
+    if (Sortable && data.groups.length > 0) {
+        new Sortable(tabs, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            direction: 'horizontal', 
+            forceFallback: true 
+        });
+    }
+}
+
+
+function deleteGroup(i) {
+    if (confirm("確定刪除整個組別？")) {
+        data.groups.splice(i, 1);
+        if (data.groups.length > 0) {
+            if (currentEditorTab >= data.groups.length) currentEditorTab = data.groups.length - 1;
+        } else {
+            currentEditorTab = 0; 
+        }
+        openEditor();     
+    }
+}
+
+// 儲存全部：從卡片結構中讀取資料 (依賴 DOM 順序)
+document.getElementById("saveBtn").onclick = () => {
+    const newGroups = [];
+    
+    // 1. 根據頁籤的 DOM 順序，取得新的組別名稱順序 (Tab 已同步 H4 的新名稱)
+    const orderedGroupNames = [];
+    document.querySelectorAll("#editorTabs .editor-tab").forEach(tab => {
+        orderedGroupNames.push(tab.textContent.trim());
+    });
+
+    // 2. 遍歷編輯器面板，建立一個 Map，用組別名稱作為 Key
+    const processedGroupsMap = new Map();
+    document.querySelectorAll(".editor-panel").forEach(panel => {
+        // 從 H4 取得最新、最正確的組別名稱
+        const name = panel.querySelector("h4").innerText.trim(); 
+        if (!name) return;
+        
+        const items = [];
+        
+        // 遍歷當前 DOM 中的卡片，其順序即為拖曳後的書籤順序
+        panel.querySelectorAll(".bookmark-card").forEach((card, index) => {
+            const urlInput = card.querySelector('input[data-field="0"]');
+            const textInput = card.querySelector('input[data-field="1"]');
+            const imgInput = card.querySelector('input[data-field="2"]');
+
+            let url = urlInput ? urlInput.value.trim() : '';
+            
+            if (url) {
+                let text = textInput ? (textInput.value.trim() || "未命名") : "未命名";
+                let img = imgInput ? imgInput.value.trim() : '';
+                
+                let order = index + 1;
+                
+                // 修正：保留 line:// 等非標準協定
+                if (!url.includes(':')) {
+                    url = 'http://' + url;
+                }
+
+                if (!img) {
+                    try {
+                        if (url.startsWith('http') || url.startsWith('https')) {
+                            img = new URL(url).origin + "/favicon.ico";
+                        } else {
+                            img = '';
+                        }
+                    } catch(e) {
+                        img = '';
+                    }
+                }
+                
+                items.push({url, text, img, order});
+            }
+        });
+        
+        if (items.length > 0) {
+                processedGroupsMap.set(name, {group: name, items});
+        }
+    });
+    
+    // 3. 根據 orderedGroupNames (新名稱) 重新排列最終的 data.groups 
+    orderedGroupNames.forEach(name => {
+        const group = processedGroupsMap.get(name);
+        // 只有當該組別還有書籤項目且存在於 Map 中時才儲存
+        if (group) {
+            newGroups.push(group);
+        }
+    });
+    
+    // 4. 更新資料
+    data.title = document.getElementById("titleInput").value.trim() || "Ken的首頁";
+    data.groups = newGroups;
+
+    const savedGroupNames = data.groups.map(g => g.group);
+    if (!savedGroupNames.includes(currentMainTab) && savedGroupNames.length > 0) {
+        currentMainTab = savedGroupNames[0];
+    } else if (savedGroupNames.length === 0) {
+        currentMainTab = null;
+    }
+
+    localStorage.setItem("bookmarksData", JSON.stringify(data));
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+    renderMain();
+};
+
+
+// 新增組別 (JS 邏輯不變)
+document.getElementById("addGroupBtn").onclick = () => {
+    const name = prompt("新組別名稱", "新組別");
+    if (name) {
+        data.groups.push({group: name, items: []});
+        currentEditorTab = data.groups.length - 1;
+        openEditor();    
+    }
+};
+
+// 開啟/關閉浮窗
+document.getElementById("toolbar").onclick = () => {
+    openEditor();
+    document.getElementById("modal").style.display = "flex";
+    document.getElementById("overlay").style.display = "block";
+};
+
+document.getElementById("closeBtn").onclick = () => {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+};
+
+// 備份、還原、清除快取 (JS 邏輯不變)
+document.getElementById("backupBtn").onclick = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "bookmarks.json";
+    a.click();
+};
+
+document.getElementById("restoreBtn").onclick = () => document.getElementById("restoreFile").click();
+document.getElementById("restoreFile").onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            const obj = JSON.parse(ev.target.result);
+            if (obj && Array.isArray(obj.groups)) {
+                data = obj;
+                localStorage.setItem("bookmarksData", JSON.stringify(data));
+                renderMain();
+                alert("還原成功！");
+            } else {
+                throw new Error("Invalid format");
+            }
+        } catch(err) { alert("還原失敗，檔案格式錯誤或內容不完整。"); }
+    };
+    reader.readAsText(file);
+    e.target.value = null; 
+};
+
+document.getElementById("resetBtn").onclick = () => {
+    if (confirm("確定清除快取？將重新讀取 bookmarks.json")) {
+        localStorage.removeItem("bookmarksData");
+        location.reload();
+    }
+};
+
+// 時間
+function updateTime() {
+    const now = new Date();
+    document.getElementById("time").textContent = 
+        `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// 啟動
+initData().then(() => renderMain());
+</script>
+</body>
+</html>
