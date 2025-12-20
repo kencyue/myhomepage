@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>注音符號發音表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; background:#f8f8f8; padding:10px; text-align:center; }
+    h2 { margin:18px 0 8px; font-size:20px; }
+    .grid { 
+      display:grid; 
+      grid-template-columns: repeat(5, 1fr); 
+      gap:4px; 
+      margin-bottom:12px; 
+    }
+    .cell { 
+      background:#fff; 
+      padding:10px 2px; 
+      border-radius:6px; 
+      border:1px solid #ccc; 
+      font-size:22px; 
+      cursor:pointer; 
+      user-select:none;
+    }
+    .cell:hover { background:#e0f7fa; }
+    small { display:block; color:#555; font-size:12px; }
+  </style>
+</head>
+<body>
+  <h1>ㄅㄆㄇㄈ 注音符號發音表</h1>
+  <p>點擊符號即可聽中文發音</p>
+
+  <!-- 聲母 -->
+  <h2>聲母</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ㄅ')">ㄅ<small>b</small></div>
+    <div class="cell" onclick="speak('ㄆ')">ㄆ<small>p</small></div>
+    <div class="cell" onclick="speak('ㄇ')">ㄇ<small>m</small></div>
+    <div class="cell" onclick="speak('ㄈ')">ㄈ<small>f</small></div>
+    <div class="cell" onclick="speak('ㄉ')">ㄉ<small>d</small></div>
+
+    <div class="cell" onclick="speak('ㄊ')">ㄊ<small>t</small></div>
+    <div class="cell" onclick="speak('ㄋ')">ㄋ<small>n</small></div>
+    <div class="cell" onclick="speak('ㄌ')">ㄌ<small>l</small></div>
+    <div class="cell" onclick="speak('ㄍ')">ㄍ<small>g</small></div>
+    <div class="cell" onclick="speak('ㄎ')">ㄎ<small>k</small></div>
+
+    <div class="cell" onclick="speak('ㄏ')">ㄏ<small>h</small></div>
+    <div class="cell" onclick="speak('ㄐ')">ㄐ<small>j</small></div>
+    <div class="cell" onclick="speak('ㄑ')">ㄑ<small>q</small></div>
+    <div class="cell" onclick="speak('ㄒ')">ㄒ<small>x</small></div>
+    <div class="cell" onclick="speak('ㄓ')">ㄓ<small>zh</small></div>
+
+    <div class="cell" onclick="speak('ㄔ')">ㄔ<small>ch</small></div>
+    <div class="cell" onclick="speak('ㄕ')">ㄕ<small>sh</small></div>
+    <div class="cell" onclick="speak('ㄖ')">ㄖ<small>r</small></div>
+    <div class="cell" onclick="speak('ㄗ')">ㄗ<small>z</small></div>
+    <div class="cell" onclick="speak('ㄘ')">ㄘ<small>c</small></div>
+
+    <div class="cell" onclick="speak('ㄙ')">ㄙ<small>s</small></div>
+  </div>
+
+  <!-- 韻母 -->
+  <h2>韻母</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ㄚ')">ㄚ<small>a</small></div>
+    <div class="cell" onclick="speak('ㄛ')">ㄛ<small>o</small></div>
+    <div class="cell" onclick="speak('ㄜ')">ㄜ<small>e</small></div>
+    <div class="cell" onclick="speak('ㄝ')">ㄝ<small>ê</small></div>
+    <div class="cell" onclick="speak('ㄞ')">ㄞ<small>ai</small></div>
+
+    <div class="cell" onclick="speak('ㄟ')">ㄟ<small>ei</small></div>
+    <div class="cell" onclick="speak('ㄠ')">ㄠ<small>ao</small></div>
+    <div class="cell" onclick="speak('ㄡ')">ㄡ<small>ou</small></div>
+    <div class="cell" onclick="speak('ㄢ')">ㄢ<small>an</small></div>
+    <div class="cell" onclick="speak('ㄣ')">ㄣ<small>en</small></div>
+
+    <div class="cell" onclick="speak('ㄤ')">ㄤ<small>ang</small></div>
+    <div class="cell" onclick="speak('ㄥ')">ㄥ<small>eng</small></div>
+    <div class="cell" onclick="speak('ㄦ')">ㄦ<small>er</small></div>
+    <div class="cell" onclick="speak('ㄧ')">ㄧ<small>i</small></div>
+    <div class="cell" onclick="speak('ㄨ')">ㄨ<small>u</small></div>
+
+    <div class="cell" onclick="speak('ㄩ')">ㄩ<small>ü</small></div>
+  </div>
+
+  <script>
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "zh-TW"; // 台灣中文發音
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>

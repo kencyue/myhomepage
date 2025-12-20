@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>韓文字母發音練習</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; background:#f8f8f8; padding:10px; text-align:center; }
+    h2 { margin:18px 0 8px; font-size:20px; }
+    .grid { 
+      display:grid; 
+      grid-template-columns: repeat(5, 1fr); 
+      gap:4px; 
+      margin-bottom:12px; 
+    }
+    .cell { 
+      background:#fff; 
+      padding:8px 2px; 
+      border-radius:6px; 
+      border:1px solid #ccc; 
+      font-size:22px; 
+      cursor:pointer; 
+      user-select:none;
+    }
+    .cell:hover { background:#e0f7fa; }
+    small { display:block; color:#555; font-size:12px; }
+  </style>
+</head>
+<body>
+  <h1>🇰🇷 韓文字母表 발음練習</h1>
+  <p>子音 / 母音 / 羅馬拼音（點擊聽發音）</p>
+
+  <!-- 基本子音 -->
+  <h2>基本子音 (자음)</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ㄱ')">ㄱ<small>g/k</small></div>
+    <div class="cell" onclick="speak('ㄴ')">ㄴ<small>n</small></div>
+    <div class="cell" onclick="speak('ㄷ')">ㄷ<small>d/t</small></div>
+    <div class="cell" onclick="speak('ㄹ')">ㄹ<small>r/l</small></div>
+    <div class="cell" onclick="speak('ㅁ')">ㅁ<small>m</small></div>
+
+    <div class="cell" onclick="speak('ㅂ')">ㅂ<small>b/p</small></div>
+    <div class="cell" onclick="speak('ㅅ')">ㅅ<small>s</small></div>
+    <div class="cell" onclick="speak('ㅇ')">ㅇ<small>ng / silent</small></div>
+    <div class="cell" onclick="speak('ㅈ')">ㅈ<small>j</small></div>
+    <div class="cell" onclick="speak('ㅊ')">ㅊ<small>ch</small></div>
+
+    <div class="cell" onclick="speak('ㅋ')">ㅋ<small>k</small></div>
+    <div class="cell" onclick="speak('ㅌ')">ㅌ<small>t</small></div>
+    <div class="cell" onclick="speak('ㅍ')">ㅍ<small>p</small></div>
+    <div class="cell" onclick="speak('ㅎ')">ㅎ<small>h</small></div>
+  </div>
+
+  <!-- 基本母音 -->
+  <h2>基本母音 (모음)</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ㅏ')">ㅏ<small>a</small></div>
+    <div class="cell" onclick="speak('ㅑ')">ㅑ<small>ya</small></div>
+    <div class="cell" onclick="speak('ㅓ')">ㅓ<small>eo</small></div>
+    <div class="cell" onclick="speak('ㅕ')">ㅕ<small>yeo</small></div>
+    <div class="cell" onclick="speak('ㅗ')">ㅗ<small>o</small></div>
+
+    <div class="cell" onclick="speak('ㅛ')">ㅛ<small>yo</small></div>
+    <div class="cell" onclick="speak('ㅜ')">ㅜ<small>u</small></div>
+    <div class="cell" onclick="speak('ㅠ')">ㅠ<small>yu</small></div>
+    <div class="cell" onclick="speak('ㅡ')">ㅡ<small>eu</small></div>
+    <div class="cell" onclick="speak('ㅣ')">ㅣ<small>i</small></div>
+  </div>
+
+  <!-- 쌍자음 -->
+  <h2>雙子音 (쌍자음)</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ㄲ')">ㄲ<small>kk</small></div>
+    <div class="cell" onclick="speak('ㄸ')">ㄸ<small>tt</small></div>
+    <div class="cell" onclick="speak('ㅃ')">ㅃ<small>pp</small></div>
+    <div class="cell" onclick="speak('ㅆ')">ㅆ<small>ss</small></div>
+    <div class="cell" onclick="speak('ㅉ')">ㅉ<small>jj</small></div>
+  </div>
+
+  <!-- 이중모음 -->
+  <h2>複合母音 (이중모음)</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ㅐ')">ㅐ<small>ae</small></div>
+    <div class="cell" onclick="speak('ㅒ')">ㅒ<small>yae</small></div>
+    <div class="cell" onclick="speak('ㅔ')">ㅔ<small>e</small></div>
+    <div class="cell" onclick="speak('ㅖ')">ㅖ<small>ye</small></div>
+    <div class="cell" onclick="speak('ㅘ')">ㅘ<small>wa</small></div>
+
+    <div class="cell" onclick="speak('ㅙ')">ㅙ<small>wae</small></div>
+    <div class="cell" onclick="speak('ㅚ')">ㅚ<small>oe</small></div>
+    <div class="cell" onclick="speak('ㅝ')">ㅝ<small>wo</small></div>
+    <div class="cell" onclick="speak('ㅞ')">ㅞ<small>we</small></div>
+    <div class="cell" onclick="speak('ㅟ')">ㅟ<small>wi</small></div>
+
+    <div class="cell" onclick="speak('ㅢ')">ㅢ<small>ui</small></div>
+  </div>
+
+  <script>
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ko-KR"; // 韓文語音
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>

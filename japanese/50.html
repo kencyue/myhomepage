@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>日文五十音發音表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; background:#f8f8f8; padding:10px; text-align:center; }
+    h2 { margin:18px 0 8px; font-size:20px; }
+    .grid { 
+      display:grid; 
+      grid-template-columns: repeat(5, 1fr); 
+      gap:4px; 
+      margin-bottom:10px; 
+    }
+    .cell { 
+      background:#fff; 
+      padding:6px 2px; 
+      border-radius:6px; 
+      border:1px solid #ccc; 
+      font-size:20px; 
+      cursor:pointer; 
+      user-select:none;
+    }
+    .cell:hover { background:#e0f7fa; }
+    small { display:block; color:#555; font-size:11px; }
+  </style>
+</head>
+<body>
+  <h1>📖 日文五十音發音表</h1>
+  <p>平假名 / 片假名 / 羅馬拼音（點擊即可發音）</p>
+
+  <!-- 清音 -->
+  <h2>清音</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('あ')">あ<small>ア<br>a</small></div>
+    <div class="cell" onclick="speak('い')">い<small>イ<br>i</small></div>
+    <div class="cell" onclick="speak('う')">う<small>ウ<br>u</small></div>
+    <div class="cell" onclick="speak('え')">え<small>エ<br>e</small></div>
+    <div class="cell" onclick="speak('お')">お<small>オ<br>o</small></div>
+
+    <div class="cell" onclick="speak('か')">か<small>カ<br>ka</small></div>
+    <div class="cell" onclick="speak('き')">き<small>キ<br>ki</small></div>
+    <div class="cell" onclick="speak('く')">く<small>ク<br>ku</small></div>
+    <div class="cell" onclick="speak('け')">け<small>ケ<br>ke</small></div>
+    <div class="cell" onclick="speak('こ')">こ<small>コ<br>ko</small></div>
+
+    <div class="cell" onclick="speak('さ')">さ<small>サ<br>sa</small></div>
+    <div class="cell" onclick="speak('し')">し<small>シ<br>shi</small></div>
+    <div class="cell" onclick="speak('す')">す<small>ス<br>su</small></div>
+    <div class="cell" onclick="speak('せ')">せ<small>セ<br>se</small></div>
+    <div class="cell" onclick="speak('そ')">そ<small>ソ<br>so</small></div>
+
+    <div class="cell" onclick="speak('た')">た<small>タ<br>ta</small></div>
+    <div class="cell" onclick="speak('ち')">ち<small>チ<br>chi</small></div>
+    <div class="cell" onclick="speak('つ')">つ<small>ツ<br>tsu</small></div>
+    <div class="cell" onclick="speak('て')">て<small>テ<br>te</small></div>
+    <div class="cell" onclick="speak('と')">と<small>ト<br>to</small></div>
+
+    <div class="cell" onclick="speak('な')">な<small>ナ<br>na</small></div>
+    <div class="cell" onclick="speak('に')">に<small>ニ<br>ni</small></div>
+    <div class="cell" onclick="speak('ぬ')">ぬ<small>ヌ<br>nu</small></div>
+    <div class="cell" onclick="speak('ね')">ね<small>ネ<br>ne</small></div>
+    <div class="cell" onclick="speak('の')">の<small>ノ<br>no</small></div>
+
+    <div class="cell" onclick="speak('は')">は<small>ハ<br>ha</small></div>
+    <div class="cell" onclick="speak('ひ')">ひ<small>ヒ<br>hi</small></div>
+    <div class="cell" onclick="speak('ふ')">ふ<small>フ<br>fu</small></div>
+    <div class="cell" onclick="speak('へ')">へ<small>ヘ<br>he</small></div>
+    <div class="cell" onclick="speak('ほ')">ほ<small>ホ<br>ho</small></div>
+
+    <div class="cell" onclick="speak('ま')">ま<small>マ<br>ma</small></div>
+    <div class="cell" onclick="speak('み')">み<small>ミ<br>mi</small></div>
+    <div class="cell" onclick="speak('む')">む<small>ム<br>mu</small></div>
+    <div class="cell" onclick="speak('め')">め<small>メ<br>me</small></div>
+    <div class="cell" onclick="speak('も')">も<small>モ<br>mo</small></div>
+
+    <div class="cell" onclick="speak('や')">や<small>ヤ<br>ya</small></div>
+    <div class="cell"></div>
+    <div class="cell" onclick="speak('ゆ')">ゆ<small>ユ<br>yu</small></div>
+    <div class="cell"></div>
+    <div class="cell" onclick="speak('よ')">よ<small>ヨ<br>yo</small></div>
+
+    <div class="cell" onclick="speak('ら')">ら<small>ラ<br>ra</small></div>
+    <div class="cell" onclick="speak('り')">り<small>リ<br>ri</small></div>
+    <div class="cell" onclick="speak('る')">る<small>ル<br>ru</small></div>
+    <div class="cell" onclick="speak('れ')">れ<small>レ<br>re</small></div>
+    <div class="cell" onclick="speak('ろ')">ろ<small>ロ<br>ro</small></div>
+
+    <div class="cell" onclick="speak('わ')">わ<small>ワ<br>wa</small></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell" onclick="speak('を')">を<small>ヲ<br>wo</small></div>
+
+    <div class="cell" onclick="speak('ん')">ん<small>ン<br>n</small></div>
+  </div>
+
+  <!-- 濁音 -->
+  <h2>濁音</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('が')">が<small>ガ<br>ga</small></div>
+    <div class="cell" onclick="speak('ぎ')">ぎ<small>ギ<br>gi</small></div>
+    <div class="cell" onclick="speak('ぐ')">ぐ<small>グ<br>gu</small></div>
+    <div class="cell" onclick="speak('げ')">げ<small>ゲ<br>ge</small></div>
+    <div class="cell" onclick="speak('ご')">ご<small>ゴ<br>go</small></div>
+
+    <div class="cell" onclick="speak('ざ')">ざ<small>ザ<br>za</small></div>
+    <div class="cell" onclick="speak('じ')">じ<small>ジ<br>ji</small></div>
+    <div class="cell" onclick="speak('ず')">ず<small>ズ<br>zu</small></div>
+    <div class="cell" onclick="speak('ぜ')">ぜ<small>ゼ<br>ze</small></div>
+    <div class="cell" onclick="speak('ぞ')">ぞ<small>ゾ<br>zo</small></div>
+
+    <div class="cell" onclick="speak('だ')">だ<small>ダ<br>da</small></div>
+    <div class="cell" onclick="speak('ぢ')">ぢ<small>ヂ<br>ji</small></div>
+    <div class="cell" onclick="speak('づ')">づ<small>ヅ<br>zu</small></div>
+    <div class="cell" onclick="speak('で')">で<small>デ<br>de</small></div>
+    <div class="cell" onclick="speak('ど')">ど<small>ド<br>do</small></div>
+
+    <div class="cell" onclick="speak('ば')">ば<small>バ<br>ba</small></div>
+    <div class="cell" onclick="speak('び')">び<small>ビ<br>bi</small></div>
+    <div class="cell" onclick="speak('ぶ')">ぶ<small>ブ<br>bu</small></div>
+    <div class="cell" onclick="speak('べ')">べ<small>ベ<br>be</small></div>
+    <div class="cell" onclick="speak('ぼ')">ぼ<small>ボ<br>bo</small></div>
+  </div>
+
+  <!-- 半濁音 -->
+  <h2>半濁音</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('ぱ')">ぱ<small>パ<br>pa</small></div>
+    <div class="cell" onclick="speak('ぴ')">ぴ<small>ピ<br>pi</small></div>
+    <div class="cell" onclick="speak('ぷ')">ぷ<small>プ<br>pu</small></div>
+    <div class="cell" onclick="speak('ぺ')">ぺ<small>ペ<br>pe</small></div>
+    <div class="cell" onclick="speak('ぽ')">ぽ<small>ポ<br>po</small></div>
+  </div>
+
+  <!-- 拗音 -->
+  <h2>拗音</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('きゃ')">きゃ<small>キャ<br>kya</small></div>
+    <div class="cell" onclick="speak('きゅ')">きゅ<small>キュ<br>kyu</small></div>
+    <div class="cell" onclick="speak('きょ')">きょ<small>キョ<br>kyo</small></div>
+    <div class="cell" onclick="speak('しゃ')">しゃ<small>シャ<br>sha</small></div>
+    <div class="cell" onclick="speak('しゅ')">しゅ<small>シュ<br>shu</small></div>
+
+    <div class="cell" onclick="speak('しょ')">しょ<small>ショ<br>sho</small></div>
+    <div class="cell" onclick="speak('ちゃ')">ちゃ<small>チャ<br>cha</small></div>
+    <div class="cell" onclick="speak('ちゅ')">ちゅ<small>チュ<br>chu</small></div>
+    <div class="cell" onclick="speak('ちょ')">ちょ<small>チョ<br>cho</small></div>
+    <div class="cell" onclick="speak('にゃ')">にゃ<small>ニャ<br>nya</small></div>
+
+    <div class="cell" onclick="speak('にゅ')">にゅ<small>ニュ<br>nyu</small></div>
+    <div class="cell" onclick="speak('にょ')">にょ<small>ニョ<br>nyo</small></div>
+    <div class="cell" onclick="speak('ひゃ')">ひゃ<small>ヒャ<br>hya</small></div>
+    <div class="cell" onclick="speak('ひゅ')">ひゅ<small>ヒュ<br>hyu</small></div>
+    <div class="cell" onclick="speak('ひょ')">ひょ<small>ヒョ<br>hyo</small></div>
+
+    <div class="cell" onclick="speak('みゃ')">みゃ<small>ミャ<br>mya</small></div>
+    <div class="cell" onclick="speak('みゅ')">みゅ<small>ミュ<br>myu</small></div>
+    <div class="cell" onclick="speak('みょ')">みょ<small>ミョ<br>myo</small></div>
+    <div class="cell" onclick="speak('りゃ')">りゃ<small>リャ<br>rya</small></div>
+    <div class="cell" onclick="speak('りゅ')">りゅ<small>リュ<br>ryu</small></div>
+
+    <div class="cell" onclick="speak('りょ')">りょ<small>リョ<br>ryo</small></div>
+    <div class="cell" onclick="speak('ぎゃ')">ぎゃ<small>ギャ<br>gya</small></div>
+    <div class="cell" onclick="speak('ぎゅ')">ぎゅ<small>ギュ<br>gyu</small></div>
+    <div class="cell" onclick="speak('ぎょ')">ぎょ<small>ギョ<br>gyo</small></div>
+    <div class="cell" onclick="speak('じゃ')">じゃ<small>ジャ<br>ja</small></div>
+
+    <div class="cell" onclick="speak('じゅ')">じゅ<small>ジュ<br>ju</small></div>
+    <div class="cell" onclick="speak('じょ')">じょ<small>ジョ<br>jo</small></div>
+    <div class="cell" onclick="speak('びゃ')">びゃ<small>ビャ<br>bya</small></div>
+    <div class="cell" onclick="speak('びゅ')">びゅ<small>ビュ<br>byu</small></div>
+    <div class="cell" onclick="speak('びょ')">びょ<small>ビョ<br>byo</small></div>
+
+    <div class="cell" onclick="speak('ぴゃ')">ぴゃ<small>ピャ<br>pya</small></div>
+    <div class="cell" onclick="speak('ぴゅ')">ぴゅ<small>ピュ<br>pyu</small></div>
+    <div class="cell" onclick="speak('ぴょ')">ぴょ<small>ピョ<br>pyo</small></div>
+  </div>
+
+  <!-- 特殊 -->
+  <h2>特殊</h2>
+  <div class="grid">
+    <div class="cell" onclick="speak('っ')">っ<small>ッ<br>促音</small></div>
+    <div class="cell" onclick="speak('ー')">ー<small>ー<br>長音</small></div>
+  </div>
+
+  <script>
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ja-JP";
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>

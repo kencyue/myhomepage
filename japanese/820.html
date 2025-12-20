@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Travel Japanese Practice</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f6f6f6; }
+    h2 { color: #333; }
+    .sentence { margin: 10px 0; padding: 8px; background: #fff; border-radius: 6px; }
+    .en { cursor: pointer; color: #00695c; font-weight: bold; }
+    .en:hover { background: #e0f7fa; }
+    .jp, .romaji { color: #555; margin-left: 10px; display: block; }
+    .romaji { font-style: italic; }
+  </style>
+</head>
+<body>
+  <h2>✈️ Travel Japanese Practice (Click English to Speak Japanese)</h2>
+
+  <!-- Airport -->
+  <div class="sentence">
+    <span class="en" onclick="speak('ここでパスポートを見せていただけますか？')">Can you show me your passport here?</span>
+    <span class="jp">ここでパスポートを見せていただけますか？</span>
+    <span class="romaji">Koko de pasupōto o misete itadakemasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('次の便は何時ですか？')">What time is the next flight?</span>
+    <span class="jp">次の便は何時ですか？</span>
+    <span class="romaji">Tsugi no bin wa nan-ji desu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('手荷物はどこで預けられますか？')">Where can I check my luggage?</span>
+    <span class="jp">手荷物はどこで預けられますか？</span>
+    <span class="romaji">Tenimotsu wa doko de azukeraremasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('ゲートはどこにありますか？')">Where is the gate?</span>
+    <span class="jp">ゲートはどこにありますか？</span>
+    <span class="romaji">Gēto wa doko ni arimasu ka?</span>
+  </div>
+
+  <!-- Hotel -->
+  <div class="sentence">
+    <span class="en" onclick="speak('シングルルームを予約したいです。')">I’d like to book a single room.</span>
+    <span class="jp">シングルルームを予約したいです。</span>
+    <span class="romaji">Shinguru rūmu o yoyaku shitai desu.</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('朝食は含まれていますか？')">Is breakfast included?</span>
+    <span class="jp">朝食は含まれていますか？</span>
+    <span class="romaji">Chōshoku wa fukumarete imasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('チェックアウトは何時ですか？')">What time is checkout?</span>
+    <span class="jp">チェックアウトは何時ですか？</span>
+    <span class="romaji">Chekkuauto wa nan-ji desu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('Wi-Fiのパスワードは何ですか？')">What’s the Wi-Fi password?</span>
+    <span class="jp">Wi-Fiのパスワードは何ですか？</span>
+    <span class="romaji">Wi-Fi no pasuwādo wa nan desu ka?</span>
+  </div>
+
+  <!-- Transportation -->
+  <div class="sentence">
+    <span class="en" onclick="speak('駅までどうやって行きますか？')">How do I get to the station?</span>
+    <span class="jp">駅までどうやって行きますか？</span>
+    <span class="romaji">Eki made dō yatte ikimasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('このチケットは往復ですか？')">Is this ticket round-trip?</span>
+    <span class="jp">このチケットは往復ですか？</span>
+    <span class="romaji">Kono chiketto wa ōfuku desu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('タクシーを呼んでいただけますか？')">Can you call a taxi for me?</span>
+    <span class="jp">タクシーを呼んでいただけますか？</span>
+    <span class="romaji">Takushī o yonde itadakemasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('このバスは市内に行きますか？')">Does this bus go to the city center?</span>
+    <span class="jp">このバスは市内に行きますか？</span>
+    <span class="romaji">Kono basu wa shinai ni ikimasu ka?</span>
+  </div>
+
+  <!-- Sightseeing -->
+  <div class="sentence">
+    <span class="en" onclick="speak('この寺の入場料はいくらですか？')">How much is the entrance fee for this temple?</span>
+    <span class="jp">この寺の入場料はいくらですか？</span>
+    <span class="romaji">Kono tera no nyūjōryō wa ikura desu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('写真を撮ってもいいですか？')">Is it okay to take photos?</span>
+    <span class="jp">写真を撮ってもいいですか？</span>
+    <span class="romaji">Shashin o tottemo ii desu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('この博物館は月曜日に開いていますか？')">Is this museum open on Mondays?</span>
+    <span class="jp">この博物館は月曜日に開いていますか？</span>
+    <span class="romaji">Kono hakubutsukan wa getsuyōbi ni aite imasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('おすすめの観光スポットはどこですか？')">What are some recommended sightseeing spots?</span>
+    <span class="jp">おすすめの観光スポットはどこですか？</span>
+    <span class="romaji">Osusume no kankō supotto wa doko desu ka?</span>
+  </div>
+
+  <!-- Dining -->
+  <div class="sentence">
+    <span class="en" onclick="speak('メニューをいただけますか？')">Can I have the menu, please?</span>
+    <span class="jp">メニューをいただけますか？</span>
+    <span class="romaji">Menyū o itadakemasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('この料理には何が入っていますか？')">What’s in this dish?</span>
+    <span class="jp">この料理には何が入っていますか？</span>
+    <span class="romaji">Kono ryōri ni wa nani ga haitte imasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('ベジタリアンのオプションはありますか？')">Do you have vegetarian options?</span>
+    <span class="jp">ベジタリアンのオプションはありますか？</span>
+    <span class="romaji">Bejitarian no opushon wa arimasu ka?</span>
+  </div>
+  <div class="sentence">
+    <span class="en" onclick="speak('お会計をお願いします。')">Can I have the bill, please?</span>
+    <span class="jp">お会計をお願いします。</span>
+    <span class="romaji">O-kaikei o onegai shimasu.</span>
+  </div>
+
+  <script>
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ja-JP"; // Japanese
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
