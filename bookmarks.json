@@ -244,9 +244,9 @@
           "order": 3
         },
         {
-          "url": "https://kencyue.rf.gd/note/",
-          "text": "Kennote",
-          "img": "https://kencyue.rf.gd/note/favicon.png",
+          "url": "kennote/",
+          "text": "kennote",
+          "img": "kennote/favicon.png",
           "order": 4
         },
         {
