@@ -255,129 +255,129 @@
           "order": 4
         },
         {
+          "url": "https://kencyue.github.io/money/",
+          "text": "記帳軟體",
+          "img": "https://kencyue.github.io/money/favicon.png",
+          "order": 5
+        },
+        {
           "url": "tools/qrcode/qrs",
           "text": "QR掃描儲存",
           "img": "images/qrsave.png",
-          "order": 5
+          "order": 6
         },
         {
           "url": "https://www.mvdis.gov.tw/m3-emv-vil/vil/penaltyQueryPay#gsc.tab=0",
           "text": "查罰單",
           "img": "https://www.mvdis.gov.tw/favicon.ico",
-          "order": 6
+          "order": 7
         },
         {
           "url": "https://copypaste.me/",
           "text": "CP",
           "img": "https://copypaste.me/apple-touch-icon.png",
-          "order": 7
+          "order": 8
         },
         {
           "url": "https://www.google.com/finance/",
           "text": "stock",
           "img": "images/stock.png",
-          "order": 8
+          "order": 9
         },
         {
           "url": "news/",
           "text": "即時新聞",
           "img": "images/news.png",
-          "order": 9
+          "order": 10
         },
         {
           "url": "currency/",
           "text": "匯率轉換",
           "img": "images/exchange.png",
-          "order": 10
+          "order": 11
         },
         {
           "url": "tools/tc/",
           "text": "簡繁轉換",
           "img": "images/zhcn.png",
-          "order": 11
+          "order": 12
         },
         {
           "url": "tools/tc",
           "text": "繁簡轉換",
           "img": "images/translate.png",
-          "order": 12
+          "order": 13
         },
         {
           "url": "tools/dvddata",
           "text": "備份光碟檢索",
           "img": "images/disk.png",
-          "order": 13
+          "order": 14
         },
         {
           "url": "gbook/",
           "text": "留言板",
           "img": "images/guestbook.png",
-          "order": 14
+          "order": 15
         },
         {
           "url": "https://itskensblog.blogspot.com/?m=1&zx=de2a796a123de0c9",
           "text": "Blogger",
           "img": "images/blogger.png",
-          "order": 15
+          "order": 16
         },
         {
           "url": "restaurant/restaurant",
           "text": "中午吃什麼",
           "img": "images/lunch.png",
-          "order": 16
+          "order": 17
         },
         {
           "url": "travelmap/",
           "text": "隨機景點",
           "img": "images/landscape.png",
-          "order": 17
+          "order": 18
         },
         {
           "url": "https://www.cwa.gov.tw/",
           "text": "氣象",
           "img": "images/weather.png",
-          "order": 18
+          "order": 19
         },
         {
           "url": "https://tasks.google.com/tasks/",
           "text": "Task",
           "img": "images/task.png",
-          "order": 19
+          "order": 20
         },
         {
           "url": "https://shifu.tw/learning/japanese",
           "text": "日文學習",
           "img": "images/japanese.png",
-          "order": 20
+          "order": 21
         },
         {
           "url": "japanese/50",
           "text": "50音",
           "img": "images/japanese1.png",
-          "order": 21
+          "order": 22
         },
         {
           "url": "language/index",
           "text": "旅遊日文",
           "img": "images/fuji.png",
-          "order": 22
+          "order": 23
         },
         {
           "url": "https://www.skillcollect.com.tw/programs/fff91c29-9e29-4857-b3b5-18d183ee93b0/contents/bffdd21d-8504-463e-80ac-2af33a689976",
           "text": "英文學習",
           "img": "images/alphabet.png",
-          "order": 23
+          "order": 24
         },
         {
           "url": "https://snapsave.app/tw-tw",
           "text": "FB影片下載",
           "img": "images/download.png",
-          "order": 24
-        },
-        {
-          "url": "https://intellicon.app/ap/w/ab870bed-e45e-47eb-9832-fb050abfb0e0",
-          "text": "愛比後台",
-          "img": "https://img.intellicon.app/Intellicon-assets/ITC_Logo_Trans_256x256.png",
           "order": 25
         },
         {
