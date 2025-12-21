@@ -288,6 +288,8 @@
         
         // 【NEW: 鎖定變數】防止按鈕點擊後，自動恢復機制再次觸發彈窗
         let isProcessingAction = false; 
+        // 【新增】動畫取消旗標
+        let isMoveCancelled = false;
 
         let gameState = null;
         const totalSquares = 128;
@@ -1107,12 +1109,21 @@ function showTaxModal(currentPlayer, square, taxAmount) {
         }
 
 
-        async function animateMove(playerIndex, steps) {
+async function animateMove(playerIndex, steps) {
             const player = gameState.players[playerIndex];
             const startPosition = player.position;
             let stepsTaken = 0;
 
+            // 【新增】重置取消狀態
+            isMoveCancelled = false;
+
             while (stepsTaken < steps) {
+                // 【新增】檢查是否被手動修復中斷
+                if (isMoveCancelled) {
+                    console.log('移動動畫已被強制取消');
+                    return; // 直接退出，不執行後續邏輯
+                }
+
                 await new Promise(resolve => setTimeout(resolve, MOVE_DELAY));
 
                 stepsTaken++;
@@ -1123,16 +1134,18 @@ function showTaxModal(currentPlayer, square, taxAmount) {
                     addLog(`${player.name} 經過起點 (GO)，獲得 $${BOARD[0].action.toLocaleString()}。`);
                 }
 
-                // 在移動的每一步都進行 UI 更新，但滾動只在本地（主控設備）執行
                 renderPlayerStats();
                 renderBoardDisplay();
                 
-                // NEW: 只在發起移動的設備上執行平滑滾動
                 const targetSquare = document.getElementById(`square-${player.position}`);
                 if (targetSquare) {
                     targetSquare.scrollIntoView({ behavior: 'smooth', inline: 'center' });
                 }
             }
+
+            // 【新增】動畫結束前再次檢查（防止剛好在最後一步按下修復）
+            if (isMoveCancelled) return;
+
             saveCurrentPlayerState(player);
             await updateGameState(gameState);
             
@@ -4027,35 +4040,42 @@ function applyCardEffect(player, card) {
          * [NEW] 修復移動卡住功能
          * 用於當狀態為 MOVING 但動畫已停止時，強制瞬間移動到目的地並觸發事件
          */
+/**
+         * [NEW] 修復移動卡住功能
+         * 用於當狀態為 MOVING 但動畫已停止時，強制瞬間移動到目的地並觸發事件
+         */
         async function fixStuckMove() {
             if (!gameState || gameState.status !== 'MOVING') return;
+
+            // 【新增】立刻設置取消旗標，殺死正在跑的 animateMove
+            isMoveCancelled = true;
 
             const currentPlayer = gameState.players[gameState.turn];
             const diceTotal = gameState.dice[0] + gameState.dice[1];
             
             // 1. 計算原本應該到達的目標位置
-            // 注意：因為移動中斷，Firestore 裡的位置還是起點，所以直接加上骰子數即可
             let newPosition = (currentPlayer.position + diceTotal) % totalSquares;
             
-            // 處理經過起點加錢 (簡單判定：如果新位置比舊位置小，且不是剛好在起點，通常就是跨過了一圈)
-            // 更精確的做法是：如果 (oldPos + steps) >= 128
+            // 處理經過起點加錢
             if (currentPlayer.position + diceTotal >= totalSquares) {
-                currentPlayer.money += BOARD[0].action; // 獲得起點獎勵
+                currentPlayer.money += BOARD[0].action; 
                 addLog(`${currentPlayer.name} (修復移動) 經過起點，獲得 $${BOARD[0].action.toLocaleString()}。`);
             }
 
             // 2. 更新玩家位置
             currentPlayer.position = newPosition;
             
-            // 3. 變更狀態為 ROLLED，這樣 handleLandingAction 才能接手處理
-            // 先儲存位置，避免 handleLandingAction 讀到舊的
+            // 3. 儲存位置
             saveCurrentPlayerState(currentPlayer);
             
-            // 4. 強制執行踩到格子的邏輯 (買地、付房租等)
-            // 這會自動將狀態更新為 ROLLED 或 ACTION_REQUIRED
+            // 4. 強制執行踩到格子的邏輯
             await handleLandingAction(gameState.turn);
             
             addLog(`🚨 管理員/玩家執行了「修復移動」，${currentPlayer.name} 瞬間移動到了 ${gameState.board[newPosition].name}。`, 'error');
+            
+            // 強制渲染一次畫面，確保棋子位置正確
+            renderBoardDisplay();
+            renderPlayerStats();
         }
         
         // 綁定到 window 以便按鈕呼叫
