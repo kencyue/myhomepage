@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>墨爾本大富翁 (改良版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -119,6 +119,18 @@
         .house { background-color: #34d399; } /* 綠色 (House) */
         .apartment { background-color: #3b82f6; } /* 藍色 (Apartment) - 2 & 3 houses */
         .skyscraper { background-color: #ef4444; } /* 紅色 (Skyscraper) - 4 houses */
+        
+/* 移除所有互動元素的雙擊縮放延遲 */
+button, a, .cursor-pointer, #board-display > div {
+    touch-action: manipulation;
+    -webkit-user-select: none; /* 防止長按選取文字文字 */
+    user-select: none;
+}
+
+body {
+    /* 修正 iPad 全螢幕滾動體驗 */
+    overscroll-behavior: none;
+}
     </style>
 </head>
 <body>
@@ -1348,6 +1360,26 @@ function applyCardEffect(player, card) {
         function showTrapTargetModal(currentPlayer, card) {
             const isMyTurn = (gameState.settings?.hotSwapMode && gameState.players[0]?.currentUserId === userId) || (currentPlayer.currentUserId === userId); 
 
+// --- 新增：處理 MOVING 狀態的重連修復 ---
+    if (gameState.status === 'MOVING' && isMyTurn && !isProcessingAction) {
+        console.log("偵測到重連，正在繼續未完成的移動動畫...");
+        isProcessingAction = true; // 鎖定，防止重複觸發
+        
+        // 取得骰子點數
+        const steps = gameState.dice[0] + gameState.dice[1];
+        
+        // 這裡需要一個小技巧：animateMove 是從「目前位置」往後走 steps 步
+        // 但因為我們可能已經移動到一半存過檔，或者剛擲骰
+        // 為了安全，我們讓重連的人直接執行落地檢查，或從起點重新跑一次
+        setTimeout(async () => {
+            // 呼叫落地處理（這會將狀態轉為 ROLLED 或 ACTION_REQUIRED）
+            await handleLandingAction(currentPlayerIndex);
+            isProcessingAction = false;
+        }, 1000);
+        return; 
+    }
+    // --- 結束 MOVING 修復 ---
+            
             if (!isMyTurn) {
                 // 非當前玩家只顯示卡片內容
                 showCardModal(currentPlayer, card.text, card.type.includes('chance') ? 'CHANCE' : 'FATE', true);
