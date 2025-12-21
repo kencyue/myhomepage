@@ -886,8 +886,9 @@ if (currentPlayer.inJail && currentPlayer.jailTurns > 0) {
     // =========================================================
 
     gameState.status = 'MOVING';
-    // 關鍵：更新時間戳記，Firebase 才知道這玩家什麼時候開始移動的
-    currentPlayer.lastActiveTimestamp = Date.now(); 
+   const currentPlayer = gameState.players[gameState.turn];
+    currentPlayer.lastActiveTimestamp = Date.now(); // 更新時間
+    
     await updateGameState(gameState, `${currentPlayer.name} 正在擲骰...`);
 
     await runDiceAnimation(dice1, dice2); 
@@ -4411,31 +4412,29 @@ async function listenForGameState() {
         if (doc.exists()) {
             const newGameState = doc.data();
 
-            // --- 【核心修正：MOVING 狀態卡死自動修復】 ---
+     // --- 【核心修正：MOVING 狀態重連恢復邏輯】 ---
         if (newGameState.status === 'MOVING') {
             const currentPlayerIndex = newGameState.turn;
             const currentPlayer = newGameState.players[currentPlayerIndex];
-            const now = Date.now();
             
-            // 判斷是否為自己的回合
-            const isMyTurn = (newGameState.settings?.hotSwapMode && newGameState.players[0]?.currentUserId === userId) || (currentPlayer.currentUserId === userId);
+            // 判斷是否為自己的回合 (考慮熱機模式)
+            const isGameMasterDevice = newGameState.players[0]?.currentUserId === userId;
+            const isHotSwapMode = newGameState.settings?.hotSwapMode === true;
+            const isMyTurn = (isHotSwapMode && isGameMasterDevice) || (currentPlayer.currentUserId === userId);
 
-            // 邏輯 A：如果是我的回合，且我剛進網頁（isProcessingAction 為 false）
-            // 邏輯 B：如果不是我的回合，但對方已經卡住超過 10 秒（預防對方斷線消失）
-            const isStuckTooLong = (now - (currentPlayer.lastActiveTimestamp || 0)) > 10000;
+            // 如果是我輪到，且狀態是 MOVING，代表我剛重整進來，動畫沒跑完
+            if (isMyTurn && !isProcessingAction) {
+                console.log("偵測到移動中重整，正在恢復該格的功能視窗...");
+                isProcessingAction = true; // 防止重複觸發
 
-            if ((isMyTurn && !isProcessingAction) || isStuckTooLong) {
-                console.log(isMyTurn ? "偵測到重連，正在修復移動狀態..." : "偵測到他方玩家斷線，代為恢復遊戲...");
-                isProcessingAction = true; 
-                
+                // 延遲一下確保數據載入完畢
                 setTimeout(async () => {
-                    // 這裡不跑動畫，直接跳到最後停留點執行功能
-                    // 必須傳入當前最新的 gameState 引用
-                    gameState = newGameState; 
+                    gameState = newGameState; // 更新本地狀態
+                    // 直接觸發落地邏輯：這會根據玩家當前位置彈出「購買」、「租金」或「卡片」視窗
                     await handleLandingAction(currentPlayerIndex);
                     isProcessingAction = false;
-                }, 500);
-                return; // 跳過本次渲染，等待 handleLandingAction 更新狀態後再次觸發
+                }, 800);
+                return;
             }
         }
         // --- 【修復結束】 ---
