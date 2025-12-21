@@ -7,11 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #eef2ff;
-            color: #1f2937;
-        }
+        html, body {
+    /* 徹底禁止 iPad 手勢與滾動回彈，避免誤觸放大 */
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    /* 禁止選取與呼叫菜單 */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none; /* 禁用所有預設手勢，由我們控制 */
+}
         /* 定義棋子顏色 */
         .player-0 { background-color: #ef4444; } /* 紅色 */
         .player-1 { background-color: #3b82f6; } /* 藍色 */
@@ -130,6 +137,18 @@ button, a, .cursor-pointer, #board-display > div {
 body {
     /* 修正 iPad 全螢幕滾動體驗 */
     overscroll-behavior: none;
+}
+
+        #app {
+    /* 讓內容在固定容器內滾動 */
+    overflow-y: auto;
+    height: 100vh;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 棋盤與按鈕允許點擊 */
+#board-container, button, .cursor-pointer {
+    touch-action: manipulation !important;
 }
     </style>
 </head>
@@ -867,6 +886,8 @@ if (currentPlayer.inJail && currentPlayer.jailTurns > 0) {
     // =========================================================
 
     gameState.status = 'MOVING';
+    // 關鍵：更新時間戳記，Firebase 才知道這玩家什麼時候開始移動的
+    currentPlayer.lastActiveTimestamp = Date.now(); 
     await updateGameState(gameState, `${currentPlayer.name} 正在擲骰...`);
 
     await runDiceAnimation(dice1, dice2); 
@@ -4389,7 +4410,35 @@ async function listenForGameState() {
     onSnapshot(gameRef, (doc) => {
         if (doc.exists()) {
             const newGameState = doc.data();
+
+            // --- 【核心修正：MOVING 狀態卡死自動修復】 ---
+        if (newGameState.status === 'MOVING') {
+            const currentPlayerIndex = newGameState.turn;
+            const currentPlayer = newGameState.players[currentPlayerIndex];
+            const now = Date.now();
             
+            // 判斷是否為自己的回合
+            const isMyTurn = (newGameState.settings?.hotSwapMode && newGameState.players[0]?.currentUserId === userId) || (currentPlayer.currentUserId === userId);
+
+            // 邏輯 A：如果是我的回合，且我剛進網頁（isProcessingAction 為 false）
+            // 邏輯 B：如果不是我的回合，但對方已經卡住超過 10 秒（預防對方斷線消失）
+            const isStuckTooLong = (now - (currentPlayer.lastActiveTimestamp || 0)) > 10000;
+
+            if ((isMyTurn && !isProcessingAction) || isStuckTooLong) {
+                console.log(isMyTurn ? "偵測到重連，正在修復移動狀態..." : "偵測到他方玩家斷線，代為恢復遊戲...");
+                isProcessingAction = true; 
+                
+                setTimeout(async () => {
+                    // 這裡不跑動畫，直接跳到最後停留點執行功能
+                    // 必須傳入當前最新的 gameState 引用
+                    gameState = newGameState; 
+                    await handleLandingAction(currentPlayerIndex);
+                    isProcessingAction = false;
+                }, 500);
+                return; // 跳過本次渲染，等待 handleLandingAction 更新狀態後再次觸發
+            }
+        }
+        // --- 【修復結束】 ---
             
             
             // --- 確保 currentStocks 與 stocksConfig 同步（新增股票時自動初始化價格）---
