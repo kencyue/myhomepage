@@ -5,7 +5,7 @@
       "group": "工作工具",
       "items": [
         {
-          "url": "calendar/",
+          "url": "https://kencyue.github.io/myhomepage/calendar/",
           "text": "公司月曆",
           "img": "images/calendar.png",
           "order": 1
@@ -23,19 +23,19 @@
           "order": 3
         },
         {
-          "url": "parts/",
+          "url": "https://kencyue.github.io/myhomepage/parts/",
           "text": "材料查詢",
           "img": "images/database.png",
           "order": 4
         },
         {
-          "url": "parts/e2p",
+          "url": "https://kencyue.github.io/myhomepage/parts/e2p",
           "text": "E2P查詢",
           "img": "images/chip.png",
           "order": 5
         },
         {
-          "url": "parts/compare",
+          "url": "https://kencyue.github.io/myhomepage/parts/compare",
           "text": "E2P比較",
           "img": "images/compare.png",
           "order": 6
@@ -71,55 +71,55 @@
           "order": 11
         },
         {
-          "url": "tools/cooling.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/cooling.html",
           "text": "冷房能力試算",
           "img": "images/cooling.png",
           "order": 12
         },
         {
-          "url": "tools/airspeed_to_airvolume_converter",
+          "url": "https://kencyue.github.io/myhomepage/tools/airspeed_to_airvolume_converter",
           "text": "風速風量轉換",
           "img": "images/airspeed.png",
           "order": 13
         },
         {
-          "url": "tools/dewpoint_converter.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/dewpoint_converter.html",
           "text": "溫溼露點轉換",
           "img": "images/humidity.png",
           "order": 14
         },
         {
-          "url": "tools/dry_wet_rh.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/dry_wet_rh.html",
           "text": "乾溼溼度轉換",
           "img": "images/rh.png",
           "order": 15
         },
         {
-          "url": "tools/cadr.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/cadr.html",
           "text": "CADR計算",
           "img": "images/cadr.png",
           "order": 16
         },
         {
-          "url": "tools/pt_lookup.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/pt_lookup.html",
           "text": "冷媒PT表",
           "img": "images/gauge.png",
           "order": 17
         },
         {
-          "url": "tools/vacuum.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/vacuum.html",
           "text": "真空度轉換",
           "img": "images/vacuum.png",
           "order": 18
         },
         {
-          "url": "tools/modbus.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/modbus.html",
           "text": "全熱Modbus",
           "img": "images/modbus.png",
           "order": 19
         },
         {
-          "url": "modbus/index3.html",
+          "url": "https://kencyue.github.io/myhomepage/modbus/index3.html",
           "text": "空調空質Modbus",
           "img": "images/modbus_co.png",
           "order": 20
@@ -131,13 +131,13 @@
           "order": 21
         },
         {
-          "url": "MQC/rule",
+          "url": "https://kencyue.github.io/myhomepage/MQC/rule",
           "text": "MQC登錄規則",
           "img": "https://cdn-icons-png.freepik.com/512/7785/7785900.png",
           "order": 22
         },
         {
-          "url": "tools/qrcode/",
+          "url": "https://kencyue.github.io/myhomepage/tools/qrcode/",
           "text": "QR掃描",
           "img": "images/qrcode.png",
           "order": 23
@@ -149,13 +149,13 @@
           "order": 24
         },
         {
-          "url": "tools/password.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/password.html",
           "text": "二代治具密碼",
           "img": "images/password.png",
           "order": 25
         },
         {
-          "url": "secure/",
+          "url": "https://kencyue.github.io/myhomepage/secure/",
           "text": "安全檢查表",
           "img": "images/checklist.png",
           "order": 26
@@ -167,31 +167,31 @@
           "order": 27
         },
         {
-          "url": "calc/index.html",
+          "url": "https://kencyue.github.io/myhomepage/calc/index.html",
           "text": "計算機",
           "img": "images/calc.png",
           "order": 28
         },
         {
-          "url": "tools/cut_images/index.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/cut_images/index.html",
           "text": "手機截圖裁切",
           "img": "images/crop.png",
           "order": 29
         },
         {
-          "url": "tools/cut_images/anycrop",
+          "url": "https://kencyue.github.io/myhomepage/tools/cut_images/anycrop",
           "text": "圖片裁切",
           "img": "images/cropp.png",
           "order": 30
         },
         {
-          "url": "tools/paint/index.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/paint/index.html",
           "text": "圖片標注",
           "img": "images/paint.png",
           "order": 31
         },
         {
-          "url": "pcbmt",
+          "url": "https://kencyue.github.io/myhomepage/pcbmt.html",
           "text": "馬達PCB統計",
           "img": "images/analysis.png",
           "order": 32
@@ -203,13 +203,13 @@
           "order": 33
         },
         {
-          "url": "tools/sn",
+          "url": "https://kencyue.github.io/myhomepage/tools/sn",
           "text": "機種機號",
           "img": "images/sn.png",
           "order": 34
         },
         {
-          "url": "tools/keyparts",
+          "url": "https://kencyue.github.io/myhomepage/tools/keyparts",
           "text": "常用code",
           "img": "images/promo.png",
           "order": 35
@@ -231,7 +231,7 @@
       "group": "私人工具",
       "items": [
         {
-          "url": "tools/clipboard.html",
+          "url": "https://kencyue.github.io/myhomepage/tools/clipboard.html",
           "text": "個人資訊",
           "img": "images/profile.png",
           "order": 1
@@ -249,7 +249,7 @@
           "order": 3
         },
         {
-          "url": "kennote/",
+          "url": "https://kencyue.github.io/myhomepage/kennote/",
           "text": "kennote",
           "img": "kennote/favicon.png",
           "order": 4
@@ -261,7 +261,7 @@
           "order": 5
         },
         {
-          "url": "tools/qrcode/qrs",
+          "url": "https://kencyue.github.io/myhomepage/tools/qrcode/qrs",
           "text": "QR掃描儲存",
           "img": "images/qrsave.png",
           "order": 6
@@ -285,37 +285,37 @@
           "order": 9
         },
         {
-          "url": "news/",
+          "url": "https://kencyue.github.io/myhomepage/news/",
           "text": "即時新聞",
           "img": "images/news.png",
           "order": 10
         },
         {
-          "url": "currency/",
+          "url": "https://kencyue.github.io/myhomepage/currency/",
           "text": "匯率轉換",
           "img": "images/exchange.png",
           "order": 11
         },
         {
-          "url": "tools/tc/",
+          "url": "https://kencyue.github.io/myhomepage/tools/tc/",
           "text": "簡繁轉換",
           "img": "images/zhcn.png",
           "order": 12
         },
         {
-          "url": "tools/tc",
+          "url": "https://kencyue.github.io/myhomepage/tools/tc",
           "text": "繁簡轉換",
           "img": "images/translate.png",
           "order": 13
         },
         {
-          "url": "tools/dvddata",
+          "url": "https://kencyue.github.io/myhomepage/tools/dvddata",
           "text": "備份光碟檢索",
           "img": "images/disk.png",
           "order": 14
         },
         {
-          "url": "gbook/",
+          "url": "https://kencyue.github.io/myhomepage/gbook/",
           "text": "留言板",
           "img": "images/guestbook.png",
           "order": 15
@@ -327,13 +327,13 @@
           "order": 16
         },
         {
-          "url": "restaurant/restaurant",
+          "url": "https://kencyue.github.io/myhomepage/restaurant/restaurant",
           "text": "中午吃什麼",
           "img": "images/lunch.png",
           "order": 17
         },
         {
-          "url": "travelmap/",
+          "url": "https://kencyue.github.io/myhomepage/travelmap/",
           "text": "隨機景點",
           "img": "images/landscape.png",
           "order": 18
@@ -357,13 +357,13 @@
           "order": 21
         },
         {
-          "url": "japanese/50",
+          "url": "https://kencyue.github.io/myhomepage/japanese/50",
           "text": "50音",
           "img": "images/japanese1.png",
           "order": 22
         },
         {
-          "url": "language/index",
+          "url": "https://kencyue.github.io/myhomepage/language/index",
           "text": "旅遊日文",
           "img": "images/fuji.png",
           "order": 23
@@ -410,7 +410,7 @@
       "group": "其他",
       "items": [
         {
-          "url": "quiz/",
+          "url": "https://kencyue.github.io/myhomepage/quiz/",
           "text": "題庫",
           "img": "favicon.ico",
           "order": 1
