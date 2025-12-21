@@ -3954,6 +3954,45 @@ function applyCardEffect(player, card) {
             // logElement.prepend(logItem); // 移除不必要的 DOM 操作
         }
 
+/**
+         * [NEW] 修復移動卡住功能
+         * 用於當狀態為 MOVING 但動畫已停止時，強制瞬間移動到目的地並觸發事件
+         */
+        async function fixStuckMove() {
+            if (!gameState || gameState.status !== 'MOVING') return;
+
+            const currentPlayer = gameState.players[gameState.turn];
+            const diceTotal = gameState.dice[0] + gameState.dice[1];
+            
+            // 1. 計算原本應該到達的目標位置
+            // 注意：因為移動中斷，Firestore 裡的位置還是起點，所以直接加上骰子數即可
+            let newPosition = (currentPlayer.position + diceTotal) % totalSquares;
+            
+            // 處理經過起點加錢 (簡單判定：如果新位置比舊位置小，且不是剛好在起點，通常就是跨過了一圈)
+            // 更精確的做法是：如果 (oldPos + steps) >= 128
+            if (currentPlayer.position + diceTotal >= totalSquares) {
+                currentPlayer.money += BOARD[0].action; // 獲得起點獎勵
+                addLog(`${currentPlayer.name} (修復移動) 經過起點，獲得 $${BOARD[0].action.toLocaleString()}。`);
+            }
+
+            // 2. 更新玩家位置
+            currentPlayer.position = newPosition;
+            
+            // 3. 變更狀態為 ROLLED，這樣 handleLandingAction 才能接手處理
+            // 先儲存位置，避免 handleLandingAction 讀到舊的
+            saveCurrentPlayerState(currentPlayer);
+            
+            // 4. 強制執行踩到格子的邏輯 (買地、付房租等)
+            // 這會自動將狀態更新為 ROLLED 或 ACTION_REQUIRED
+            await handleLandingAction(gameState.turn);
+            
+            addLog(`🚨 管理員/玩家執行了「修復移動」，${currentPlayer.name} 瞬間移動到了 ${gameState.board[newPosition].name}。`, 'error');
+        }
+        
+        // 綁定到 window 以便按鈕呼叫
+        window.fixStuckMove = fixStuckMove;
+
+        
         /**
          * 設置按鈕的啟用/禁用狀態
          */
@@ -4022,13 +4061,47 @@ function applyCardEffect(player, card) {
             // [修正 1] 監獄服刑期間禁用擲骰
             const isInJailAndServing = currentPlayer.inJail && currentPlayer.jailTurns > 0;
             
-            // --- 修正 2.1: MOVING 狀態時全部禁用 ---
+// --- 修正 2.1: MOVING 狀態時的處理 (包含卡住修復) ---
             if (gameState.status === 'MOVING') {
                 document.getElementById('roll-dice-btn').disabled = true;
                 document.getElementById('end-turn-btn').disabled = true;
                 setControlVisibility('none');
-                return; 
+
+                // [NEW] 偵測是否卡住：顯示修復按鈕
+                // 判斷邏輯：如果是 MOVING 狀態，但這裡卻執行了 setControlState，
+                // 代表 animateMove 可能已經沒在跑了 (或是剛重新整理網頁)。
+                // 為了安全，我們讓 P0 或當前玩家可以看到修復按鈕。
+                
+                const controlsArea = document.getElementById('game-controls-emergency-area');
+                let fixBtn = document.getElementById('fix-stuck-move-btn');
+
+                if (isMyTurn || (gameMaster && gameMaster.currentUserId === userId)) {
+                    if (!fixBtn) {
+                        fixBtn = document.createElement('button');
+                        fixBtn.id = 'fix-stuck-move-btn';
+                        fixBtn.innerHTML = '🚨 移動卡住？點擊瞬間完成移動';
+                        fixBtn.className = 'bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-xl shadow-2xl transition-all duration-200 text-base w-full md:w-auto mx-auto mb-4 border-4 border-orange-400 animate-pulse';
+                        fixBtn.onclick = async () => {
+                            // 防止重複點擊
+                            fixBtn.disabled = true;
+                            fixBtn.textContent = '修復中...';
+                            await window.fixStuckMove();
+                            fixBtn.remove();
+                        };
+                        controlsArea.appendChild(fixBtn);
+                    }
+                } else {
+                    // 如果不是相關人員，移除按鈕
+                    if (fixBtn) fixBtn.remove();
+                }
+                
+                return; // 仍然要 return，阻止後面的邏輯執行，因為還沒真正結束移動
+            } else {
+                // 如果狀態不是 MOVING，確保修復按鈕被移除
+                const fixBtn = document.getElementById('fix-stuck-move-btn');
+                if (fixBtn) fixBtn.remove();
             }
+            // --- END 修正 2.1 ---
             // --- END 修正 2.1 ---
             
             // 【主要修正 1：解除卡住】
