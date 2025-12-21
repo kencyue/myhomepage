@@ -1,24 +1,17 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>墨爾本大富翁 (改良版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        html, body {
-    /* 徹底禁止 iPad 手勢與滾動回彈，避免誤觸放大 */
-    position: fixed;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    /* 禁止選取與呼叫菜單 */
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    touch-action: none; /* 禁用所有預設手勢，由我們控制 */
-}
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2ff;
+            color: #1f2937;
+        }
         /* 定義棋子顏色 */
         .player-0 { background-color: #ef4444; } /* 紅色 */
         .player-1 { background-color: #3b82f6; } /* 藍色 */
@@ -126,30 +119,6 @@
         .house { background-color: #34d399; } /* 綠色 (House) */
         .apartment { background-color: #3b82f6; } /* 藍色 (Apartment) - 2 & 3 houses */
         .skyscraper { background-color: #ef4444; } /* 紅色 (Skyscraper) - 4 houses */
-        
-/* 移除所有互動元素的雙擊縮放延遲 */
-button, a, .cursor-pointer, #board-display > div {
-    touch-action: manipulation;
-    -webkit-user-select: none; /* 防止長按選取文字文字 */
-    user-select: none;
-}
-
-body {
-    /* 修正 iPad 全螢幕滾動體驗 */
-    overscroll-behavior: none;
-}
-
-        #app {
-    /* 讓內容在固定容器內滾動 */
-    overflow-y: auto;
-    height: 100vh;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* 棋盤與按鈕允許點擊 */
-#board-container, button, .cursor-pointer {
-    touch-action: manipulation !important;
-}
     </style>
 </head>
 <body>
@@ -886,9 +855,6 @@ if (currentPlayer.inJail && currentPlayer.jailTurns > 0) {
     // =========================================================
 
     gameState.status = 'MOVING';
-   const currentPlayer = gameState.players[gameState.turn];
-    currentPlayer.lastActiveTimestamp = Date.now(); // 更新時間
-    
     await updateGameState(gameState, `${currentPlayer.name} 正在擲骰...`);
 
     await runDiceAnimation(dice1, dice2); 
@@ -1382,26 +1348,6 @@ function applyCardEffect(player, card) {
         function showTrapTargetModal(currentPlayer, card) {
             const isMyTurn = (gameState.settings?.hotSwapMode && gameState.players[0]?.currentUserId === userId) || (currentPlayer.currentUserId === userId); 
 
-// --- 新增：處理 MOVING 狀態的重連修復 ---
-    if (gameState.status === 'MOVING' && isMyTurn && !isProcessingAction) {
-        console.log("偵測到重連，正在繼續未完成的移動動畫...");
-        isProcessingAction = true; // 鎖定，防止重複觸發
-        
-        // 取得骰子點數
-        const steps = gameState.dice[0] + gameState.dice[1];
-        
-        // 這裡需要一個小技巧：animateMove 是從「目前位置」往後走 steps 步
-        // 但因為我們可能已經移動到一半存過檔，或者剛擲骰
-        // 為了安全，我們讓重連的人直接執行落地檢查，或從起點重新跑一次
-        setTimeout(async () => {
-            // 呼叫落地處理（這會將狀態轉為 ROLLED 或 ACTION_REQUIRED）
-            await handleLandingAction(currentPlayerIndex);
-            isProcessingAction = false;
-        }, 1000);
-        return; 
-    }
-    // --- 結束 MOVING 修復 ---
-            
             if (!isMyTurn) {
                 // 非當前玩家只顯示卡片內容
                 showCardModal(currentPlayer, card.text, card.type.includes('chance') ? 'CHANCE' : 'FATE', true);
@@ -4411,33 +4357,7 @@ async function listenForGameState() {
     onSnapshot(gameRef, (doc) => {
         if (doc.exists()) {
             const newGameState = doc.data();
-
-     // --- 【核心修正：MOVING 狀態重連恢復邏輯】 ---
-        if (newGameState.status === 'MOVING') {
-            const currentPlayerIndex = newGameState.turn;
-            const currentPlayer = newGameState.players[currentPlayerIndex];
             
-            // 判斷是否為自己的回合 (考慮熱機模式)
-            const isGameMasterDevice = newGameState.players[0]?.currentUserId === userId;
-            const isHotSwapMode = newGameState.settings?.hotSwapMode === true;
-            const isMyTurn = (isHotSwapMode && isGameMasterDevice) || (currentPlayer.currentUserId === userId);
-
-            // 如果是我輪到，且狀態是 MOVING，代表我剛重整進來，動畫沒跑完
-            if (isMyTurn && !isProcessingAction) {
-                console.log("偵測到移動中重整，正在恢復該格的功能視窗...");
-                isProcessingAction = true; // 防止重複觸發
-
-                // 延遲一下確保數據載入完畢
-                setTimeout(async () => {
-                    gameState = newGameState; // 更新本地狀態
-                    // 直接觸發落地邏輯：這會根據玩家當前位置彈出「購買」、「租金」或「卡片」視窗
-                    await handleLandingAction(currentPlayerIndex);
-                    isProcessingAction = false;
-                }, 800);
-                return;
-            }
-        }
-        // --- 【修復結束】 ---
             
             
             // --- 確保 currentStocks 與 stocksConfig 同步（新增股票時自動初始化價格）---
