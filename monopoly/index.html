@@ -886,7 +886,7 @@ if (currentPlayer.inJail && currentPlayer.jailTurns > 0) {
     // =========================================================
 
     gameState.status = 'MOVING';
-   const currentPlayer = gameState.players[gameState.turn];
+
     currentPlayer.lastActiveTimestamp = Date.now(); // 更新時間
     
     await updateGameState(gameState, `${currentPlayer.name} 正在擲骰...`);
