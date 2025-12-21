@@ -3237,6 +3237,75 @@ function applyCardEffect(player, card) {
         };
 
 
+/**
+         * [NEW] 管理員強制跳過當前玩家回合 (救急用)
+         * 直接計算下一位玩家並更新資料庫，無視任何鎖定狀態。
+         */
+        async function adminForcePassTurn() {
+            if (!gameState) return;
+            
+            // 只有 P0 管理員能用 (這裡做簡單檢查，反正按鈕只有管理員看得到)
+            const gameMaster = gameState.players[0];
+            if (gameMaster.currentUserId !== userId) {
+                alert('權限不足：只有 P0 管理員可以使用此功能。');
+                return;
+            }
+
+            const currentTurnIndex = gameState.turn;
+            const currentPlayer = gameState.players[currentTurnIndex];
+            
+            // 1. 計算下一位玩家
+            let nextTurn = (currentTurnIndex + 1) % gameState.players.length;
+            let nextPlayer = gameState.players[nextTurn];
+            let newRound = gameState.round;
+
+            // 處理回合數增加
+            if (nextTurn === 0) newRound++;
+
+            // 跳過破產/未啟用的玩家
+            let loopCount = 0;
+            while (!nextPlayer.isPlaying && loopCount < gameState.players.length) {
+                nextTurn = (nextTurn + 1) % gameState.players.length;
+                nextPlayer = gameState.players[nextTurn];
+                if (nextTurn === 0) newRound++;
+                loopCount++;
+            }
+
+            // 2. 建構強制更新的狀態
+            const forceNextState = {
+                ...gameState,
+                turn: nextTurn,
+                status: 'READY', // 強制設為 READY，讓下一位可以擲骰
+                round: newRound,
+                pendingAction: { type: 'none', squareIndex: null, card: null } // 清除所有卡住的動作
+            };
+
+            // 3. 解鎖本地防止連點的變數 (以防萬一)
+            isProcessingAction = false; 
+
+            // 4. 寫入資料庫
+            try {
+                await setDoc(gameRef, { 
+                    ...forceNextState, 
+                    log: [
+                        { text: `[管理員] 強制結束了 ${currentPlayer.name} 的回合，輪到 ${nextPlayer.name}。`, time: Date.now() },
+                        ...gameState.log
+                    ]
+                });
+                console.log('強制跳過回合成功');
+                
+                // 關閉可能卡住的 Modal
+                document.getElementById('modal').classList.add('hidden');
+                document.getElementById('modal').classList.remove('flex');
+            } catch (e) {
+                console.error('強制跳過失敗:', e);
+                alert('強制更新失敗，請檢查網路或權限。');
+            }
+        }
+
+        // 綁定到 window 以便按鈕呼叫
+        window.adminForcePassTurn = adminForcePassTurn;
+        
         /**
          * [重新啟用] 管理員強制接管功能 (用於解決 P0 長時間離線問題)
          */
@@ -4164,6 +4233,32 @@ function applyCardEffect(player, card) {
             } else {
                 setControlVisibility('none');
             }
+
+            // --- [新增] 管理員強制跳過按鈕 (P0 專用) ---
+            const emergencyArea = document.getElementById('game-controls-emergency-area');
+            const adminPassBtnId = 'admin-force-pass-btn';
+            let adminPassBtn = document.getElementById(adminPassBtnId);
+
+            // 只有當 P0 是我，且遊戲狀態看起來卡住 (ACTION_REQUIRED 或 ROLLED) 時才顯示
+            // 或者：只要是 P0 就永遠顯示一個小按鈕在角落以防萬一
+            if (isGameMasterDevice && gameState.gameStarted) {
+                if (!adminPassBtn) {
+                    adminPassBtn = document.createElement('button');
+                    adminPassBtn.id = adminPassBtnId;
+                    adminPassBtn.innerHTML = '⚡ 管理員強制換人 (P0)';
+                    // 樣式：紫色，顯眼但與紅色區分
+                    adminPassBtn.className = 'bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md text-xs mt-2 w-full md:w-auto';
+                    adminPassBtn.onclick = () => {
+                        if(confirm('確定要強制結束當前玩家的回合，直接輪到下一位嗎？\n(這會清除所有未完成的動作)')) {
+                            window.adminForcePassTurn();
+                        }
+                    };
+                    emergencyArea.appendChild(adminPassBtn);
+                }
+            } else {
+                if (adminPassBtn) adminPassBtn.remove();
+            }
+            
         }
 
         // **NEW: 擴展 setControlVisibility 函數以包含 buy, trap, manage**
