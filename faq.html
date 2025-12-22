@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>員工內部測驗 FAQ v3.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 10px;
+        }
+
+        /* Animation for details */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        details[open] summary ~ * {
+            animation: sweep .3s ease-in-out;
+        }
+
+        @keyframes sweep {
+            0%    {opacity: 0; transform: translateY(-10px)}
+            100%  {opacity: 1; transform: translateY(0)}
+        }
+
+        .category-header {
+            position: sticky;
+            top: 70px; /* Below the search bar */
+            z-index: 10;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="text-gray-800 pb-10">
+
+    <!-- Header & Search -->
+    <header class="bg-white shadow-md sticky top-0 z-50 w-full">
+        <div class="max-w-3xl mx-auto px-4 py-4">
+            <h1 class="text-xl font-bold text-center text-gray-800 mb-1">
+                <i class="fas fa-file-signature text-blue-600 mr-2"></i>員工內部測驗
+            </h1>
+            <p class="text-xs text-center text-gray-500 mb-3">考生常見問題集 (FAQ) v3.2</p>
+            
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="搜尋問題關鍵字 (如: 交卷、沒電、修改...)" 
+                    class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm shadow-sm">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-4 space-y-6" id="faqContainer">
+
+        <!-- Category 1: Green -->
+        <div class="faq-category">
+            <div class="category-header bg-green-50/90 border-l-4 border-green-500 py-2 px-3 mb-3 rounded-r-lg shadow-sm">
+                <h2 class="font-bold text-green-800 flex items-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> 一、 登入與考前準備
+                </h2>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Q1 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q1：我該如何進入考試頁面？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        請使用手機掃描紙本試卷上方的 QR Code。<br>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>進入後請輸入您的「員工編號」與「真實姓名」，以及考官提供的「考試代碼」。</li>
+                            <li>若掃描失敗，請手動輸入網址：<br><a href="https://exam.try-n-go.com" class="text-blue-600 underline break-all">https://exam.try-n-go.com</a></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <!-- Q2 (Updated: Strict Device Requirement) -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q2：可以使用平板或電腦作答嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        <strong class="text-red-600 text-base">不行。</strong><br>
+                        本考試系統專為手機介面設計，請<strong class="text-gray-900 underline decoration-red-500 decoration-2">務必使用手機</strong>進行作答，以避免功能異常或版面跑位影響您的考試權益。
+                    </div>
+                </details>
+
+                <!-- Q3 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q3：登入資料輸入錯誤會有影響嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        系統雖採臨時帳號機制，但請務必確認資料輸入正確。若輸入錯誤的員工編號或姓名，系統將無法正確歸戶，該次考試將<strong class="text-red-500">不予計分</strong>。
+                    </div>
+                </details>
+
+                <!-- Q4 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q4：我是前來支援的考生，所屬站別該如何填寫？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        請直接選擇您目前<strong class="text-gray-800">實際支援的站別</strong>，以利成績統計與管理。
+                    </div>
+                </details>
+
+                <!-- Q5 (Updated: Auto Uppercase) -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q5：員工編號如果有英文字母，需要分大小寫嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        <strong class="text-blue-600">不需要。</strong><br>
+                        系統會自動將您輸入的英文字母轉換為大寫，您只需確認字母與數字正確即可。
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Category 2: Yellow -->
+        <div class="faq-category">
+            <div class="category-header bg-yellow-50/90 border-l-4 border-yellow-500 py-2 px-3 mb-3 rounded-r-lg shadow-sm">
+                <h2 class="font-bold text-yellow-800 flex items-center">
+                    <i class="fas fa-tasks mr-2"></i> 二、 考試規則與作答
+                </h2>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Q6 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q6：考試的時間限制與流程為何？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li><strong>考試時長：</strong> 每份考卷作答時間為 50 分鐘。</li>
+                            <li><strong>入場時間：</strong> 您可以在考試開始前先登入等待倒數；若超過規定的作答時間，系統將關閉入口，無法進入作答。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <!-- Q7 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q7：考試的題型與作答位置為何？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        本次考試採「線上」與「紙本」混合進行：
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li><strong>選擇題（20題）：</strong> 請在手機網頁上作答。</li>
+                            <li><strong>問答題（4題）：</strong> 請直接在紙本試卷上書寫作答。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <!-- Q8 - Important (Default Closed) -->
+                <details class="group bg-white rounded-xl shadow-sm border-2 border-yellow-200 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4 flex items-center">
+                            <i class="fas fa-exclamation-circle text-yellow-600 mr-2"></i> Q8：我可以修改選擇題的答案嗎？
+                        </h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-white leading-relaxed border-t border-yellow-100 pt-3">
+                        <div class="flex flex-col gap-2">
+                            <div class="p-2 bg-green-50 text-green-800 rounded">
+                                <span class="font-bold">✅ 交卷前：</span> 可以。在考試時間內且尚未送出前，您都可以自由修改答案。
+                            </div>
+                            <div class="p-2 bg-red-50 text-red-800 rounded border border-red-100">
+                                <span class="font-bold">❌ 交卷後：</span> <span class="font-bold">不可以。</span>一旦您按下「確認交卷」送出後，系統將立即鎖定試卷，<span class="underline decoration-red-500 decoration-2">無法再重新進入修改任何答案</span>，請務必檢查無誤後再送出。
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Q9 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q9：紙本問答題如果不夠寫，可以寫在背面嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        可以。若正面空間不足，請註明「續背面」並將答案清楚書寫於試卷背面，務必標示題號。
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Category 3: Red -->
+        <div class="faq-category">
+            <div class="category-header bg-red-50/90 border-l-4 border-red-500 py-2 px-3 mb-3 rounded-r-lg shadow-sm">
+                <h2 class="font-bold text-red-800 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> 三、 突發狀況與異常
+                </h2>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Q10 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q10：如果我不小心關掉視窗，或是考試結束忘記按交卷？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        請不用擔心！系統具備即時存檔功能。
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li><strong>意外關閉：</strong> 只要還沒按交卷且時間未到，重新登入即可繼續作答。</li>
+                            <li><strong>忘記交卷：</strong> 若考試時間結束您仍未交卷，系統會自動將您「已完成的部分」強制交卷並計分。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <!-- Q11 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q11：電話打來或跳出訊息通知，會影響考試嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        不會造成交卷，但<strong class="text-red-500">考試計時不會暫停</strong>。請盡快掛斷電話或忽略通知，切回瀏覽器繼續作答。建議考試前開啟「勿擾模式」。
+                    </div>
+                </details>
+
+                <!-- Q12 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q12：網路斷線或訊號不穩，答案會不見嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        系統會在您點選選項時嘗試連線存檔。若出現網路異常提示，請先確認手機訊號，並嘗試重新整理頁面。
+                    </div>
+                </details>
+
+                <!-- Q13 - Updated with Important Reminder -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q13：若手機沒電或故障，可以換別人的手機登入嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        可以。您可以借用其他裝置登入接續作答。但請注意，不要同時在兩台裝置上登入，以免存檔衝突。
+                        
+                        <!-- Added Reminder -->
+                        <div class="mt-3 p-3 bg-red-50 text-red-800 text-xs rounded-lg border border-red-100 flex items-start">
+                             <i class="fas fa-battery-half mr-2 mt-0.5"></i> 
+                             <div>
+                                 <strong>重要提醒：</strong> 預防勝於補救！為避免考試中斷造成緊張與不便，請務必於考前<strong class="underline">檢查手機電量充足</strong>並確認網路運作正常。
+                             </div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Category 4: Blue -->
+        <div class="faq-category">
+            <div class="category-header bg-blue-50/90 border-l-4 border-blue-500 py-2 px-3 mb-3 rounded-r-lg shadow-sm">
+                <h2 class="font-bold text-blue-800 flex items-center">
+                    <i class="fas fa-paper-plane mr-2"></i> 四、 交卷與考後須知
+                </h2>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Q14 - Important (Default Closed) -->
+                <details class="group bg-white rounded-xl shadow-sm border-2 border-blue-200 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4 flex items-center">
+                            <i class="fas fa-question-circle text-blue-600 mr-2"></i> Q14：如果不小心按到「送出交卷」還有救嗎？
+                        </h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-white leading-relaxed border-t border-blue-100 pt-3">
+                        為了避免誤觸，系統在送出前會有<strong class="text-blue-600">「二次確認」的視窗</strong>。<br><br>
+                        請您在按下最後確認鍵前<strong class="text-red-500">謹慎檢查</strong>，一旦完成送出程序，便無法撤回或重新作答。
+                    </div>
+                </details>
+
+                <!-- Q15 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q15：線上作答完成後，紙本試卷需要繳回嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                   
