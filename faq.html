@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>員工內部測驗 FAQ v3.3</title>
+    
+    <!-- 🔥 強制禁止瀏覽器快取 (Cache Busting) 🔥 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>員工內部測驗 FAQ v3.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -60,7 +66,7 @@
             <h1 class="text-xl font-bold text-center text-gray-800 mb-1">
                 <i class="fas fa-file-signature text-blue-600 mr-2"></i>員工內部測驗
             </h1>
-            <p class="text-xs text-center text-gray-500 mb-3">考生常見問題集 (FAQ) v3.3</p>
+            <p class="text-xs text-center text-gray-500 mb-3">考生常見問題集 (FAQ) v3.4</p>
             
             <div class="relative">
                 <input type="text" id="searchInput" placeholder="搜尋問題關鍵字 (如: 交卷、沒電、修改...)" 
@@ -98,7 +104,7 @@
                     </div>
                 </details>
 
-                <!-- Q2 (Updated: Strict Device Requirement) -->
+                <!-- Q2 (Strict Device Requirement) -->
                 <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
                         <h3 class="font-bold text-sm text-gray-900 pr-4">Q2：可以使用平板或電腦作答嗎？</h3>
@@ -138,7 +144,7 @@
                     </div>
                 </details>
 
-                <!-- Q5 (Updated: Auto Uppercase) -->
+                <!-- Q5 (Auto Uppercase) -->
                 <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
                         <h3 class="font-bold text-sm text-gray-900 pr-4">Q5：員工編號如果有英文字母，需要分大小寫嗎？</h3>
@@ -196,7 +202,7 @@
                     </div>
                 </details>
 
-                <!-- Q8 - Important (Default Closed) -->
+                <!-- Q8 - Important -->
                 <details class="group bg-white rounded-xl shadow-sm border-2 border-yellow-200 overflow-hidden">
                     <summary class="flex items-center justify-between p-4 cursor-pointer bg-yellow-50 hover:bg-yellow-100 transition-colors">
                         <h3 class="font-bold text-sm text-gray-900 pr-4 flex items-center">
@@ -317,7 +323,7 @@
             </div>
 
             <div class="space-y-3">
-                <!-- Q14 - Important (Default Closed) -->
+                <!-- Q14 - Important -->
                 <details class="group bg-white rounded-xl shadow-sm border-2 border-blue-200 overflow-hidden">
                     <summary class="flex items-center justify-between p-4 cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors">
                         <h3 class="font-bold text-sm text-gray-900 pr-4 flex items-center">
@@ -333,7 +339,7 @@
                     </div>
                 </details>
 
-                <!-- Q15 - FIXED -->
+                <!-- Q15 -->
                 <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
                         <h3 class="font-bold text-sm text-gray-900 pr-4">Q15：線上作答完成後，紙本試卷需要繳回嗎？</h3>
@@ -341,4 +347,95 @@
                             <i class="fas fa-chevron-down"></i>
                         </span>
                     </summary>
-           
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        <strong class="text-red-500">需要。</strong>因紙本上有您的問答題作答內容，考試結束後請務必將紙本試卷交給現場考官，切勿自行帶離。
+                    </div>
+                </details>
+
+                <!-- Q16 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q16：如何確認我已經成功交卷？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        當您按下送出後，畫面出現「作答完成」或「感謝您的參與」等確認頁面，即代表交卷成功。
+                    </div>
+                </details>
+
+                <!-- Q17 -->
+                <details class="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <summary class="flex items-center justify-between p-4 cursor-pointer bg-white hover:bg-gray-50 transition-colors">
+                        <h3 class="font-bold text-sm text-gray-900 pr-4">Q17：送出交卷後，我可以立刻看到成績嗎？</h3>
+                        <span class="text-gray-400 transition-transform duration-200 group-open:rotate-180">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </summary>
+                    <div class="px-4 pb-4 text-sm text-gray-600 bg-gray-50/50 leading-relaxed border-t border-gray-100 pt-3">
+                        由於本次考試包含紙本問答題，需待人工閱卷完畢合併計算後，才會另行公佈正式成績。
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div id="noResults" class="hidden text-center py-10 text-gray-500">
+            <i class="fas fa-search-minus text-3xl mb-3"></i>
+            <p>找不到相關問題，請嘗試其他關鍵字。</p>
+        </div>
+
+    </main>
+
+    <footer class="text-center text-xs text-gray-400 py-6">
+        &copy; 2024 Try-N-Go Training Dept. <br>System Version 3.4
+    </footer>
+
+    <!-- Search Script -->
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const details = document.querySelectorAll('details');
+            const categories = document.querySelectorAll('.faq-category');
+            let foundAny = false;
+
+            categories.forEach(category => {
+                let foundInCategory = false;
+                const items = category.querySelectorAll('details');
+                
+                items.forEach(item => {
+                    const question = item.querySelector('summary').innerText.toLowerCase();
+                    const answer = item.querySelector('div').innerText.toLowerCase();
+                    
+                    if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                        item.style.display = 'block';
+                        // Auto expand if searching
+                        if(searchTerm.length > 0) item.setAttribute('open', '');
+                        else if (!item.classList.contains('border-2')) item.removeAttribute('open'); // Close regular items on clear
+                        
+                        foundInCategory = true;
+                        foundAny = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                // Hide category header if no items visible in it
+                if(foundInCategory) {
+                    category.style.display = 'block';
+                } else {
+                    category.style.display = 'none';
+                }
+            });
+
+            const noResultDiv = document.getElementById('noResults');
+            if (!foundAny) {
+                noResultDiv.classList.remove('hidden');
+            } else {
+                noResultDiv.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+
