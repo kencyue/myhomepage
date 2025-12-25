@@ -1,163 +1,162 @@
 {
-  "title": "🔧 Ken的首頁",
   "groups": [
     {
       "group": "工作工具",
       "items": [
         {
-          "url": "https://kencyue.github.io/myhomepage/calendar/",
+          "url": "https://kencyue.github.io/calendar/",
           "text": "公司月曆",
-          "img": "images/calendar.png",
+          "img": "https://cdn-icons-png.flaticon.com/128/668/668278.png",
           "order": 1
-        },
-        {
-          "url": "https://pmst.panasonic.com.tw/peph/default_pda.asp",
-          "text": "iEPOCH",
-          "img": "images/favicon.ico",
-          "order": 2
-        },
-        {
-          "url": "https://pmst.panasonic.com.tw/Consumer/Support/Download",
-          "text": "說明書下載",
-          "img": "images/userguide.png",
-          "order": 3
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/parts/",
-          "text": "材料查詢",
-          "img": "images/database.png",
-          "order": 4
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/parts/e2p",
-          "text": "E2P查詢",
-          "img": "images/chip.png",
-          "order": 5
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/parts/compare",
-          "text": "E2P比較",
-          "img": "images/compare.png",
-          "order": 6
-        },
-        {
-          "url": "https://kencyue.rf.gd/drive/index.html",
-          "text": "檔案查詢",
-          "img": "images/folder.png",
-          "order": 7
-        },
-        {
-          "url": "https://panasonic-error.neocities.org/",
-          "text": "空調故障碼(測試)",
-          "img": "images/errorcode.png",
-          "order": 8
-        },
-        {
-          "url": "http://140.116.86.242:33335",
-          "text": "Panasonic AI",
-          "img": "images/chatbot.png",
-          "order": 9
-        },
-        {
-          "url": "https://intellicon.app/ewc/5TEil9Y",
-          "text": "愛比AI",
-          "img": "https://img.intellicon.app/Intellicon-assets/ITC_Logo_Trans_256x256.png",
-          "order": 10
-        },
-        {
-          "url": "line://ti/g2/PoBXFcFAKoaLHsmL8bbrwBBXrIzAyN0N7uaKLw",
-          "text": "維修line群",
-          "img": "images/line.png",
-          "order": 11
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/cooling.html",
-          "text": "冷房能力試算",
-          "img": "images/cooling.png",
-          "order": 12
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/airspeed_to_airvolume_converter",
-          "text": "風速風量轉換",
-          "img": "images/airspeed.png",
-          "order": 13
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/dewpoint_converter.html",
-          "text": "溫溼露點轉換",
-          "img": "images/humidity.png",
-          "order": 14
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/dry_wet_rh.html",
-          "text": "乾溼溼度轉換",
-          "img": "images/rh.png",
-          "order": 15
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/cadr.html",
-          "text": "CADR計算",
-          "img": "images/cadr.png",
-          "order": 16
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/pt_lookup.html",
-          "text": "冷媒PT表",
-          "img": "images/gauge.png",
-          "order": 17
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/vacuum.html",
-          "text": "真空度轉換",
-          "img": "images/vacuum.png",
-          "order": 18
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/modbus.html",
-          "text": "全熱Modbus",
-          "img": "images/modbus.png",
-          "order": 19
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/modbus/index3.html",
-          "text": "空調空質Modbus",
-          "img": "images/modbus_co.png",
-          "order": 20
-        },
-        {
-          "url": "https://drive.google.com/file/d/1UUWvfBTkHuyy-XTCMXj8VUMINrKMKM4B/view?usp=drive_link",
-          "text": "IoT設備列表",
-          "img": "images/iot.png",
-          "order": 21
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/MQC/rule",
-          "text": "MQC登錄規則",
-          "img": "https://cdn-icons-png.freepik.com/512/7785/7785900.png",
-          "order": 22
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/qrcode/",
-          "text": "QR掃描",
-          "img": "images/qrcode.png",
-          "order": 23
-        },
-        {
-          "url": "bookmarks_leak.html",
-          "text": "漏點位置圖",
-          "img": "images/leak.png",
-          "order": 24
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/password.html",
-          "text": "二代治具密碼",
-          "img": "images/password.png",
-          "order": 25
         },
         {
           "url": "https://kencyue.github.io/myhomepage/secure/",
           "text": "安全檢查表",
           "img": "images/checklist.png",
+          "order": 2
+        },
+        {
+          "url": "https://pmst.panasonic.com.tw/peph/default_pda.asp",
+          "text": "iEPOCH",
+          "img": "images/favicon.ico",
+          "order": 3
+        },
+        {
+          "url": "https://pmst.panasonic.com.tw/Consumer/Support/Download",
+          "text": "說明書下載",
+          "img": "images/userguide.png",
+          "order": 4
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/parts/",
+          "text": "材料查詢",
+          "img": "images/database.png",
+          "order": 5
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/parts/e2p",
+          "text": "E2P查詢",
+          "img": "images/chip.png",
+          "order": 6
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/parts/compare",
+          "text": "E2P比較",
+          "img": "images/compare.png",
+          "order": 7
+        },
+        {
+          "url": "https://kencyue.rf.gd/drive/index.html",
+          "text": "檔案查詢",
+          "img": "images/folder.png",
+          "order": 8
+        },
+        {
+          "url": "https://panasonic-error.neocities.org/",
+          "text": "空調故障碼",
+          "img": "images/errorcode.png",
+          "order": 9
+        },
+        {
+          "url": "http://140.116.86.242:33335",
+          "text": "Panasonic AI",
+          "img": "images/chatbot.png",
+          "order": 10
+        },
+        {
+          "url": "https://intellicon.app/ewc/5TEil9Y",
+          "text": "愛比AI",
+          "img": "https://img.intellicon.app/Intellicon-assets/ITC_Logo_Trans_256x256.png",
+          "order": 11
+        },
+        {
+          "url": "line://ti/g2/PoBXFcFAKoaLHsmL8bbrwBBXrIzAyN0N7uaKLw",
+          "text": "維修line群",
+          "img": "images/line.png",
+          "order": 12
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/cooling.html",
+          "text": "冷房能力試算",
+          "img": "images/cooling.png",
+          "order": 13
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/airspeed_to_airvolume_converter",
+          "text": "風速風量轉換",
+          "img": "images/airspeed.png",
+          "order": 14
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/dewpoint_converter.html",
+          "text": "溫溼露點轉換",
+          "img": "images/humidity.png",
+          "order": 15
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/dry_wet_rh.html",
+          "text": "乾溼溼度轉換",
+          "img": "images/rh.png",
+          "order": 16
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/cadr.html",
+          "text": "CADR計算",
+          "img": "images/cadr.png",
+          "order": 17
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/pt_lookup.html",
+          "text": "冷媒PT表",
+          "img": "images/gauge.png",
+          "order": 18
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/vacuum.html",
+          "text": "真空度轉換",
+          "img": "images/vacuum.png",
+          "order": 19
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/modbus.html",
+          "text": "全熱Modbus",
+          "img": "images/modbus.png",
+          "order": 20
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/modbus/index3.html",
+          "text": "空調空質Modbus",
+          "img": "images/modbus_co.png",
+          "order": 21
+        },
+        {
+          "url": "https://drive.google.com/file/d/1UUWvfBTkHuyy-XTCMXj8VUMINrKMKM4B/view?usp=drive_link",
+          "text": "IoT設備列表",
+          "img": "images/iot.png",
+          "order": 22
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/MQC/rule",
+          "text": "MQC登錄規則",
+          "img": "https://cdn-icons-png.freepik.com/512/7785/7785900.png",
+          "order": 23
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/qrcode/",
+          "text": "QR掃描",
+          "img": "images/qrcode.png",
+          "order": 24
+        },
+        {
+          "url": "http://bookmarks_leak.html",
+          "text": "漏點位置圖",
+          "img": "images/leak.png",
+          "order": 25
+        },
+        {
+          "url": "https://kencyue.github.io/myhomepage/tools/password.html",
+          "text": "二代治具密碼",
+          "img": "images/password.png",
           "order": 26
         },
         {
@@ -197,225 +196,19 @@
           "order": 32
         },
         {
-          "url": "https://www.fotojet.com/tw/apps/?entry=collage",
-          "text": "相片拼貼",
-          "img": "images/fotojet.png",
-          "order": 33
-        },
-        {
           "url": "https://kencyue.github.io/myhomepage/tools/sn",
           "text": "機種機號",
           "img": "images/sn.png",
-          "order": 34
+          "order": 33
         },
         {
           "url": "https://kencyue.github.io/myhomepage/tools/keyparts",
           "text": "常用code",
           "img": "images/promo.png",
-          "order": 35
-        },
-        {
-          "url": "https://kencyue.rf.gd/quiz/",
-          "text": "題庫管理",
-          "img": "https://kencyue.rf.gd/quiz/favicon.png",
-          "order": 36
-        },
-        {
-          "url": "https://exam.try-n-go.com/login/",
-          "text": "考試系統",
-          "order": 37
-        }
-      ]
-    },
-    {
-      "group": "私人工具",
-      "items": [
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/clipboard.html",
-          "text": "個人資訊",
-          "img": "images/profile.png",
-          "order": 1
-        },
-        {
-          "url": "https://gemini.google.com/share/ec16edbaf2d8",
-          "text": "早安圖",
-          "img": "https://gemini.google.com/favicon.ico",
-          "order": 2
-        },
-        {
-          "url": "https://kencyue.rf.gd/kids/",
-          "text": "親子點數系統",
-          "img": "https://kencyue.rf.gd/kids/favicon.png",
-          "order": 3
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/kennote/",
-          "text": "kennote",
-          "img": "kennote/favicon.png",
-          "order": 4
-        },
-        {
-          "url": "https://kencyue.github.io/money/",
-          "text": "記帳軟體",
-          "img": "https://kencyue.github.io/money/favicon.png",
-          "order": 5
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/qrcode/qrs",
-          "text": "QR掃描儲存",
-          "img": "images/qrsave.png",
-          "order": 6
-        },
-        {
-          "url": "https://www.mvdis.gov.tw/m3-emv-vil/vil/penaltyQueryPay#gsc.tab=0",
-          "text": "查罰單",
-          "img": "https://www.mvdis.gov.tw/favicon.ico",
-          "order": 7
-        },
-        {
-          "url": "https://copypaste.me/",
-          "text": "CP",
-          "img": "https://copypaste.me/apple-touch-icon.png",
-          "order": 8
-        },
-        {
-          "url": "https://www.google.com/finance/",
-          "text": "stock",
-          "img": "images/stock.png",
-          "order": 9
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/news/",
-          "text": "即時新聞",
-          "img": "images/news.png",
-          "order": 10
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/currency/",
-          "text": "匯率轉換",
-          "img": "images/exchange.png",
-          "order": 11
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/tc/",
-          "text": "簡繁轉換",
-          "img": "images/zhcn.png",
-          "order": 12
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/tc",
-          "text": "繁簡轉換",
-          "img": "images/translate.png",
-          "order": 13
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/tools/dvddata",
-          "text": "備份光碟檢索",
-          "img": "images/disk.png",
-          "order": 14
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/gbook/",
-          "text": "留言板",
-          "img": "images/guestbook.png",
-          "order": 15
-        },
-        {
-          "url": "https://itskensblog.blogspot.com/?m=1&zx=de2a796a123de0c9",
-          "text": "Blogger",
-          "img": "images/blogger.png",
-          "order": 16
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/restaurant/restaurant",
-          "text": "中午吃什麼",
-          "img": "images/lunch.png",
-          "order": 17
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/travelmap/",
-          "text": "隨機景點",
-          "img": "images/landscape.png",
-          "order": 18
-        },
-        {
-          "url": "https://www.cwa.gov.tw/",
-          "text": "氣象",
-          "img": "images/weather.png",
-          "order": 19
-        },
-        {
-          "url": "https://tasks.google.com/tasks/",
-          "text": "Task",
-          "img": "images/task.png",
-          "order": 20
-        },
-        {
-          "url": "https://shifu.tw/learning/japanese",
-          "text": "日文學習",
-          "img": "images/japanese.png",
-          "order": 21
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/japanese/50",
-          "text": "50音",
-          "img": "images/japanese1.png",
-          "order": 22
-        },
-        {
-          "url": "https://kencyue.github.io/myhomepage/language/index",
-          "text": "旅遊日文",
-          "img": "images/fuji.png",
-          "order": 23
-        },
-        {
-          "url": "https://www.skillcollect.com.tw/programs/fff91c29-9e29-4857-b3b5-18d183ee93b0/contents/bffdd21d-8504-463e-80ac-2af33a689976",
-          "text": "英文學習",
-          "img": "images/alphabet.png",
-          "order": 24
-        },
-        {
-          "url": "https://snapsave.app/tw-tw",
-          "text": "FB影片下載",
-          "img": "images/download.png",
-          "order": 25
-        },
-        {
-          "url": "https://drive.google.com/drive/folders/1WH9mlAZ0Xen-dsYi8gmjUMZaBeyNaHB7",
-          "text": "G drive",
-          "img": "images/drive.png",
-          "order": 26
-        },
-        {
-          "url": "https://kencyue.rf.gd/drive/drive_generate.php",
-          "text": "索引更新",
-          "img": "images/generate.png",
-          "order": 27
-        },
-        {
-          "url": "https://jsbin.com/?html,output",
-          "text": "JSbin",
-          "img": "https://static.jsbin.com/images/dave.min.svg",
-          "order": 28
-        },
-        {
-          "url": "https://neocities.org/dashboard",
-          "text": "後台管理",
-          "img": "images/neocities.png",
-          "order": 29
-        }
-      ]
-    },
-    {
-      "group": "其他",
-      "items": [
-        {
-          "url": "https://kencyue.github.io/myhomepage/quiz/",
-          "text": "題庫",
-          "img": "favicon.ico",
-          "order": 1
+          "order": 34
         }
       ]
     }
-  ]
+  ],
+  "title": "自訂首頁"
 }
