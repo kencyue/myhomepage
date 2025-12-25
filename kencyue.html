@@ -242,7 +242,7 @@
 
   // 預設資料 (未登入時顯示)
   const defaultData = {
-    title: "歡迎使用 (未登入模式)",
+    title: "歡迎使用",
     groups: [
       {
         group: "範例組別",
@@ -290,7 +290,7 @@
         currentUser = null;
         loginBtn.style.display = "inline-block";
         logoutBtn.style.display = "none";
-        userDisplay.textContent = "未登入 (唯讀模式)";
+        userDisplay.textContent = "未登入 (唯讀)";
         userDisplay.style.color = "#ccc";
         
         // 載入預設資料
