@@ -3,38 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>購物計算機</title>
+    <title>購物匯率計算機 v5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 防止手機雙擊縮放 */
         body { touch-action: manipulation; }
-        /* 隱藏數字輸入框的箭頭 */
+        /* 隱藏數字輸入框箭頭 */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
             margin: 0; 
         }
-        .fade-in { animation: fadeIn 0.2s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* 編輯中的欄位樣式 */
+        [contenteditable="true"]:focus {
+            outline: none;
+            background-color: #eff6ff;
+            border-bottom: 2px solid #3b82f6;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+        .name-field:empty::before {
+            content: attr(placeholder);
+            color: #94a3b8;
+            font-style: italic;
+            pointer-events: none;
+        }
+        .editable-cursor { cursor: text; }
+        
+        /* 匯率面板動畫 */
+        .rate-panel {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .rate-panel.open {
+            max-height: 200px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen pb-20 font-sans text-slate-800">
 
-    <!-- 頂部總額顯示 (Sticky Header) -->
-    <div class="sticky top-0 z-20 bg-blue-600 text-white shadow-lg rounded-b-2xl">
+    <!-- 頂部總額與控制區 (Sticky Header) -->
+    <div class="sticky top-0 z-20 bg-blue-600 text-white shadow-lg rounded-b-2xl transition-all duration-300">
         <div class="max-w-md mx-auto px-4 py-3">
-            <div class="flex justify-between items-center mb-1 opacity-90">
+            
+            <!-- 標題與清空按鈕 -->
+            <div class="flex justify-between items-center mb-2 opacity-90">
                 <h1 class="text-sm font-medium tracking-wide flex items-center gap-2">
-                    <!-- Icon: ShoppingCart -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                    購物計算機
+                    購物計算機 v5
                 </h1>
-                <button id="clearBtn" class="text-xs bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    清空
-                </button>
+                <div class="flex gap-2">
+                    <button id="toggleRateBtn" class="text-xs bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full transition-colors border border-blue-500/30 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        匯率設定
+                    </button>
+                    <button id="clearBtn" class="text-xs bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-blue-500/30">
+                        清空
+                    </button>
+                </div>
             </div>
-            <div class="flex flex-col items-center justify-center py-1">
-                <span id="totalDisplay" class="text-4xl font-bold tracking-tight">$0</span>
+
+            <!-- 匯率設定面板 (預設隱藏) -->
+            <div id="ratePanel" class="rate-panel bg-blue-800/30 rounded-xl mb-2">
+                <div class="p-3 space-y-2">
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="flex-1">
+                            <label class="block text-blue-200 mb-1">消費幣別 (Base)</label>
+                            <select id="currencyBase" class="w-full bg-blue-900 text-white rounded p-1 border border-blue-500">
+                                <option value="JPY" selected>JPY (日幣)</option>
+                                <option value="KRW">KRW (韓元)</option>
+                                <option value="USD">USD (美金)</option>
+                                <option value="EUR">EUR (歐元)</option>
+                                <option value="CNY">CNY (人民幣)</option>
+                                <option value="HKD">HKD (港幣)</option>
+                                <option value="THB">THB (泰銖)</option>
+                                <option value="GBP">GBP (英鎊)</option>
+                                <option value="TWD">TWD (台幣)</option>
+                            </select>
+                        </div>
+                        <div class="pt-4 text-blue-300">➔</div>
+                        <div class="flex-1">
+                            <label class="block text-blue-200 mb-1">換算顯示 (Target)</label>
+                            <select id="currencyTarget" class="w-full bg-blue-900 text-white rounded p-1 border border-blue-500">
+                                <option value="TWD" selected>TWD (台幣)</option>
+                                <option value="USD">USD (美金)</option>
+                                <option value="JPY">JPY (日幣)</option>
+                                <option value="CNY">CNY (人民幣)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1">
+                            <label class="block text-blue-200 text-[10px] mb-0.5">匯率 (自動/手動)</label>
+                            <input type="number" id="rateInput" step="0.0001" class="w-full bg-blue-900 text-white rounded p-1 text-xs border border-blue-500" placeholder="匯率">
+                        </div>
+                        <button id="fetchRateBtn" class="mt-4 px-3 py-1 bg-blue-500 hover:bg-blue-400 text-xs rounded shadow-sm flex items-center gap-1 h-[26px]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 5.5A10 10 0 1 1 11 2.64"/></svg> 更新
+                        </button>
+                    </div>
+                    <div id="apiStatus" class="text-[10px] text-blue-300 text-center hidden"></div>
+                </div>
+            </div>
+
+            <!-- 總金額顯示 -->
+            <div class="flex flex-col items-center justify-center py-1 mb-2">
+                <div class="flex items-baseline gap-1">
+                    <span id="baseCurrencyLabel" class="text-sm font-medium opacity-80">JPY</span>
+                    <span id="totalDisplay" class="text-4xl font-bold tracking-tight">0</span>
+                </div>
+                <!-- 換算顯示 -->
+                <div id="convertedDisplayContainer" class="text-blue-100 text-sm font-medium bg-blue-800/30 px-3 py-1 rounded-full mt-1 flex items-center gap-2">
+                    <span>≈</span>
+                    <span id="convertedDisplay">$0</span>
+                    <span id="targetCurrencyLabel">TWD</span>
+                    <span class="text-[10px] opacity-60 ml-1">(匯率: <span id="currentRateDisplay">--</span>)</span>
+                </div>
+            </div>
+
+            <!-- 排序按鈕組 -->
+            <div class="flex justify-center w-full">
+                <div class="inline-flex bg-blue-800/40 p-1 rounded-lg gap-1 w-full max-w-[320px]">
+                    <button id="sortDefault" class="flex-1 py-1.5 text-xs rounded-md transition-all font-medium text-center text-blue-100 hover:bg-blue-700/50">
+                        時間
+                    </button>
+                    <button id="sortAsc" class="flex-1 py-1.5 text-xs rounded-md transition-all font-medium text-center text-blue-100 hover:bg-blue-700/50">
+                        低→高
+                    </button>
+                    <button id="sortDesc" class="flex-1 py-1.5 text-xs rounded-md transition-all font-medium text-center text-blue-100 hover:bg-blue-700/50">
+                        高→低
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -42,36 +142,32 @@
     <div class="max-w-md mx-auto px-2 mt-4">
         
         <!-- 輸入區域 -->
-        <div class="bg-white rounded-xl shadow-sm p-3 mb-4 border border-slate-200 sticky top-[100px] z-10">
+        <div class="bg-white rounded-xl shadow-sm p-3 mb-4 border border-slate-200 z-10 sticky top-[10px]">
             <form id="itemForm" class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <span id="formTitle" class="text-xs font-bold text-slate-400">快速輸入</span>
-                    <button type="button" id="cancelEditBtn" class="hidden text-xs text-red-500 flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> 取消
-                    </button>
-                </div>
-
                 <div class="flex gap-2">
                     <div class="flex-1">
-                        <input type="text" id="nameInput" placeholder="品名 (選填)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                        <input type="text" id="nameInput" placeholder="輸入新項目品名..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
                     </div>
-                    <div class="w-1/3 min-w-[90px]">
-                        <input type="number" id="priceInput" inputmode="decimal" placeholder="價格" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-mono font-medium text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                    <div class="w-1/3 min-w-[90px] relative">
+                        <input type="number" id="priceInput" inputmode="decimal" placeholder="價格" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-mono font-medium text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all pr-8">
+                        <span id="inputCurrencyLabel" class="absolute right-2 top-2 text-xs text-slate-400 font-bold">JPY</span>
                     </div>
                 </div>
-
-                <button type="submit" id="submitBtn" class="w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入
+                <button type="submit" class="w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入清單
                 </button>
             </form>
         </div>
 
         <!-- 清單區域 -->
         <div id="listContainer" class="space-y-1 pb-10">
-            <!-- 項目將由 JavaScript 動態生成 -->
-            <div id="emptyState" class="text-center py-8 text-slate-400 flex flex-col items-center">
-                <p class="text-sm">目前沒有項目</p>
-            </div>
+            <!-- 內容動態生成 -->
+        </div>
+        
+        <!-- 空狀態 -->
+        <div id="emptyState" class="hidden text-center py-8 text-slate-400 flex-col items-center">
+            <p class="text-sm">目前沒有項目</p>
+            <p class="text-xs mt-2 opacity-60">輸入價格後按下加入</p>
         </div>
     </div>
 
@@ -83,185 +179,371 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </div>
                 <h3 class="text-lg font-bold text-slate-800">確定要清空嗎？</h3>
-                <p class="text-sm text-slate-500">此動作將會刪除清單中的所有項目，且無法復原。</p>
                 <div class="grid grid-cols-2 gap-3 w-full mt-2">
-                    <button id="cancelModalBtn" class="py-2.5 px-4 rounded-xl border border-slate-200 font-medium text-slate-600 hover:bg-slate-50 active:bg-slate-100">取消</button>
-                    <button id="confirmClearBtn" class="py-2.5 px-4 rounded-xl bg-red-600 font-medium text-white shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all">確認清空</button>
+                    <button id="cancelModalBtn" class="py-2.5 px-4 rounded-xl border border-slate-200 font-medium text-slate-600 hover:bg-slate-50">取消</button>
+                    <button id="confirmClearBtn" class="py-2.5 px-4 rounded-xl bg-red-600 font-medium text-white shadow-lg hover:bg-red-700">確認清空</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 狀態變數
+        // --- 資料狀態 ---
         let items = JSON.parse(localStorage.getItem('shoppingItems')) || [];
-        let editingId = null;
+        let sortState = 'default';
+        
+        // 匯率設定
+        let exchangeSettings = JSON.parse(localStorage.getItem('exchangeSettings')) || {
+            base: 'JPY',     // 消費幣別 (輸入)
+            target: 'TWD',   // 換算幣別 (顯示)
+            rate: 0.215,     // 匯率 (Base * Rate = Target)
+            isManual: false  // 是否為手動鎖定
+        };
 
-        // DOM 元素
-        const form = document.getElementById('itemForm');
-        const nameInput = document.getElementById('nameInput');
-        const priceInput = document.getElementById('priceInput');
-        const listContainer = document.getElementById('listContainer');
-        const emptyState = document.getElementById('emptyState');
-        const totalDisplay = document.getElementById('totalDisplay');
-        const clearBtn = document.getElementById('clearBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const formTitle = document.getElementById('formTitle');
-        const cancelEditBtn = document.getElementById('cancelEditBtn');
-        const clearModal = document.getElementById('clearModal');
-        const cancelModalBtn = document.getElementById('cancelModalBtn');
-        const confirmClearBtn = document.getElementById('confirmClearBtn');
+        // --- DOM 元素 ---
+        const els = {
+            form: document.getElementById('itemForm'),
+            nameInput: document.getElementById('nameInput'),
+            priceInput: document.getElementById('priceInput'),
+            listContainer: document.getElementById('listContainer'),
+            emptyState: document.getElementById('emptyState'),
+            totalDisplay: document.getElementById('totalDisplay'),
+            clearBtn: document.getElementById('clearBtn'),
+            sortBtns: {
+                default: document.getElementById('sortDefault'),
+                asc: document.getElementById('sortAsc'),
+                desc: document.getElementById('sortDesc')
+            },
+            clearModal: document.getElementById('clearModal'),
+            cancelModalBtn: document.getElementById('cancelModalBtn'),
+            confirmClearBtn: document.getElementById('confirmClearBtn'),
+            
+            // 匯率相關元素
+            toggleRateBtn: document.getElementById('toggleRateBtn'),
+            ratePanel: document.getElementById('ratePanel'),
+            currencyBase: document.getElementById('currencyBase'),
+            currencyTarget: document.getElementById('currencyTarget'),
+            rateInput: document.getElementById('rateInput'),
+            fetchRateBtn: document.getElementById('fetchRateBtn'),
+            apiStatus: document.getElementById('apiStatus'),
+            
+            // 顯示相關
+            baseCurrencyLabel: document.getElementById('baseCurrencyLabel'),
+            inputCurrencyLabel: document.getElementById('inputCurrencyLabel'),
+            convertedDisplay: document.getElementById('convertedDisplay'),
+            targetCurrencyLabel: document.getElementById('targetCurrencyLabel'),
+            currentRateDisplay: document.getElementById('currentRateDisplay')
+        };
 
-        // 初始化
-        render();
+        // --- 初始化 ---
+        init();
 
-        // 提交表單
-        form.addEventListener('submit', (e) => {
+        function init() {
+            // 還原 UI 設定
+            els.currencyBase.value = exchangeSettings.base;
+            els.currencyTarget.value = exchangeSettings.target;
+            els.rateInput.value = exchangeSettings.rate;
+            
+            // 第一次載入時，如果不是手動模式，嘗試抓取新匯率
+            if (!exchangeSettings.isManual) {
+                fetchExchangeRate();
+            }
+
+            updateCurrencyLabels();
+            updateSortBtnStyles();
+            render();
+        }
+
+        // --- 匯率邏輯 (更新版: exchangerate-api.com) ---
+
+        // 1. 切換面板
+        els.toggleRateBtn.addEventListener('click', () => {
+            els.ratePanel.classList.toggle('open');
+        });
+
+        // 2. 幣別改變
+        els.currencyBase.addEventListener('change', (e) => {
+            exchangeSettings.base = e.target.value;
+            exchangeSettings.isManual = false; // 切換幣別後重置為自動抓取
+            updateCurrencyLabels();
+            fetchExchangeRate();
+            saveSettings();
+        });
+
+        els.currencyTarget.addEventListener('change', (e) => {
+            exchangeSettings.target = e.target.value;
+            exchangeSettings.isManual = false;
+            updateCurrencyLabels();
+            fetchExchangeRate();
+            saveSettings();
+        });
+
+        // 3. 手動輸入匯率
+        els.rateInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val) && val > 0) {
+                exchangeSettings.rate = val;
+                exchangeSettings.isManual = true; // 標記為手動
+                saveSettings();
+                render(); // 重算總額
+            }
+        });
+
+        // 4. 抓取匯率 (使用 api.exchangerate-api.com)
+        els.fetchRateBtn.addEventListener('click', fetchExchangeRate);
+
+        async function fetchExchangeRate() {
+            const base = exchangeSettings.base;
+            const target = exchangeSettings.target;
+
+            // UI Loading 狀態
+            els.fetchRateBtn.innerHTML = '...';
+            els.fetchRateBtn.disabled = true;
+            els.apiStatus.classList.add('hidden');
+
+            try {
+                if (base === target) {
+                    updateRate(1);
+                    return;
+                }
+
+                // 新 API URL: https://api.exchangerate-api.com/v4/latest/JPY
+                const url = `https://api.exchangerate-api.com/v4/latest/${base}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('API Error');
+                
+                const data = await response.json();
+                
+                // 這個 API 的結構是 data.rates[TARGET]
+                const rate = data.rates[target];
+                
+                if (rate) {
+                    updateRate(rate);
+                    exchangeSettings.isManual = false;
+                    saveSettings();
+                    
+                    // 顯示更新成功時間 (選用)
+                    const date = new Date(data.date_updated * 1000); // API 未必提供 timestamp，這行可能不適用 v4
+                    els.apiStatus.textContent = `更新成功`;
+                    els.apiStatus.classList.remove('hidden');
+                } else {
+                    alert(`找不到 ${base} 到 ${target} 的匯率`);
+                }
+
+            } catch (error) {
+                console.error("匯率抓取失敗:", error);
+                els.apiStatus.textContent = "更新失敗，請檢查網路";
+                els.apiStatus.classList.remove('hidden');
+            } finally {
+                els.fetchRateBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 5.5A10 10 0 1 1 11 2.64"/></svg> 更新';
+                els.fetchRateBtn.disabled = false;
+            }
+        }
+
+        function updateRate(newRate) {
+            exchangeSettings.rate = newRate;
+            // 避免顯示太多位小數
+            els.rateInput.value = newRate < 0.01 ? newRate.toFixed(6) : newRate; 
+            saveSettings();
+            render();
+        }
+
+        function updateCurrencyLabels() {
+            els.baseCurrencyLabel.textContent = exchangeSettings.base;
+            els.inputCurrencyLabel.textContent = exchangeSettings.base;
+            els.targetCurrencyLabel.textContent = exchangeSettings.target;
+            render(); 
+        }
+
+        function saveSettings() {
+            localStorage.setItem('exchangeSettings', JSON.stringify(exchangeSettings));
+        }
+
+
+        // --- 原有功能 (排序/新增/刪除) ---
+
+        els.form.addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = nameInput.value.trim();
-            const price = parseFloat(priceInput.value);
+            const name = els.nameInput.value.trim();
+            const price = parseFloat(els.priceInput.value);
 
             if (!price && price !== 0) return;
 
-            if (editingId) {
-                // 更新
-                items = items.map(item => item.id === editingId ? { ...item, name, price } : item);
-                editingId = null;
-                resetFormState();
-            } else {
-                // 新增
-                const newItem = { id: Date.now(), name, price };
-                items = [newItem, ...items];
-                // 清空輸入框
-                nameInput.value = '';
-                priceInput.value = '';
+            const newItem = { id: Date.now(), name, price };
+            items = [newItem, ...items];
+            
+            els.nameInput.value = '';
+            els.priceInput.value = '';
+            
+            if(sortState !== 'default') {
+                sortState = 'default';
+                updateSortBtnStyles();
             }
             
             saveAndRender();
         });
 
-        // 取消編輯
-        cancelEditBtn.addEventListener('click', () => {
-            editingId = null;
-            nameInput.value = '';
-            priceInput.value = '';
-            resetFormState();
-        });
+        els.sortBtns.default.addEventListener('click', () => setSort('default'));
+        els.sortBtns.asc.addEventListener('click', () => setSort('asc'));
+        els.sortBtns.desc.addEventListener('click', () => setSort('desc'));
 
-        // 顯示清空 Modal
-        clearBtn.addEventListener('click', () => {
-            if (items.length > 0) {
-                clearModal.classList.remove('hidden');
-            }
-        });
+        function setSort(type) {
+            sortState = type;
+            updateSortBtnStyles();
+            render();
+        }
 
-        // 隱藏清空 Modal
-        cancelModalBtn.addEventListener('click', () => {
-            clearModal.classList.add('hidden');
-        });
+        function updateSortBtnStyles() {
+            const activeClass = ['bg-white', 'text-blue-700', 'shadow-sm'];
+            const inactiveClass = ['text-blue-100', 'hover:bg-blue-700/50'];
+            Object.values(els.sortBtns).forEach(btn => {
+                btn.classList.remove(...activeClass);
+                btn.classList.add(...inactiveClass);
+            });
+            els.sortBtns[sortState].classList.remove(...inactiveClass);
+            els.sortBtns[sortState].classList.add(...activeClass);
+        }
 
-        // 確認清空
-        confirmClearBtn.addEventListener('click', () => {
-            items = [];
-            editingId = null;
-            resetFormState();
-            saveAndRender();
-            clearModal.classList.add('hidden');
-        });
-
-        // 點擊清單項目 (事件委派)
-        listContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-
-            const id = parseInt(btn.dataset.id);
-            const action = btn.dataset.action;
-
-            if (action === 'delete') {
-                // 直接刪除
+        els.listContainer.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('button[data-action="delete"]');
+            if (deleteBtn) {
+                const id = parseInt(deleteBtn.dataset.id);
                 items = items.filter(item => item.id !== id);
-                if (editingId === id) {
-                    editingId = null;
-                    resetFormState();
-                    nameInput.value = '';
-                    priceInput.value = '';
-                }
                 saveAndRender();
-            } else if (action === 'edit') {
-                // 開始編輯
+            }
+        });
+
+        // 編輯相關
+        els.listContainer.addEventListener('focusin', (e) => {
+            const target = e.target;
+            if (target.dataset.field === 'price') {
+                const id = parseInt(target.dataset.id);
                 const item = items.find(i => i.id === id);
-                if (item) {
-                    editingId = id;
-                    nameInput.value = item.name;
-                    priceInput.value = item.price;
-                    
-                    // UI 變更為編輯模式
-                    formTitle.textContent = '編輯中...';
-                    cancelEditBtn.classList.remove('hidden');
-                    submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 更新`;
-                    submitBtn.className = "w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-amber-500 hover:bg-amber-600";
-                    
-                    // 滾動到頂部並聚焦
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    setTimeout(() => priceInput.focus(), 100);
-                    render(); // 重繪以顯示選中狀態
+                if (item) target.textContent = item.price;
+            }
+        }, true);
+
+        els.listContainer.addEventListener('focusout', (e) => {
+            const target = e.target;
+            if (target.getAttribute('contenteditable') === 'true') {
+                const id = parseInt(target.dataset.id);
+                const field = target.dataset.field;
+                const rawValue = target.textContent.trim();
+                
+                const itemIndex = items.findIndex(i => i.id === id);
+                if (itemIndex > -1) {
+                    if (field === 'price') {
+                        let newPrice = parseFloat(rawValue);
+                        if (isNaN(newPrice)) newPrice = 0;
+                        items[itemIndex].price = newPrice;
+                        saveAndRender();
+                    } else if (field === 'name') {
+                        items[itemIndex].name = rawValue;
+                        if (rawValue === '') target.textContent = '';
+                        localStorage.setItem('shoppingItems', JSON.stringify(items));
+                    }
                 }
             }
         });
 
-        // 儲存並渲染
+        els.listContainer.addEventListener('keydown', (e) => {
+            if (e.target.getAttribute('contenteditable') === 'true' && e.key === 'Enter') {
+                e.preventDefault();
+                e.target.blur();
+            }
+        });
+
+        els.clearBtn.addEventListener('click', () => {
+            if (items.length > 0) els.clearModal.classList.remove('hidden');
+        });
+        els.cancelModalBtn.addEventListener('click', () => els.clearModal.classList.add('hidden'));
+        els.confirmClearBtn.addEventListener('click', () => {
+            items = [];
+            setSort('default');
+            saveAndRender();
+            els.clearModal.classList.add('hidden');
+        });
+
         function saveAndRender() {
             localStorage.setItem('shoppingItems', JSON.stringify(items));
             render();
         }
 
-        // 重置表單狀態
-        function resetFormState() {
-            formTitle.textContent = '快速輸入';
-            cancelEditBtn.classList.add('hidden');
-            submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入`;
-            submitBtn.className = "w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700";
-        }
-
-        // 渲染主函數
         function render() {
-            // 計算總金額
             const total = items.reduce((sum, item) => sum + item.price, 0);
-            totalDisplay.textContent = '$' + total.toLocaleString();
+            
+            // 顯示原始總額
+            els.totalDisplay.textContent = total.toLocaleString();
+            
+            // 顯示換算總額
+            const rate = exchangeSettings.rate;
+            const convertedTotal = total * rate;
+            
+            // 如果換算後金額很大，不顯示小數點，如果很小，顯示小數點
+            const displayConverted = convertedTotal.toLocaleString(undefined, { 
+                maximumFractionDigits: convertedTotal > 1000 ? 0 : 2 
+            });
+            
+            els.convertedDisplay.textContent = '$' + displayConverted;
+            
+            // 匯率顯示處理 (避免太多 0)
+            els.currentRateDisplay.textContent = rate < 0.01 ? rate.toFixed(6) : rate;
 
-            // 控制清空按鈕
-            clearBtn.disabled = items.length === 0;
+            els.clearBtn.disabled = items.length === 0;
 
-            // 渲染列表
             if (items.length === 0) {
-                listContainer.innerHTML = '';
-                listContainer.appendChild(emptyState);
-                emptyState.style.display = 'flex';
+                els.listContainer.innerHTML = '';
+                els.emptyState.style.display = 'flex';
+                els.listContainer.appendChild(els.emptyState);
                 return;
             }
+            els.emptyState.style.display = 'none';
 
-            emptyState.style.display = 'none';
-            listContainer.innerHTML = items.map(item => `
-                <div class="fade-in group flex items-center justify-between px-3 py-2 bg-white rounded-lg border transition-all ${editingId === item.id ? 'border-amber-400 bg-amber-50 ring-1 ring-amber-100' : 'border-slate-100 shadow-sm'}">
+            let displayItems = [...items];
+            if (sortState === 'asc') displayItems.sort((a, b) => a.price - b.price);
+            else if (sortState === 'desc') displayItems.sort((a, b) => b.price - a.price);
+
+            els.listContainer.innerHTML = displayItems.map(item => {
+                const itemConverted = item.price * exchangeSettings.rate;
+                const itemConvertedStr = itemConverted.toLocaleString(undefined, {
+                    maximumFractionDigits: itemConverted > 1000 ? 0 : 2
+                });
+                
+                return `
+                <div class="group flex items-center justify-between px-3 py-3 bg-white rounded-lg border border-slate-100 shadow-sm transition-all hover:shadow-md mb-1">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <span class="text-base font-bold text-slate-800 min-w-[60px] text-right">$${item.price.toLocaleString()}</span>
-                        <div class="h-4 w-px bg-slate-200"></div>
-                        <span class="text-sm truncate ${item.name ? 'text-slate-700' : 'text-slate-300 italic'}">
-                            ${item.name || '未命名'}
-                        </span>
+                        <div class="flex flex-col items-end min-w-[70px]">
+                            <div 
+                                contenteditable="true" 
+                                data-id="${item.id}" 
+                                data-field="price"
+                                inputmode="decimal"
+                                class="editable-cursor text-base font-bold text-slate-800 text-right py-0.5 px-1"
+                            >${item.price.toLocaleString()}</div>
+                            <!-- 小字顯示換算金額 -->
+                            <div class="text-[10px] text-slate-400 font-medium pr-1">
+                                ≈ ${itemConvertedStr}
+                            </div>
+                        </div>
+                        
+                        <div class="h-6 w-px bg-slate-200"></div>
+                        
+                        <div 
+                            contenteditable="true" 
+                            data-id="${item.id}" 
+                            data-field="name"
+                            placeholder="點擊輸入名稱"
+                            class="name-field editable-cursor text-sm truncate flex-1 py-1 px-1 text-slate-700"
+                        >${item.name || ''}</div>
                     </div>
-                    <div class="flex items-center gap-0 ml-2">
-                        <button data-id="${item.id}" data-action="edit" class="p-1.5 text-slate-400 hover:text-amber-500 rounded active:bg-slate-100" aria-label="編輯">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button data-id="${item.id}" data-action="delete" class="p-1.5 text-slate-400 hover:text-red-500 rounded active:bg-slate-100" aria-label="刪除">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                    </div>
+                    
+                    <button data-id="${item.id}" data-action="delete" class="ml-2 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
-            `).join('');
+            `}).join('');
         }
     </script>
 </body>
 </html>
-
