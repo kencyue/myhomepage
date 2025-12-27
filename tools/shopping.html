@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>購物計算機</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 防止手機雙擊縮放 */
+        body { touch-action: manipulation; }
+        /* 隱藏數字輸入框的箭頭 */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        .fade-in { animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen pb-20 font-sans text-slate-800">
+
+    <!-- 頂部總額顯示 (Sticky Header) -->
+    <div class="sticky top-0 z-20 bg-blue-600 text-white shadow-lg rounded-b-2xl">
+        <div class="max-w-md mx-auto px-4 py-3">
+            <div class="flex justify-between items-center mb-1 opacity-90">
+                <h1 class="text-sm font-medium tracking-wide flex items-center gap-2">
+                    <!-- Icon: ShoppingCart -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                    購物計算機
+                </h1>
+                <button id="clearBtn" class="text-xs bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    清空
+                </button>
+            </div>
+            <div class="flex flex-col items-center justify-center py-1">
+                <span id="totalDisplay" class="text-4xl font-bold tracking-tight">$0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto px-2 mt-4">
+        
+        <!-- 輸入區域 -->
+        <div class="bg-white rounded-xl shadow-sm p-3 mb-4 border border-slate-200 sticky top-[100px] z-10">
+            <form id="itemForm" class="flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <span id="formTitle" class="text-xs font-bold text-slate-400">快速輸入</span>
+                    <button type="button" id="cancelEditBtn" class="hidden text-xs text-red-500 flex items-center gap-1 bg-red-50 px-2 py-0.5 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> 取消
+                    </button>
+                </div>
+
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <input type="text" id="nameInput" placeholder="品名 (選填)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                    </div>
+                    <div class="w-1/3 min-w-[90px]">
+                        <input type="number" id="priceInput" inputmode="decimal" placeholder="價格" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-lg px-3 py-2 font-mono font-medium text-right text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入
+                </button>
+            </form>
+        </div>
+
+        <!-- 清單區域 -->
+        <div id="listContainer" class="space-y-1 pb-10">
+            <!-- 項目將由 JavaScript 動態生成 -->
+            <div id="emptyState" class="text-center py-8 text-slate-400 flex flex-col items-center">
+                <p class="text-sm">目前沒有項目</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 清空確認 Modal -->
+    <div id="clearModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm transform transition-all scale-100">
+            <div class="flex flex-col items-center text-center gap-3">
+                <div class="bg-red-100 p-3 rounded-full text-red-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">確定要清空嗎？</h3>
+                <p class="text-sm text-slate-500">此動作將會刪除清單中的所有項目，且無法復原。</p>
+                <div class="grid grid-cols-2 gap-3 w-full mt-2">
+                    <button id="cancelModalBtn" class="py-2.5 px-4 rounded-xl border border-slate-200 font-medium text-slate-600 hover:bg-slate-50 active:bg-slate-100">取消</button>
+                    <button id="confirmClearBtn" class="py-2.5 px-4 rounded-xl bg-red-600 font-medium text-white shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition-all">確認清空</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 狀態變數
+        let items = JSON.parse(localStorage.getItem('shoppingItems')) || [];
+        let editingId = null;
+
+        // DOM 元素
+        const form = document.getElementById('itemForm');
+        const nameInput = document.getElementById('nameInput');
+        const priceInput = document.getElementById('priceInput');
+        const listContainer = document.getElementById('listContainer');
+        const emptyState = document.getElementById('emptyState');
+        const totalDisplay = document.getElementById('totalDisplay');
+        const clearBtn = document.getElementById('clearBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const formTitle = document.getElementById('formTitle');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const clearModal = document.getElementById('clearModal');
+        const cancelModalBtn = document.getElementById('cancelModalBtn');
+        const confirmClearBtn = document.getElementById('confirmClearBtn');
+
+        // 初始化
+        render();
+
+        // 提交表單
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value);
+
+            if (!price && price !== 0) return;
+
+            if (editingId) {
+                // 更新
+                items = items.map(item => item.id === editingId ? { ...item, name, price } : item);
+                editingId = null;
+                resetFormState();
+            } else {
+                // 新增
+                const newItem = { id: Date.now(), name, price };
+                items = [newItem, ...items];
+                // 清空輸入框
+                nameInput.value = '';
+                priceInput.value = '';
+            }
+            
+            saveAndRender();
+        });
+
+        // 取消編輯
+        cancelEditBtn.addEventListener('click', () => {
+            editingId = null;
+            nameInput.value = '';
+            priceInput.value = '';
+            resetFormState();
+        });
+
+        // 顯示清空 Modal
+        clearBtn.addEventListener('click', () => {
+            if (items.length > 0) {
+                clearModal.classList.remove('hidden');
+            }
+        });
+
+        // 隱藏清空 Modal
+        cancelModalBtn.addEventListener('click', () => {
+            clearModal.classList.add('hidden');
+        });
+
+        // 確認清空
+        confirmClearBtn.addEventListener('click', () => {
+            items = [];
+            editingId = null;
+            resetFormState();
+            saveAndRender();
+            clearModal.classList.add('hidden');
+        });
+
+        // 點擊清單項目 (事件委派)
+        listContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const id = parseInt(btn.dataset.id);
+            const action = btn.dataset.action;
+
+            if (action === 'delete') {
+                // 直接刪除
+                items = items.filter(item => item.id !== id);
+                if (editingId === id) {
+                    editingId = null;
+                    resetFormState();
+                    nameInput.value = '';
+                    priceInput.value = '';
+                }
+                saveAndRender();
+            } else if (action === 'edit') {
+                // 開始編輯
+                const item = items.find(i => i.id === id);
+                if (item) {
+                    editingId = id;
+                    nameInput.value = item.name;
+                    priceInput.value = item.price;
+                    
+                    // UI 變更為編輯模式
+                    formTitle.textContent = '編輯中...';
+                    cancelEditBtn.classList.remove('hidden');
+                    submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 更新`;
+                    submitBtn.className = "w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-amber-500 hover:bg-amber-600";
+                    
+                    // 滾動到頂部並聚焦
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setTimeout(() => priceInput.focus(), 100);
+                    render(); // 重繪以顯示選中狀態
+                }
+            }
+        });
+
+        // 儲存並渲染
+        function saveAndRender() {
+            localStorage.setItem('shoppingItems', JSON.stringify(items));
+            render();
+        }
+
+        // 重置表單狀態
+        function resetFormState() {
+            formTitle.textContent = '快速輸入';
+            cancelEditBtn.classList.add('hidden');
+            submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入`;
+            submitBtn.className = "w-full py-2.5 rounded-lg font-bold text-white text-sm shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700";
+        }
+
+        // 渲染主函數
+        function render() {
+            // 計算總金額
+            const total = items.reduce((sum, item) => sum + item.price, 0);
+            totalDisplay.textContent = '$' + total.toLocaleString();
+
+            // 控制清空按鈕
+            clearBtn.disabled = items.length === 0;
+
+            // 渲染列表
+            if (items.length === 0) {
+                listContainer.innerHTML = '';
+                listContainer.appendChild(emptyState);
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            listContainer.innerHTML = items.map(item => `
+                <div class="fade-in group flex items-center justify-between px-3 py-2 bg-white rounded-lg border transition-all ${editingId === item.id ? 'border-amber-400 bg-amber-50 ring-1 ring-amber-100' : 'border-slate-100 shadow-sm'}">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <span class="text-base font-bold text-slate-800 min-w-[60px] text-right">$${item.price.toLocaleString()}</span>
+                        <div class="h-4 w-px bg-slate-200"></div>
+                        <span class="text-sm truncate ${item.name ? 'text-slate-700' : 'text-slate-300 italic'}">
+                            ${item.name || '未命名'}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-0 ml-2">
+                        <button data-id="${item.id}" data-action="edit" class="p-1.5 text-slate-400 hover:text-amber-500 rounded active:bg-slate-100" aria-label="編輯">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button data-id="${item.id}" data-action="delete" class="p-1.5 text-slate-400 hover:text-red-500 rounded active:bg-slate-100" aria-label="刪除">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
+
