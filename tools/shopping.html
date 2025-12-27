@@ -300,11 +300,11 @@
                 <h3 class="text-lg font-bold text-slate-800 mb-2">檔案已就緒</h3>
                 <p class="text-sm text-slate-500 mb-4" id="exportFileInfo">Format: PNG</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <button id="downloadBtn" class="py-2.5 px-4 rounded-xl bg-slate-100 text-slate-800 font-bold hover:bg-slate-200 flex items-center justify-center gap-2">
+                    <button id="downloadBtn" class="py-2.5 px-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         儲存
                     </button>
-                    <button id="shareBtn" class="py-2.5 px-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 flex items-center justify-center gap-2">
+                    <button id="shareBtn" class="py-2.5 px-4 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                         分享
                     </button>
@@ -582,26 +582,36 @@
                     closeActionModal();
                 };
 
-                // 設定分享按鈕
-                // 檢查是否支援分享且允許分享該檔案類型
+                // 檢查是否支援分享
                 if (navigator.canShare && navigator.canShare({ files: [fileObj] })) {
                     els.shareBtn.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
                     els.shareBtn.onclick = async () => {
                         try {
-                            await navigator.share({
+                            // 嘗試只分享檔案，有些 Android 對同時分享文字和檔案有相容性問題 (特別是 XLSX)
+                            const shareData = {
                                 files: [fileObj],
-                                title: '購物清單',
-                                text: `這是我的購物清單 (${dateStr})`
-                            });
+                                title: '購物清單'
+                            };
+                            
+                            // 只有在非 XLSX 時才加文字，減少出錯機率
+                            if (type !== 'xlsx') {
+                                shareData.text = `這是我的購物清單 (${dateStr})`;
+                            }
+
+                            await navigator.share(shareData);
                             closeActionModal();
                         } catch (err) {
-                            console.log('分享取消或失敗', err);
+                            console.log('分享失敗', err);
+                            // 如果不是使用者取消 (AbortError)，則提示錯誤
+                            if (err.name !== 'AbortError') {
+                                alert("此瀏覽器或檔案格式不支援直接分享，請使用「儲存」按鈕。");
+                            }
                         }
                     };
                 } else {
-                    // 如果不支援分享 (如電腦版 Chrome 限制多)，隱藏分享或變灰
+                    // 不支援時隱藏或變灰
                     els.shareBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    els.shareBtn.onclick = () => alert("您的瀏覽器或裝置目前不支援直接分享此檔案格式，請使用「儲存」功能。");
+                    els.shareBtn.onclick = () => alert("您的瀏覽器不支援直接分享此檔案，請使用「儲存」功能。");
                 }
 
             } catch (error) {
