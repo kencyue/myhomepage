@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>購物匯率計算機 v5</title>
+    <title>購物匯率計算機 v6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { touch-action: manipulation; }
-        /* 隱藏數字輸入框箭頭 */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
             margin: 0; 
         }
-        /* 編輯中的欄位樣式 */
         [contenteditable="true"]:focus {
             outline: none;
             background-color: #eff6ff;
@@ -29,7 +27,6 @@
         }
         .editable-cursor { cursor: text; }
         
-        /* 匯率面板動畫 */
         .rate-panel {
             transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
             max-height: 0;
@@ -37,7 +34,7 @@
             overflow: hidden;
         }
         .rate-panel.open {
-            max-height: 200px;
+            max-height: 280px;
             opacity: 1;
         }
     </style>
@@ -48,11 +45,10 @@
     <div class="sticky top-0 z-20 bg-blue-600 text-white shadow-lg rounded-b-2xl transition-all duration-300">
         <div class="max-w-md mx-auto px-4 py-3">
             
-            <!-- 標題與清空按鈕 -->
             <div class="flex justify-between items-center mb-2 opacity-90">
                 <h1 class="text-sm font-medium tracking-wide flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                    購物計算機 v5
+                    購物計算機 v6
                 </h1>
                 <div class="flex gap-2">
                     <button id="toggleRateBtn" class="text-xs bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded-full transition-colors border border-blue-500/30 flex items-center gap-1">
@@ -65,32 +61,53 @@
                 </div>
             </div>
 
-            <!-- 匯率設定面板 (預設隱藏) -->
+            <!-- 匯率設定面板 -->
             <div id="ratePanel" class="rate-panel bg-blue-800/30 rounded-xl mb-2">
                 <div class="p-3 space-y-2">
-                    <div class="flex items-center gap-2 text-xs">
+                    <div class="flex items-end gap-2 text-xs">
                         <div class="flex-1">
                             <label class="block text-blue-200 mb-1">消費幣別 (Base)</label>
-                            <select id="currencyBase" class="w-full bg-blue-900 text-white rounded p-1 border border-blue-500">
+                            <!-- 兩個 select 使用相同的選項內容 -->
+                            <select id="currencyBase" class="currency-select w-full bg-blue-900 text-white rounded p-1.5 border border-blue-500">
+                                <option value="TWD">TWD (台幣)</option>
                                 <option value="JPY" selected>JPY (日幣)</option>
                                 <option value="KRW">KRW (韓元)</option>
                                 <option value="USD">USD (美金)</option>
+                                <option value="AUD">AUD (澳幣)</option>
                                 <option value="EUR">EUR (歐元)</option>
                                 <option value="CNY">CNY (人民幣)</option>
                                 <option value="HKD">HKD (港幣)</option>
                                 <option value="THB">THB (泰銖)</option>
                                 <option value="GBP">GBP (英鎊)</option>
-                                <option value="TWD">TWD (台幣)</option>
+                                <option value="SGD">SGD (新幣)</option>
+                                <option value="MYR">MYR (馬幣)</option>
+                                <option value="VND">VND (越南盾)</option>
+                                <option value="CAD">CAD (加幣)</option>
                             </select>
                         </div>
-                        <div class="pt-4 text-blue-300">➔</div>
+                        
+                        <!-- 交換按鈕 -->
+                        <button id="swapCurrencyBtn" class="mb-1 p-1.5 bg-blue-700 hover:bg-blue-600 rounded-full text-blue-200 transition-colors" title="交換幣別">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M7 4L3 8M7 4L11 8"/><path d="M17 8V20M17 20L21 16M17 20L13 16"/></svg>
+                        </button>
+
                         <div class="flex-1">
                             <label class="block text-blue-200 mb-1">換算顯示 (Target)</label>
-                            <select id="currencyTarget" class="w-full bg-blue-900 text-white rounded p-1 border border-blue-500">
+                            <select id="currencyTarget" class="currency-select w-full bg-blue-900 text-white rounded p-1.5 border border-blue-500">
                                 <option value="TWD" selected>TWD (台幣)</option>
-                                <option value="USD">USD (美金)</option>
                                 <option value="JPY">JPY (日幣)</option>
+                                <option value="KRW">KRW (韓元)</option>
+                                <option value="USD">USD (美金)</option>
+                                <option value="AUD">AUD (澳幣)</option>
+                                <option value="EUR">EUR (歐元)</option>
                                 <option value="CNY">CNY (人民幣)</option>
+                                <option value="HKD">HKD (港幣)</option>
+                                <option value="THB">THB (泰銖)</option>
+                                <option value="GBP">GBP (英鎊)</option>
+                                <option value="SGD">SGD (新幣)</option>
+                                <option value="MYR">MYR (馬幣)</option>
+                                <option value="VND">VND (越南盾)</option>
+                                <option value="CAD">CAD (加幣)</option>
                             </select>
                         </div>
                     </div>
@@ -140,7 +157,6 @@
     </div>
 
     <div class="max-w-md mx-auto px-2 mt-4">
-        
         <!-- 輸入區域 -->
         <div class="bg-white rounded-xl shadow-sm p-3 mb-4 border border-slate-200 z-10 sticky top-[10px]">
             <form id="itemForm" class="flex flex-col gap-2">
@@ -160,9 +176,7 @@
         </div>
 
         <!-- 清單區域 -->
-        <div id="listContainer" class="space-y-1 pb-10">
-            <!-- 內容動態生成 -->
-        </div>
+        <div id="listContainer" class="space-y-1 pb-10"></div>
         
         <!-- 空狀態 -->
         <div id="emptyState" class="hidden text-center py-8 text-slate-400 flex-col items-center">
@@ -194,10 +208,10 @@
         
         // 匯率設定
         let exchangeSettings = JSON.parse(localStorage.getItem('exchangeSettings')) || {
-            base: 'JPY',     // 消費幣別 (輸入)
-            target: 'TWD',   // 換算幣別 (顯示)
-            rate: 0.215,     // 匯率 (Base * Rate = Target)
-            isManual: false  // 是否為手動鎖定
+            base: 'JPY',
+            target: 'TWD',
+            rate: 0.215,
+            isManual: false
         };
 
         // --- DOM 元素 ---
@@ -223,6 +237,7 @@
             ratePanel: document.getElementById('ratePanel'),
             currencyBase: document.getElementById('currencyBase'),
             currencyTarget: document.getElementById('currencyTarget'),
+            swapCurrencyBtn: document.getElementById('swapCurrencyBtn'),
             rateInput: document.getElementById('rateInput'),
             fetchRateBtn: document.getElementById('fetchRateBtn'),
             apiStatus: document.getElementById('apiStatus'),
@@ -239,12 +254,10 @@
         init();
 
         function init() {
-            // 還原 UI 設定
             els.currencyBase.value = exchangeSettings.base;
             els.currencyTarget.value = exchangeSettings.target;
             els.rateInput.value = exchangeSettings.rate;
             
-            // 第一次載入時，如果不是手動模式，嘗試抓取新匯率
             if (!exchangeSettings.isManual) {
                 fetchExchangeRate();
             }
@@ -254,17 +267,37 @@
             render();
         }
 
-        // --- 匯率邏輯 (更新版: exchangerate-api.com) ---
+        // --- 匯率邏輯 ---
 
-        // 1. 切換面板
         els.toggleRateBtn.addEventListener('click', () => {
             els.ratePanel.classList.toggle('open');
         });
 
-        // 2. 幣別改變
+        // 交換按鈕
+        els.swapCurrencyBtn.addEventListener('click', () => {
+            // 視覺動畫
+            els.swapCurrencyBtn.style.transform = "rotate(180deg)";
+            setTimeout(() => els.swapCurrencyBtn.style.transform = "rotate(0deg)", 300);
+
+            // 交換值
+            const temp = exchangeSettings.base;
+            exchangeSettings.base = exchangeSettings.target;
+            exchangeSettings.target = temp;
+            
+            // 更新 UI
+            els.currencyBase.value = exchangeSettings.base;
+            els.currencyTarget.value = exchangeSettings.target;
+            
+            // 重置為自動模式並抓取新匯率
+            exchangeSettings.isManual = false;
+            updateCurrencyLabels();
+            fetchExchangeRate(); 
+            saveSettings();
+        });
+
         els.currencyBase.addEventListener('change', (e) => {
             exchangeSettings.base = e.target.value;
-            exchangeSettings.isManual = false; // 切換幣別後重置為自動抓取
+            exchangeSettings.isManual = false;
             updateCurrencyLabels();
             fetchExchangeRate();
             saveSettings();
@@ -278,25 +311,22 @@
             saveSettings();
         });
 
-        // 3. 手動輸入匯率
         els.rateInput.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             if (!isNaN(val) && val > 0) {
                 exchangeSettings.rate = val;
-                exchangeSettings.isManual = true; // 標記為手動
+                exchangeSettings.isManual = true;
                 saveSettings();
-                render(); // 重算總額
+                render();
             }
         });
 
-        // 4. 抓取匯率 (使用 api.exchangerate-api.com)
         els.fetchRateBtn.addEventListener('click', fetchExchangeRate);
 
         async function fetchExchangeRate() {
             const base = exchangeSettings.base;
             const target = exchangeSettings.target;
 
-            // UI Loading 狀態
             els.fetchRateBtn.innerHTML = '...';
             els.fetchRateBtn.disabled = true;
             els.apiStatus.classList.add('hidden');
@@ -307,15 +337,12 @@
                     return;
                 }
 
-                // 新 API URL: https://api.exchangerate-api.com/v4/latest/JPY
                 const url = `https://api.exchangerate-api.com/v4/latest/${base}`;
                 
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('API Error');
                 
                 const data = await response.json();
-                
-                // 這個 API 的結構是 data.rates[TARGET]
                 const rate = data.rates[target];
                 
                 if (rate) {
@@ -323,9 +350,7 @@
                     exchangeSettings.isManual = false;
                     saveSettings();
                     
-                    // 顯示更新成功時間 (選用)
-                    const date = new Date(data.date_updated * 1000); // API 未必提供 timestamp，這行可能不適用 v4
-                    els.apiStatus.textContent = `更新成功`;
+                    els.apiStatus.textContent = `更新成功 (1 ${base} = ${rate} ${target})`;
                     els.apiStatus.classList.remove('hidden');
                 } else {
                     alert(`找不到 ${base} 到 ${target} 的匯率`);
@@ -343,7 +368,6 @@
 
         function updateRate(newRate) {
             exchangeSettings.rate = newRate;
-            // 避免顯示太多位小數
             els.rateInput.value = newRate < 0.01 ? newRate.toFixed(6) : newRate; 
             saveSettings();
             render();
@@ -361,7 +385,7 @@
         }
 
 
-        // --- 原有功能 (排序/新增/刪除) ---
+        // --- 原有功能 ---
 
         els.form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -414,7 +438,6 @@
             }
         });
 
-        // 編輯相關
         els.listContainer.addEventListener('focusin', (e) => {
             const target = e.target;
             if (target.dataset.field === 'price') {
@@ -473,21 +496,16 @@
         function render() {
             const total = items.reduce((sum, item) => sum + item.price, 0);
             
-            // 顯示原始總額
             els.totalDisplay.textContent = total.toLocaleString();
             
-            // 顯示換算總額
             const rate = exchangeSettings.rate;
             const convertedTotal = total * rate;
             
-            // 如果換算後金額很大，不顯示小數點，如果很小，顯示小數點
             const displayConverted = convertedTotal.toLocaleString(undefined, { 
                 maximumFractionDigits: convertedTotal > 1000 ? 0 : 2 
             });
             
             els.convertedDisplay.textContent = '$' + displayConverted;
-            
-            // 匯率顯示處理 (避免太多 0)
             els.currentRateDisplay.textContent = rate < 0.01 ? rate.toFixed(6) : rate;
 
             els.clearBtn.disabled = items.length === 0;
@@ -521,7 +539,6 @@
                                 inputmode="decimal"
                                 class="editable-cursor text-base font-bold text-slate-800 text-right py-0.5 px-1"
                             >${item.price.toLocaleString()}</div>
-                            <!-- 小字顯示換算金額 -->
                             <div class="text-[10px] text-slate-400 font-medium pr-1">
                                 ≈ ${itemConvertedStr}
                             </div>
