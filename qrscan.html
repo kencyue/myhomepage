@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不良品點收系統</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+    <style>
+        /* 防止頁面下拉超出內容 */
+        body {
+            overscroll-behavior-y: contain;
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Mobile-friendly layout */
+        @media (max-width: 600px) {
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 5px;
+            }
+        }
+
+        /* 按鈕樣式 */
+        #export-btn,
+        #refresh-btn {
+            color: white;
+            border: none;
+            padding: 10px 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #export-btn {
+            background-color: #28a745;
+            /* 綠色背景 */
+        }
+
+        #export-btn:hover {
+            background-color: #218838;
+        }
+
+        #refresh-btn {
+            background-color: #007bff;
+            /* 藍色背景 */
+        }
+
+        #refresh-btn:hover {
+            background-color: #0069d9;
+        }
+
+        /* 高亮漸變效果 */
+        @keyframes highlight {
+            0% {
+                background-color: yellow;
+            }
+
+            100% {
+                background-color: white;
+            }
+        }
+
+        .highlight-row {
+            animation: highlight 1s ease-in-out forwards;
+        }
+
+        /* Flexbox 用於標題和按鈕排列 */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 10px;
+            background-color: #4CAF50;
+            /* 可根據需要更改顏色 */
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            /* 懸停時的背景顏色 */
+        }
+
+        /* 整個容器 */
+        .header-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+        }
+
+
+        /* 標題樣式 */
+        .header-container h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        /* 改檔名容器 */
+        .filename-switch {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            /* 標籤與開關之間的距離 */
+        }
+
+        /* 外部容器 */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        /* 隱藏的 checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* 滑塊樣式 */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        /* 滑塊圓圈 */
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        /* 當 checkbox 被選中 */
+        input:checked+.slider {
+            background-color: #4caf50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        #export-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-container">
+        <h2>不良品點收系統</h2>
+        <div class="filename-switch">
+            <span style="color:green;font-weight:bold">改檔名</span>
+            <div class="switch">
+                <input type="checkbox" id="filename-checkbox">
+                <label for="filename-checkbox" class="slider"></label>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="export-btn" disabled>匯出</button>
+            <button id="refresh-btn">重整</button>
+        </div>
+    </div>
+
+
+    <div id="qr-reader"></div>
+    <div id="output">
+        <table id="result-table">
+            <!-- 表格標題將在第一次成功掃描後動態生成 -->
+        </table>
+    </div>
+    <audio id="beep-sound" src="https://www.soundjay.com/buttons/beep-07a.wav"></audio>
+    <script>
+        // 紀錄改檔名狀態
+        const checkbox = document.getElementById('filename-checkbox');
+
+        window.addEventListener('load', () => {
+            const isChecked = localStorage.getItem('filename-checkbox') === 'true';
+            checkbox.checked = isChecked;
+        });
+
+        checkbox.addEventListener('change', () => {
+            localStorage.setItem('filename-checkbox', checkbox.checked);
+        });
+
+        //scan資料表建立
+        const scannedData = new Set();
+        let headersAdded = false;
+
+        const wareMapping = {
+            "650": "整新廠",
+            "A00": "花蓮站",
+            "AB0": "台東站",
+            "AC0": "基隆站",
+            "AD0": "宜蘭站",
+            "B00": "西區站",
+            "BA0": "東區站",
+            "BD0": "三重站",
+            "BE0": "北區站",
+            "BJ0": "金門站",
+            "BK0": "中和站",
+            "BL0": "系統北部",
+            "BM0": "系統台中",
+            "BN0": "系統南部",
+            "BX0": "修理廠",
+            "BY0": "數位修理",
+            "C00": "桃園站",
+            "CA0": "中壢站",
+            "D00": "新竹站",
+            "DB0": "苗栗站",
+            "EA0": "豐原站",
+            "EB0": "清水站",
+            "ED0": "台中站",
+            "F00": "彰化站",
+            "FB0": "草屯站",
+            "G00": "嘉義站",
+            "GC0": "虎尾站",
+            "GE0": "新營站",
+            "H00": "台南站",
+            "I00": "高北站",
+            "IA0": "高南站0",
+            "ID0": "岡山站",
+            "IE0": "澎湖站"
+        };
+
+        const pdlfMapping = {
+            "1": "一日內",
+            "2": "三月內",
+            "3": "半年內",
+            "4": "一年內",
+            "5": "二年內",
+            "6": "三年內",
+            "8": "四年內",
+            "9": "五年內",
+            "A": "六年內",
+            "B": "七年內",
+            "C": "七年以上"
+        };
+
+        //讀取成功
+        function onScanSuccess(decodedText) {
+            console.log("QR Code content:", decodedText);
+
+            try {
+                let data;
+                try {
+                    data = JSON.parse(decodedText);
+                } catch (jsonError) {
+                    const regex = /'([^']+)':'([^']*)'/g;
+                    data = {};
+                    let match;
+                    while ((match = regex.exec(decodedText)) !== null) {
+                        data[match[1]] = match[2];
+                    }
+                }
+
+                const dataString = JSON.stringify(data);
+                if (scannedData.has(dataString)) {
+                    console.log("Duplicate data, skipping.");
+                    return; // 直接返回，不播放聲音
+                }
+
+                scannedData.add(dataString);
+
+                // 檢查掃描到的數據是否包含預期的字段
+                const expectedFields = ["ware", "ctlno", "model", "pdno", "tapn", "pano", "bdate", "pdlf"];
+                const hasAllExpectedFields = expectedFields.every(field => field in data);
+
+                if (!hasAllExpectedFields) {
+                    console.log("Invalid QR code format, skipping sound.");
+                    return; // 如果二維碼格式不符合，直接返回，不播放聲音
+                }
+
+                // 檢查 ware 和 pdlf 映射
+                if (data["ware"] && wareMapping[data["ware"]]) {
+                    data["ware"] = wareMapping[data["ware"]];
+                }
+                if (data["pdlf"] && pdlfMapping[data["pdlf"]]) {
+                    data["pdlf"] = pdlfMapping[data["pdlf"]];
+                }
+
+                // 播放 beep 聲音
+                document.getElementById('export-btn').disabled = false; // 停用按鈕
+                const beepSound = document.getElementById("beep-sound");
+                beepSound.play().catch(error => console.error("Audio playback failed:", error));
+
+                const table = document.getElementById("result-table");
+                if (!headersAdded) {
+                    const headerRow = document.createElement("tr");
+                    const headers = {
+                        ware: "站別",
+                        ctlno: "管號",
+                        model: "機種",
+                        pdno: "機號",
+                        tapn: "材料名稱",
+                        pano: "材料代號",
+                        bdate: "購買日期",
+                        pdlf: "機齡"
+                    };
+                    for (const key in headers) {
+                        const headerCell = document.createElement("th");
+                        headerCell.textContent = headers[key];
+                        headerRow.appendChild(headerCell);
+                    }
+                    table.appendChild(headerRow);
+                    headersAdded = true;
+                }
+
+                const dataRow = document.createElement("tr");
+                for (const key in data) {
+                    const dataCell = document.createElement("td");
+                    dataCell.textContent = data[key] || "";
+                    dataRow.appendChild(dataCell);
+                }
+                table.insertBefore(dataRow, table.rows[1]);
+                dataRow.classList.add("highlight-row");
+                setTimeout(() => {
+                    dataRow.classList.remove("highlight-row");
+                }, 2000);
+
+            } catch (error) {
+                console.error("Failed to parse QR code data", error);
+
+                const errorRow = document.createElement("tr");
+                const errorCell = document.createElement("td");
+                errorCell.colSpan = 2;
+                errorCell.textContent = "Error: Unable to parse QR code data.";
+                document.getElementById("result-table").appendChild(errorRow);
+
+                return; // 不播放聲音
+            }
+        }
+
+
+        //匯出鈕
+        document.getElementById("export-btn").addEventListener("click", () => {
+            const table = document.getElementById("result-table");
+
+            // 檢查表格是否有資料
+            if (!table || table.rows.length === 0 || table.rows.length === 1) {
+                alert("無資料，輸出失敗！");
+                return;
+            }
+
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "不良品點收");
+
+            const date = new Date();
+            const dateString = date.toISOString().split('T')[0];
+            let filename = `不良品點收_${dateString}`;
+
+            if (document.getElementById("filename-checkbox").checked) {
+                filename = prompt("請輸入檔名", "");
+                if (filename === null || filename === "") {
+                    return;
+                }
+            }
+
+            XLSX.writeFile(wb, filename + ".xlsx");
+        });
+
+
+        //重新整理dblclick
+        document.getElementById("refresh-btn").addEventListener("dblclick", () => {
+            location.reload();
+        });
+
+        //Html5Qrcode設定
+        const qrCodeReader = new Html5Qrcode("qr-reader");
+        qrCodeReader.start({
+                facingMode: "environment"
+            }, {
+                fps: 10,
+                qrbox: 250
+            }, onScanSuccess)
+            .catch(error => {
+                console.error("QR Code scanning failed:", error);
+            });
+    </script>
+</body>
+
+</html>
