@@ -20,34 +20,42 @@
         color: var(--text-color);
         line-height: 1.6;
         margin: 0;
-        padding: 20px;
+        padding: 0; /* 手機版貼邊比較好看，內層再縮排 */
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
         background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        overflow: hidden;
+        min-height: 100vh;
+        box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
 
     /* Header */
     header {
         background: linear-gradient(135deg, #004a99 0%, #007bff 100%);
         color: white;
-        padding: 30px 40px;
+        padding: 40px 20px;
         text-align: center;
     }
     
-    header h1 { margin: 0; font-size: 2em; letter-spacing: 1px; }
-    header p { margin-top: 10px; opacity: 0.9; font-weight: 300; }
+    header h1 { margin: 0; font-size: 2.2em; letter-spacing: 1px; }
+    header p { margin-top: 10px; opacity: 0.9; font-weight: 300; font-size: 1.1em; }
 
     /* Tabs Navigation */
+    .tabs-container {
+        background-color: #fff;
+        position: sticky; /* 讓選單吸附在頂部 */
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
     .tabs {
         display: flex;
-        background-color: #eee;
-        border-bottom: 2px solid var(--primary-color);
+        border-bottom: 2px solid #eee;
+        max-width: 1200px;
+        margin: 0 auto;
     }
 
     .tab-btn {
@@ -56,58 +64,60 @@
         border: none;
         background: none;
         cursor: pointer;
-        font-size: 1.1em;
+        font-size: 1.05em;
         font-weight: bold;
         color: #666;
         transition: all 0.3s;
         outline: none;
+        white-space: nowrap; /* 避免文字換行 */
     }
 
-    .tab-btn:hover { background-color: #e2e6ea; color: var(--primary-color); }
+    .tab-btn:hover { background-color: #f8f9fa; color: var(--primary-color); }
     .tab-btn.active {
-        background-color: #fff;
         color: var(--primary-color);
-        border-top: 4px solid var(--primary-color);
+        border-bottom: 4px solid var(--primary-color);
+        background-color: #fff;
     }
 
     /* Content Sections */
     .content-section {
-        display: none; /* 預設隱藏 */
+        display: none;
         padding: 40px;
-        animation: fadeIn 0.5s;
+        animation: fadeIn 0.4s ease-in-out;
     }
     
     .content-section.active { display: block; }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(5px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
     /* --- PAGE 1: Summary Cards --- */
     .card-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
     }
     
     .card {
         background: #fff;
         border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 25px;
+        border-radius: 12px; /* 圓角更現代 */
+        padding: 30px;
         transition: transform 0.3s, box-shadow 0.3s;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
     }
     
     .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         border-color: var(--secondary-color);
     }
 
-    .card h3 { color: var(--primary-color); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+    .card h3 { color: var(--primary-color); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; }
     .card .generation-tag {
         position: absolute;
         top: 0;
@@ -115,36 +125,106 @@
         background: var(--secondary-color);
         color: white;
         padding: 5px 15px;
-        font-size: 0.8em;
-        border-bottom-left-radius: 8px;
+        font-size: 0.85em;
+        font-weight: bold;
+        border-bottom-left-radius: 12px;
     }
 
     /* --- PAGE 2 & 3: Tables --- */
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-    th { background-color: #f8f9fa; color: #444; font-weight: bold; border-top: 2px solid var(--primary-color); }
-    tr:hover { background-color: #f1f8ff; }
+    /* 重點：表格 RWD 容器 */
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto; /* 允許橫向捲動 */
+        -webkit-overflow-scrolling: touch; /* 讓 iOS 捲動更順暢 */
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+    }
+
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        min-width: 700px; /* 強制最小寬度，確保在手機上不會擠成一團，而是可以左右滑動 */
+    }
+    
+    th, td { padding: 16px 12px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background-color: #f8f9fa; color: #444; font-weight: bold; border-top: 3px solid var(--primary-color); white-space: nowrap; }
+    tr:nth-child(even) { background-color: #fcfcfc; }
+    tr:hover { background-color: #f0f7ff; }
     
     /* 狀態標籤 */
     .badge {
         display: inline-block;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.85em;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8em;
         font-weight: bold;
+        white-space: nowrap;
     }
     .badge-basic { background: #e0e0e0; color: #555; }
     .badge-adv { background: #cce5ff; color: #004085; }
     .badge-pro { background: #d4edda; color: #155724; }
     .badge-iot { background: #fff3cd; color: #856404; }
 
-    .check-icon { color: green; font-weight: bold; }
-    .cross-icon { color: #ccc; }
+    .check-icon { color: #28a745; font-weight: bold; font-size: 1.2em; }
+    .cross-icon { color: #dc3545; font-weight: bold; font-size: 1.2em; }
     
-    /* Responsive */
+    /* Technical Note Box */
+    .tech-note {
+        margin-top: 30px; 
+        background: #eef7ff; 
+        padding: 20px; 
+        border-left: 5px solid var(--primary-color);
+        border-radius: 4px;
+        font-size: 0.95em;
+        color: #444;
+    }
+
+    /* =========================================
+       Mobile Responsive Adjustments (RWD) 
+       ========================================= */
     @media (max-width: 768px) {
-        .tabs { flex-direction: column; }
-        .tab-btn { border-bottom: 1px solid #ddd; }
+        /* Header 縮小 */
+        header { padding: 30px 15px; }
+        header h1 { font-size: 1.6em; }
+        header p { font-size: 1em; }
+
+        /* Tabs 改為橫向滑動 (Scrollable) 以節省空間 */
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        .tabs::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+        
+        .tab-btn {
+            flex: 0 0 auto; /* 不壓縮按鈕 */
+            padding: 15px 20px;
+            font-size: 0.95em;
+            border-bottom: 3px solid transparent; /* 預留邊框位置 */
+        }
+        
+        .tab-btn.active {
+            border-bottom: 3px solid var(--primary-color);
+            background: rgba(0, 86, 179, 0.05); /* 淡淡的背景色 */
+        }
+
+        /* 內容區塊 Padding 縮小 */
+        .content-section { padding: 25px 15px; }
+        
+        /* 提示在表格上方顯示「可滑動」 */
+        .table-wrapper::before {
+            content: "← 左右滑動查看完整表格 →";
+            display: block;
+            text-align: center;
+            font-size: 0.8em;
+            color: #999;
+            padding: 5px;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+        }
     }
 </style>
 </head>
@@ -152,172 +232,172 @@
 
 <div class="container">
     <header>
-        <h1>空調智能檢測治具</h1>
+        <h1>空調智能診斷系統</h1>
         <p>技術演進與產品世代比較報告</p>
     </header>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'summary')">1. 產品演進摘要 (Summary)</button>
-        <button class="tab-btn" onclick="openTab(event, 'layman')">2. 功能差異比較 (Overview)</button>
-        <button class="tab-btn" onclick="openTab(event, 'tech')">3. 技術規格詳解 (Tech Specs)</button>
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'summary')">1. 產品演進摘要</button>
+            <button class="tab-btn" onclick="openTab(event, 'layman')">2. 功能效益分析</button>
+            <button class="tab-btn" onclick="openTab(event, 'tech')">3. 技術規格詳解</button>
+        </div>
     </div>
 
     <div id="summary" class="content-section active">
-        <h2 style="text-align:center; margin-bottom: 30px; color:#444;">從單點測試到雲端物聯網的進化之路</h2>
+        <h2 style="text-align:center; margin-bottom: 30px; color:#444; font-size: 1.5em;">從單點測試到雲端物聯網</h2>
         
         <div class="card-grid">
             <div class="card">
                 <div class="generation-tag">Gen 1</div>
                 <h3>基礎通訊檢測</h3>
                 <p><strong>定位：</strong>入門級除錯工具</p>
-                <p>針對 H11 等通訊故障，透過單向模擬快速釐清是室內機或室外機板故障。解決了「盲測」的痛點。</p>
+                <p>針對 H11 等通訊故障，透過單向模擬快速釐清故障點。解決了現場盲測的痛點。</p>
             </div>
 
             <div class="card">
                 <div class="generation-tag">Gen 2</div>
                 <h3>數據可視化</h3>
                 <p><strong>定位：</strong>獨立手持診斷儀</p>
-                <p>搭載工業觸控螢幕，不需依賴外部設備。除雙向模擬外，全面支援數值讀取、E2P 燒錄與維修手冊查閱，並跨足冰箱檢測。</p>
+                <p>搭載工業觸控螢幕，不需外部設備。支援數值讀取、E2P 燒錄、維修手冊與冰箱檢測。</p>
             </div>
 
             <div class="card">
                 <div class="generation-tag">Gen 3</div>
                 <h3>無線行動化</h3>
                 <p><strong>定位：</strong>APP 智能操控</p>
-                <p>導入藍牙與 Android APP，利用手機優勢提升操作體驗。新增「膨脹閥驅動」功能，支援精細的機械修復操作。</p>
+                <p>利用藍牙與 Android APP 提升操作體驗。新增「膨脹閥驅動」功能，支援精細修復。</p>
             </div>
 
-            <div class="card" style="border: 2px solid var(--secondary-color);">
+            <div class="card" style="border: 2px solid var(--secondary-color); background: #fdfdfd;">
                 <div class="generation-tag" style="background:var(--primary-color);">Gen 4 (最新)</div>
                 <h3>雲端物聯網 IoT</h3>
                 <p><strong>定位：</strong>跨平台旗艦系統</p>
-                <p>核心架構重組 (Linux)，突破 OS 限制。透過 Wi-Fi 與瀏覽器實現 iOS/Android/PC 全平台通訊。具備遠端分析與雲端修復能力，實現真正的智慧維修。</p>
+                <p>Orange Pi (Linux) 核心。透過 Wi-Fi 與瀏覽器實現 iOS/Android/PC 全平台操作。具備遠端分析與雲端修復能力。</p>
             </div>
         </div>
     </div>
 
     <div id="layman" class="content-section">
-        <h2 style="margin-bottom: 20px;">各代優勢快速比較（效益分析）</h2>
-        <p style="margin-bottom: 30px; color: #666;">本表旨在協助管理層快速理解升級帶來的現場作業效益差異。</p>
+        <h2 style="margin-bottom: 15px; font-size: 1.4em;">各代效益快速比較</h2>
+        <p style="margin-bottom: 25px; color: #666;">本表協助管理層快速理解升級帶來的作業效益差異。</p>
         
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 20%">比較項目</th>
-                    <th style="width: 20%">第一代<br><span class="badge badge-basic">基礎型</span></th>
-                    <th style="width: 20%">第二代<br><span class="badge badge-adv">螢幕型</span></th>
-                    <th style="width: 20%">第三代<br><span class="badge badge-pro">藍牙型</span></th>
-                    <th style="width: 20%">第四代<br><span class="badge badge-iot">IoT 雲端型</span></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>主要用途</strong></td>
-                    <td>找通訊故障點</td>
-                    <td>查數據 + 找故障</td>
-                    <td>修膨脹閥 + 查數據</td>
-                    <td><strong>跨裝置 + 遠端救援</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>操作介面</strong></td>
-                    <td>無螢幕/燈號</td>
-                    <td>治具本身螢幕</td>
-                    <td>安卓手機</td>
-                    <td><strong>任何手機/平板/電腦</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>便利性</strong></td>
-                    <td>低 (功能單一)</td>
-                    <td>中 (攜帶方便)</td>
-                    <td>高 (無線操作)</td>
-                    <td><strong>極高 (免裝APP/跨系統)</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>維修能力</strong></td>
-                    <td>僅判斷壞哪塊板</td>
-                    <td>可讀詳細數值</td>
-                    <td>可修卡死閥體</td>
-                    <td><strong>可遠端修復程式</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>資料保存</strong></td>
-                    <td>無</td>
-                    <td>本機紀錄</td>
-                    <td>手機存檔</td>
-                    <td><strong>雲端同步/大數據</strong></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%">比較項目</th>
+                        <th style="width: 20%">第一代<br><span class="badge badge-basic">基礎型</span></th>
+                        <th style="width: 20%">第二代<br><span class="badge badge-adv">螢幕型</span></th>
+                        <th style="width: 20%">第三代<br><span class="badge badge-pro">藍牙型</span></th>
+                        <th style="width: 20%">第四代<br><span class="badge badge-iot">IoT 雲端型</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>主要用途</strong></td>
+                        <td>找通訊故障點</td>
+                        <td>查數據 + 找故障</td>
+                        <td>修膨脹閥 + 查數據</td>
+                        <td><strong>跨裝置 + 遠端救援</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>操作介面</strong></td>
+                        <td>無螢幕/燈號</td>
+                        <td>治具本身螢幕</td>
+                        <td>安卓手機</td>
+                        <td><strong>任何手機/平板/電腦</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>便利性</strong></td>
+                        <td>低 (功能單一)</td>
+                        <td>中 (攜帶方便)</td>
+                        <td>高 (無線操作)</td>
+                        <td><strong>極高 (免裝APP/跨系統)</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>維修能力</strong></td>
+                        <td>僅判斷機板</td>
+                        <td>可讀詳細數值</td>
+                        <td>可修卡死閥體</td>
+                        <td><strong>可遠端修復程式</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>資料保存</strong></td>
+                        <td>無</td>
+                        <td>本機紀錄</td>
+                        <td>手機存檔</td>
+                        <td><strong>雲端同步/大數據</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div id="tech" class="content-section">
-        <h2 style="margin-bottom: 20px;">詳細技術規格與架構表 (Technical Specifications)</h2>
-        <p style="margin-bottom: 30px; color: #666;">針對研發與工程單位的詳細硬體與軟體架構分析。</p>
+        <h2 style="margin-bottom: 15px; font-size: 1.4em;">技術規格與架構詳解</h2>
+        <p style="margin-bottom: 25px; color: #666;">針對研發與工程單位的詳細硬體與軟體架構分析。</p>
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 15%">技術指標</th>
-                    <th style="width: 25%">第二代 (Legacy)</th>
-                    <th style="width: 25%">第三代 (Mobile)</th>
-                    <th style="width: 35%">第四代 (IoT Ecosystem)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>核心處理器/OS</strong></td>
-                    <td>嵌入式單晶片 (MCU)</td>
-                    <td>MCU + Android Bridge</td>
-                    <td><span style="color:var(--primary-color); font-weight:bold;">Orange Pi (Linux OS)</span></td>
-                </tr>
-                <tr>
-                    <td><strong>通訊協定</strong></td>
-                    <td>有線連接</td>
-                    <td>Bluetooth (藍牙)</td>
-                    <td><strong>Wi-Fi (802.11 b/g/n)</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>顯示層 (Frontend)</strong></td>
-                    <td>工業級電阻式觸控屏</td>
-                    <td>Android Native App</td>
-                    <td><strong>Web Browser (HTML5/JS)</strong><br><small>RWD 響應式網頁設計</small></td>
-                </tr>
-                <tr>
-                    <td><strong>相容性 (Client)</strong></td>
-                    <td>無 (獨立運作)</td>
-                    <td>Android 限制</td>
-                    <td><strong>Cross-Platform</strong><br>(iOS, Android, Windows, Mac)</td>
-                </tr>
-                <tr>
-                    <td><strong>膨脹閥控制</strong></td>
-                    <td><span class="cross-icon">✕</span></td>
-                    <td><span class="check-icon">✓</span> (開合/精準/敲擊)</td>
-                    <td><span class="check-icon">✓</span> (含第三代全功能)</td>
-                </tr>
-                <tr>
-                    <td><strong>E2P/韌體功能</strong></td>
-                    <td>本機燒錄</td>
-                    <td>本機燒錄</td>
-                    <td><strong>OTA 遠端燒錄/更新</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>資料傳輸</strong></td>
-                    <td>Local Storage</td>
-                    <td>Local Phone Storage</td>
-                    <td><strong>Cloud Upload / Big Data Ready</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>擴充性</strong></td>
-                    <td>有限 (需硬體轉接)</td>
-                    <td>中等 (App更新)</td>
-                    <td><strong>極高 (Linux 生態系/遠端功能擴充)</strong></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 15%">技術指標</th>
+                        <th style="width: 25%">第二代 (Legacy)</th>
+                        <th style="width: 25%">第三代 (Mobile)</th>
+                        <th style="width: 35%">第四代 (IoT Ecosystem)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>核心處理器</strong></td>
+                        <td>嵌入式單晶片 (MCU)</td>
+                        <td>MCU + Android Bridge</td>
+                        <td><span style="color:var(--primary-color); font-weight:bold;">Orange Pi (Linux OS)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>通訊協定</strong></td>
+                        <td>有線連接</td>
+                        <td>Bluetooth (藍牙)</td>
+                        <td><strong>Wi-Fi (802.11 b/g/n)</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>前端顯示</strong></td>
+                        <td>工業級電阻式觸控屏</td>
+                        <td>Android Native App</td>
+                        <td><strong>Web Browser (HTML5)</strong><br><small>RWD 響應式網頁</small></td>
+                    </tr>
+                    <tr>
+                        <td><strong>相容性</strong></td>
+                        <td>無 (獨立運作)</td>
+                        <td>Android 限制</td>
+                        <td><strong>Cross-Platform</strong><br>(iOS, Android, Windows)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>膨脹閥控制</strong></td>
+                        <td><span class="cross-icon">✕</span></td>
+                        <td><span class="check-icon">✓</span> (含敲擊修復)</td>
+                        <td><span class="check-icon">✓</span> (全功能)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>E2P/韌體</strong></td>
+                        <td>本機燒錄</td>
+                        <td>本機燒錄</td>
+                        <td><strong>OTA 遠端燒錄/更新</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>資料傳輸</strong></td>
+                        <td>Local Storage</td>
+                        <td>Local Phone Storage</td>
+                        <td><strong>Cloud Upload / Big Data</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         
-        <div style="margin-top: 20px; background: #eef7ff; padding: 15px; border-left: 4px solid var(--primary-color);">
+        <div class="tech-note">
             <strong>技術編輯筆記：</strong>
-            第四代採用 Linux 架構與 Web Server 技術，解決了長期以來維修設備受限於特定手機系統（如 iOS 不支援部分工控 App）的問題。透過瀏覽器作為介面，大幅降低了用戶端軟體的維護成本，並為未來的 AI 故障預測與大數據分析奠定了基礎。
+            第四代採用 Linux 架構與 Web Server 技術，徹底解決了維修設備受限於特定手機系統（如 iOS 不支援部分工控 App）的問題。透過瀏覽器作為介面，大幅降低了用戶端軟體的維護成本，並為未來的 AI 故障預測與大數據分析奠定了基礎。
         </div>
     </div>
 </div>
@@ -341,9 +421,13 @@
         
         // 顯示當前內容並加上 active
         document.getElementById(tabName).style.display = "block";
+        
+        // 確保視窗回到頂部 (在手機切換 Tab 時這很有用)
+        // window.scrollTo(0, 0); 
+        
         setTimeout(function(){
             document.getElementById(tabName).classList.add("active");
-        }, 10); // 小延遲確保動畫順暢
+        }, 10);
         evt.currentTarget.className += " active";
     }
 </script>
