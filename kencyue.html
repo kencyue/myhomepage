@@ -132,9 +132,8 @@
         position:sticky;
         top:0;
         z-index:10;
-        overflow-x: auto; /* 允許過多 Tab 時橫向捲動 */
+        overflow-x: auto; 
         padding-bottom: 2px;
-        /* 隱藏捲軸 */
         scrollbar-width: none; 
         -ms-overflow-style: none;
     }
@@ -149,10 +148,14 @@
         background: #e2e6ea;
         transition: background .2s, transform .1s;
         border-right: 1px solid #dcdcdc;
-        user-select: none; /* 禁止選取文字，避免拖曳變選取 */
-        -webkit-user-select: none;
         
-        /* 關鍵設定：允許垂直捲動(瀏覽內容)，但由 JS 控制水平拖曳 */
+        /* 關鍵修正：移除手機點擊/長按的所有高亮與選單 */
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        outline: none;
+        
         touch-action: pan-y; 
     }
     
@@ -164,14 +167,17 @@
 
     /* Sortable 拖曳時的視覺效果 */
     .sortable-ghost { 
-        opacity: 0.4; 
+        opacity: 0.2; 
         background: #cce5ff; 
     }
-    .sortable-chosen {
-        background: #dbeaff;
-        transform: scale(1.05); /* 抓取時稍微放大 */
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        z-index: 99;
+    
+    /* 當 forceFallback: true 時，這是跟著手指跑的那個元素 */
+    .sortable-drag {
+        opacity: 1 !important; /* 確保不透明 */
+        background: #fff;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3); /* 加上陰影更有抓取感 */
+        transform: scale(1.05);
+        cursor: grabbing;
     }
 
     .editor-panel{display:none;padding:20px;}
@@ -188,12 +194,12 @@
         justify-content: space-between; 
         align-items: center; 
         font-weight: 600; 
-        touch-action: none; /* 卡片標題區塊完全交給 JS 處理拖曳 */
+        touch-action: none;
     }
     
-    .drag-handle { font-size: 16px; color: #888; margin-right: 10px; cursor: grab; padding: 0 5px;}
+    .drag-handle { font-size: 16px; color: #888; margin-right: 10px; cursor: grab; padding: 0 5px; -webkit-tap-highlight-color: transparent;}
     .card-title { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; cursor: pointer; }
-    .toggle-icon { font-size: 18px; transition: transform 0.3s; font-family: Arial, sans-serif; cursor: pointer; padding-left: 10px; }
+    .toggle-icon { font-size: 18px; transition: transform 0.3s; font-family: Arial, sans-serif; cursor: pointer; padding-left: 10px; -webkit-tap-highlight-color: transparent;}
     .bookmark-card.active .toggle-icon { transform: rotate(180deg); }
     .card-content { padding: 0 15px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out; }
     .bookmark-card.active .card-content { max-height: 500px; padding: 15px; border-top: 1px solid #eee; }
@@ -489,9 +495,13 @@
                       animation: 150,
                       handle: '.drag-handle',
                       ghostClass: 'sortable-ghost',
-                      // 手機優化：卡片用 handle 拖曳，所以反應要快
+                      // ★ 關鍵：強制使用 fallback 模式解決殘影
+                      forceFallback: true,
+                      dragClass: 'sortable-drag', // 拖曳中的樣式
+                      
+                      // 手機優化
                       delay: 0, 
-                      touchStartThreshold: 3 // 防止手抖誤觸
+                      touchStartThreshold: 3 
                   });
               }
           }
@@ -505,17 +515,20 @@
         new Sortable(tabs, {
             animation: 200,
             ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen', // 被選中時的樣式
+            dragClass: 'sortable-drag', // 拖曳中的樣式
             direction: 'horizontal', 
             
-            // 關鍵：延遲設定，防止滑動 Tabs 時誤觸拖曳
+            // ★ 關鍵：強制使用 fallback 模式解決殘影，自定義拖曳元素
+            forceFallback: true,
+
+            // 關鍵：延遲設定
             delay: isTouch ? 200 : 0, 
-            delayOnTouchOnly: true, // 只在觸控設備啟用延遲
+            delayOnTouchOnly: true, 
             
-            // 容錯：手指按住時可以微幅抖動 (10px) 而不取消拖曳
+            // 容錯
             touchStartThreshold: 10, 
 
-            // 震動回饋 (如果瀏覽器支援)
+            // 震動回饋
             onChoose: function() {
                 if (navigator.vibrate) navigator.vibrate(50);
             }
