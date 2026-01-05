@@ -429,7 +429,10 @@
                       animation: 150,
                       handle: '.drag-handle',
                       ghostClass: 'sortable-ghost',
-                      forceFallback: true 
+                      forceFallback: true ,
+                      delay: 50,              // 點擊 50 毫秒後才觸發拖曳，防止與單擊(Switch Tab)衝突
+                      delayOnTouchOnly: false, // PC 端也套用延遲
+                      touchStartThreshold: 5,  // 滑鼠移動超過 5px 才判定為拖曳，避免過於靈敏
                   });
               }
           }
