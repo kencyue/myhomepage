@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Ken的首頁 (雙平台完美版)</title>
+  <title>Ken的首頁 (完美雙制式版)</title>
   <link rel="shortcut icon" href="images/tool-box.png" type="image/x-icon">
   <style>
     /* --- 基礎設定 --- */
@@ -23,7 +23,7 @@
         display: flex;
         flex-direction: column;
         color: var(--text-color);
-        overscroll-behavior-y: none; /* 防止手機下拉重整 */
+        overscroll-behavior-y: none;
     }
 
     /* --- Toolbar --- */
@@ -206,13 +206,12 @@
     .editor-tab {
         padding: 12px 24px;
         font-weight: 600;
-        cursor: pointer; /* PC 使用 pointer，JS 判斷 grab */
+        cursor: pointer; 
         color: #666;
         border-right: 1px solid rgba(0,0,0,0.05);
         background: #e9ecef;
         user-select: none;
         transition: background 0.2s;
-        /* 注意：移除 touch-action: pan-y，交給 Sortable 處理 */
     }
     .editor-tab.active { background: #fff; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
     
@@ -241,14 +240,14 @@
         user-select: none;
     }
     
+    /* ★ 手機拖曳關鍵：必須加上 touch-action: none 否則會被瀏覽器捲動吃掉 */
     .drag-handle {
         margin-right: 12px;
         font-size: 20px;
         color: #bbb;
         cursor: grab;
         padding: 4px 8px;
-        /* 手機防滑動關鍵 CSS */
-        touch-action: none; 
+        touch-action: none !important; 
     }
     .drag-handle:active { cursor: grabbing; color: #666; }
 
@@ -288,10 +287,10 @@
     .btn-danger { background: #ff5f56; color: #fff; }
     .btn-outline { background: transparent; border: 1px solid #ddd; color: #666; }
 
-    /* Sortable 樣式修正 */
-    .sortable-ghost { opacity: 0.4; background: #e3f2fd; border: 2px dashed #90caf9; z-index: 10000; }
-    /* 確保拖曳中的物件在 Modal 之上 */
-    .sortable-fallback { z-index: 10000 !important; }
+    /* Sortable 手機優化 */
+    /* Z-Index 設為 10000 確保拖曳時在 Modal(999) 之上 */
+    .sortable-ghost { opacity: 0.4; background: #e3f2fd; border: 2px dashed #90caf9; z-index: 10000 !important; }
+    .sortable-fallback { z-index: 10000 !important; opacity: 0.9; }
 
     @media (max-width: 600px) {
         .toolbar { padding: 0 10px; }
@@ -514,18 +513,22 @@
     });
   }
 
-  // --- 關鍵修正：Sortable 配置 ---
-  // 偵測是否為觸控設備
-  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  // --- ★ 終極核心：雙模組 Sortable 配置 ---
+  const isTouch = navigator.maxTouchPoints > 0;
 
   const getSortableConfig = () => ({
       animation: 200,
       ghostClass: "sortable-ghost",
-      // PC: false (使用原生，最順暢)
-      // Mobile: false (現代瀏覽器用原生或 Sortable 的自動降級通常也夠穩，開啟 forceFallback 反而在 Modal 內會出錯)
-      forceFallback: false, 
-      fallbackOnBody: false,
-      // 手機才開啟延遲，PC 點擊即拖曳
+      
+      // ★ 關鍵判斷：
+      // 如果是觸控裝置 (isTouch=true) -> 開啟 forceFallback: true (強制模擬，解決手機拉不動)
+      // 如果是滑鼠裝置 (isTouch=false) -> 關閉 forceFallback: false (原生拖曳，解決PC卡頓)
+      forceFallback: isTouch, 
+      
+      fallbackOnBody: true, // 確保拖曳物件不被 Modal 邊界切掉
+      swapThreshold: 0.65,
+      
+      // 手機才需要長按延遲，PC 點擊即拖
       delay: isTouch ? 200 : 0, 
       delayOnTouchOnly: true,
       touchStartThreshold: 5
@@ -590,7 +593,7 @@
       new Sortable(editorTabs, {
           ...getSortableConfig(),
           direction: 'horizontal',
-          handle: '.editor-tab', // 讓整個 tab 都可以拉
+          handle: '.editor-tab', 
           onEnd: () => console.log("Tabs Reordered")
       });
   };
