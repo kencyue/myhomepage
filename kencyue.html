@@ -134,6 +134,10 @@
     transition: transform .2s; /* 減少過度複雜的動畫 */
     user-select: auto !important; /* 確保內容不會被禁止選擇而干擾拖拽 */
     touch-action: none;    /* 解決某些瀏覽器下的觸控干擾 */
+  /* ...現有樣式... */
+    -webkit-tap-highlight-color: transparent; /* 移除手機點擊高亮 */
+    touch-action: pan-y;                      /* 重要：允許上下滑動翻看，左右留給拖拽 */
+    user-select: none;                        /* 防止拖拽時選取到文字產生殘影 */
 }
 
 .editor-tab:active {
@@ -449,15 +453,24 @@
           panels.appendChild(panel);
       });
 
-// 在 window.openEditor 函式中找到初始化 Tabs 的地方
+// 初始化 Sortable (組別 Tab 拖曳)
 if (Sortable && data.groups.length > 0) {
+    const isTouch = 'ontouchstart' in window; // 偵測是否為觸控設備
+
     new Sortable(tabs, {
         animation: 150,
         ghostClass: 'sortable-ghost',
         direction: 'horizontal', 
-        forceFallback: false,      // 改為 false，使用原生 HTML5 拖曳
-        fallbackTolerance: 3,      // 增加容錯，防止點擊誤判為拖拽
-        swapThreshold: 0.65        // 增加交換門檻，讓移動更有感
+        
+        // 核心修正：PC 用原生模式(流暢)，手機用模擬模式(相容)
+        forceFallback: isTouch, 
+        
+        // 解決手機殘影與拉不動的關鍵：
+        fallbackTolerance: isTouch ? 5 : 0, // 手機給予 5px 緩衝，避免誤觸捲動
+        delay: isTouch ? 150 : 0,           // 手機長按 150ms 才觸發拖拽，區分「滑動頁面」與「拖拽」
+        delayOnTouchOnly: true,             // 只在觸控時啟用延遲
+        
+        touchAction: 'pan-y' // 允許垂直捲動，但鎖定水平拖拽
     });
 }
 
