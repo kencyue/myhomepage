@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Ken的首頁 (透明極速版)</title>
+  <title>Ken的首頁 (雙平台完美版)</title>
   <link rel="shortcut icon" href="images/tool-box.png" type="image/x-icon">
   <style>
     /* --- 基礎設定 --- */
@@ -18,17 +18,15 @@
     body {
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        /* 背景漸層更豐富一點，突顯毛玻璃效果 */
         background: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
         min-height: 100vh;
         display: flex;
         flex-direction: column;
         color: var(--text-color);
-        /* 防止手機下拉重整干擾 APP 體驗 */
-        overscroll-behavior-y: none;
+        overscroll-behavior-y: none; /* 防止手機下拉重整 */
     }
 
-    /* --- Toolbar (頂部導航) --- */
+    /* --- Toolbar --- */
     .toolbar {
         height: 48px;
         background: rgba(0, 0, 0, 0.6);
@@ -42,6 +40,7 @@
         font-size: 14px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         z-index: 100;
+        flex-shrink: 0;
     }
     
     .traffic-lights { display: flex; gap: 8px; cursor: pointer; }
@@ -62,7 +61,7 @@
     }
     .btn-auth:hover { background: rgba(255,255,255,0.4); }
 
-    /* --- 毛玻璃容器 --- */
+    /* --- 毛玻璃面板 --- */
     .glass-panel {
         background: var(--glass-bg);
         backdrop-filter: blur(12px);
@@ -77,10 +76,10 @@
         border-radius: 16px 16px 0 0;
         padding: 8px 8px 0;
         display: flex;
-        overflow-x: auto; /* 允許橫向滑動 */
-        scrollbar-width: none; /* Firefox 隱藏卷軸 */
+        overflow-x: auto;
+        scrollbar-width: none;
     }
-    .tab-container-wrapper::-webkit-scrollbar { display: none; } /* Chrome 隱藏卷軸 */
+    .tab-container-wrapper::-webkit-scrollbar { display: none; }
 
     .tabs {
         display: flex;
@@ -100,7 +99,7 @@
         white-space: nowrap;
         border: 1px solid transparent;
         position: relative;
-        bottom: -1px; /* 蓋住底線 */
+        bottom: -1px;
     }
     .tab:hover { background: rgba(255, 255, 255, 0.6); }
     .tab.active {
@@ -117,14 +116,12 @@
         min-height: 300px;
         position: relative;
         padding: 20px;
-        /* 繼承 glass-panel 樣式，但因為分開寫所以手動加強背景 */
-        background: rgba(255, 255, 255, 0.85); 
+        background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         box-shadow: var(--glass-shadow);
     }
 
-    /* --- 書籤網格 --- */
     .group-content-wrapper { display: none; animation: fadeIn 0.4s ease; }
     .group-content-wrapper.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -191,43 +188,40 @@
         background: #f8f9fa;
         border-bottom: 1px solid #eee;
         display: flex; justify-content: space-between; align-items: center;
+        flex-shrink: 0;
     }
     
     .editor-tabs-scroll {
         overflow-x: auto;
         background: #f1f3f5;
         border-bottom: 1px solid #ddd;
+        flex-shrink: 0;
     }
     .editor-tabs {
         display: flex;
         padding: 0 10px;
-        min-width: max-content; /* 確保內容不會被壓縮 */
+        min-width: max-content; 
     }
     
-    /* ★ 關鍵修復：編輯器的 Tab 
-       touch-action: pan-y 允許垂直捲動頁面，但水平動作會被 SortableJS 捕獲
-       user-select: none 防止拖拽時選取文字
-    */
     .editor-tab {
         padding: 12px 24px;
         font-weight: 600;
-        cursor: grab;
+        cursor: pointer; /* PC 使用 pointer，JS 判斷 grab */
         color: #666;
         border-right: 1px solid rgba(0,0,0,0.05);
         background: #e9ecef;
-        user-select: none; 
-        touch-action: pan-y; 
+        user-select: none;
         transition: background 0.2s;
+        /* 注意：移除 touch-action: pan-y，交給 Sortable 處理 */
     }
     .editor-tab.active { background: #fff; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
-    .editor-tab:active { cursor: grabbing; }
-
+    
     .modal-body { flex: 1; overflow-y: auto; padding: 20px; background: #fafafa; }
     
     .editor-panel { display: none; }
     .editor-panel.active { display: block; }
 
-    /* 編輯卡片樣式 */
+    /* 編輯卡片 */
     .bookmark-card {
         background: #fff;
         border: 1px solid #e0e0e0;
@@ -247,16 +241,13 @@
         user-select: none;
     }
     
-    /* ★ 關鍵修復：拖曳手把 (漢堡選單圖示)
-       touch-action: none 表示在此元素上的觸控「完全不觸發」瀏覽器的捲動，
-       全部交給 JS 處理，這能保證拖曳順暢。
-    */
     .drag-handle {
         margin-right: 12px;
         font-size: 20px;
         color: #bbb;
         cursor: grab;
         padding: 4px 8px;
+        /* 手機防滑動關鍵 CSS */
         touch-action: none; 
     }
     .drag-handle:active { cursor: grabbing; color: #666; }
@@ -270,7 +261,7 @@
         border-top: 1px solid transparent;
     }
     .bookmark-card.active .card-content {
-        max-height: 600px; /* 足夠大的高度 */
+        max-height: 600px;
         padding: 16px;
         border-top-color: #eee;
     }
@@ -281,7 +272,6 @@
         width: 100%; padding: 8px 12px;
         border: 1px solid #ddd; border-radius: 6px;
         font-size: 14px; box-sizing: border-box;
-        transition: border-color 0.2s;
     }
     .form-group input:focus { outline: none; border-color: var(--primary-color); }
 
@@ -290,35 +280,30 @@
         background: #fff;
         border-top: 1px solid #eee;
         display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
+        flex-shrink: 0;
     }
     
-    /* 按鈕樣式優化 */
-    button { font-family: inherit; }
-    .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: filter 0.2s; }
-    .btn:hover { filter: brightness(0.9); }
+    .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
     .btn-primary { background: var(--primary-color); color: #fff; }
     .btn-danger { background: #ff5f56; color: #fff; }
     .btn-outline { background: transparent; border: 1px solid #ddd; color: #666; }
 
-    /* Sortable 拖曳時的「幽靈」樣式 */
-    .sortable-ghost { opacity: 0.4; background: #e3f2fd; border: 2px dashed #90caf9; }
-    .sortable-fallback { opacity: 1 !important; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transform: scale(1.02); }
+    /* Sortable 樣式修正 */
+    .sortable-ghost { opacity: 0.4; background: #e3f2fd; border: 2px dashed #90caf9; z-index: 10000; }
+    /* 確保拖曳中的物件在 Modal 之上 */
+    .sortable-fallback { z-index: 10000 !important; }
 
-    /* Mobile 優化 */
     @media (max-width: 600px) {
         .toolbar { padding: 0 10px; }
         .tab-container-wrapper { margin: 10px 10px 0; }
         #groupsContainer { margin: 0 10px 10px; padding: 15px; }
         .modal { width: 100%; height: 100%; max-height: 100%; border-radius: 0; top:0; left:0; transform:none; }
-        .bookmark-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; } /* 手機一行四個 */
+        .bookmark-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .bookmark-item { width: auto; padding: 6px; }
         .bookmark-item img { width: 40px; height: 40px; }
-        .bookmark-item span { font-size: 11px; }
         .modal-footer { justify-content: center; }
         .modal-footer .btn { flex: 1 1 40%; text-align: center; }
-        
-        /* 手機上隱藏非必要資訊 */
-        #userDisplay { max-width: 100px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        #userDisplay { max-width: 80px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     }
   </style>
 </head>
@@ -329,10 +314,8 @@
         <div class="traffic-lights" onclick="window.openEditor()">
             <div class="circle red"></div><div class="circle yellow"></div><div class="circle green"></div>
         </div>
-        <div id="pageTitle" style="font-weight:600; letter-spacing:0.5px; cursor:pointer;" onclick="window.openEditor()">Ken的首頁</div>
-        <div id="loadingState" style="display:none; color: #ffeb3b; font-size:12px;">
-            <span style="animation: blink 1s infinite;">●</span> 同步中
-        </div>
+        <div id="pageTitle" style="font-weight:600; cursor:pointer;" onclick="window.openEditor()">Ken的首頁</div>
+        <div id="loadingState" style="display:none; color: #ffeb3b; font-size:12px;">● 同步中</div>
     </div>
     
     <div id="authContainer">
@@ -347,14 +330,13 @@
     <div id="mainTabs" class="tabs"></div>
   </div>
   
-  <div id="groupsContainer">
-      </div>
+  <div id="groupsContainer"></div>
 
   <div class="overlay" id="overlay"></div>
   <div class="modal" id="modal">
     <div class="modal-header">
       <h3 style="margin:0; color:#333;">管理書籤</h3>
-      <button id="closeBtn" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer; padding:0 10px;">&times;</button>
+      <button id="closeBtn" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer;">&times;</button>
     </div>
     
     <div style="padding: 10px 24px; background: #fff;">
@@ -365,12 +347,10 @@
     </div>
 
     <div class="editor-tabs-scroll">
-        <div class="editor-tabs" id="editorTabs">
-            </div>
+        <div class="editor-tabs" id="editorTabs"></div>
     </div>
 
-    <div class="modal-body" id="editorPanels">
-        </div>
+    <div class="modal-body" id="editorPanels"></div>
     
     <div class="modal-footer">
       <button onclick="window.addGroup()" class="btn btn-outline" style="border-style:dashed;">+ 新增分頁</button>
@@ -391,7 +371,6 @@
   import { getFirestore, doc, getDoc, setDoc } 
     from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-  // --- Firebase Config ---
   const firebaseConfig = {
     apiKey: "AIzaSyAXlnUOnQZX1f1EZMJHlw-kTq_HZaCtnUE",
     authDomain: "bookmarks-bf775.firebaseapp.com",
@@ -407,13 +386,11 @@
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  // --- 狀態變數 ---
   let data = { title: "Ken的首頁", groups: [] };
   let currentUser = null;
   let currentMainTab = null;
   let currentEditorTab = 0;
 
-  // 預設資料
   const defaultData = {
     title: "我的首頁",
     groups: [
@@ -427,7 +404,7 @@
     ]
   };
 
-  // --- 認證邏輯 ---
+  // Auth
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
   const userDisplay = document.getElementById("userDisplay");
@@ -453,7 +430,6 @@
     }
   });
 
-  // --- Firestore ---
   async function loadDataFromFirestore(uid) {
       showLoading(true);
       try {
@@ -482,11 +458,9 @@
 
   function showLoading(show) { loadingState.style.display = show ? "block" : "none"; }
 
-  // --- 渲染主畫面 ---
   function renderMain() {
     document.getElementById("pageTitle").textContent = data.title || "Ken的首頁";
     document.title = data.title || "Ken的首頁";
-    
     const tabsContainer = document.getElementById("mainTabs");
     const groupsContainer = document.getElementById("groupsContainer");
     
@@ -498,14 +472,12 @@
         return;
     }
 
-    // 確保 Tab 狀態
     const groupNames = data.groups.map(g => g.group);
     if (!currentMainTab || !groupNames.includes(currentMainTab)) {
         currentMainTab = data.groups[0].group;
     }
 
     data.groups.forEach(g => {
-        // 建立 Tab
         const tab = document.createElement("div");
         tab.className = `tab ${g.group === currentMainTab ? 'active' : ''}`;
         tab.textContent = g.group;
@@ -519,7 +491,6 @@
         };
         tabsContainer.appendChild(tab);
 
-        // 建立內容區
         const wrapper = document.createElement("div");
         wrapper.className = `group-content-wrapper ${g.group === currentMainTab ? 'active' : ''}`;
         wrapper.dataset.group = g.group;
@@ -532,32 +503,33 @@
                 a.className = "bookmark-item";
                 a.href = item.url;
                 a.target = "_blank";
-                a.innerHTML = `
-                    <img src="${item.img}" onerror="this.src='images/tool-box.png'">
-                    <span>${item.text}</span>
-                `;
+                a.innerHTML = `<img src="${item.img}" onerror="this.src='images/tool-box.png'"><span>${item.text}</span>`;
                 grid.appendChild(a);
             });
             wrapper.appendChild(grid);
         } else {
-            wrapper.innerHTML = "<div style='text-align:center; padding:40px; opacity:0.5;'>此分頁暫無書籤</div>";
+            wrapper.innerHTML = "<div style='text-align:center; padding:40px; opacity:0.5;'>暫無書籤</div>";
         }
         groupsContainer.appendChild(wrapper);
     });
   }
 
-  // --- 編輯器邏輯 (核心 SortableJS 設定) ---
-  
-  // 為了手機優化，這裡設定了 Sortable 的關鍵參數
-  const sortableConfig = {
+  // --- 關鍵修正：Sortable 配置 ---
+  // 偵測是否為觸控設備
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  const getSortableConfig = () => ({
       animation: 200,
-      ghostClass: "sortable-ghost",   // 拖曳時原位置的樣式
-      fallbackClass: "sortable-fallback", // 拖曳中的元素樣式
-      forceFallback: true,            // 強制使用 JS 模擬拖曳 (手機上更穩定)
-      delay: 200,                     // ★ 手機關鍵：長按 200ms 才開始拖曳
-      delayOnTouchOnly: true,         // 電腦版點了就拖，手機才要長按
-      touchStartThreshold: 5          // 手指稍微抖動 5px 內不算拖曳
-  };
+      ghostClass: "sortable-ghost",
+      // PC: false (使用原生，最順暢)
+      // Mobile: false (現代瀏覽器用原生或 Sortable 的自動降級通常也夠穩，開啟 forceFallback 反而在 Modal 內會出錯)
+      forceFallback: false, 
+      fallbackOnBody: false,
+      // 手機才開啟延遲，PC 點擊即拖曳
+      delay: isTouch ? 200 : 0, 
+      delayOnTouchOnly: true,
+      touchStartThreshold: 5
+  });
 
   window.openEditor = function() {
       const modal = document.getElementById("modal");
@@ -573,11 +545,9 @@
       modal.style.display = "flex";
       overlay.style.display = "block";
       
-      // 修正 Index
       if (currentEditorTab >= data.groups.length) currentEditorTab = 0;
 
       data.groups.forEach((g, idx) => {
-          // 1. 建立編輯器 Tab
           const tab = document.createElement("div");
           tab.className = `editor-tab ${idx === currentEditorTab ? 'active' : ''}`;
           tab.textContent = g.group;
@@ -585,7 +555,6 @@
           tab.onclick = () => switchEditorTab(idx);
           editorTabs.appendChild(tab);
 
-          // 2. 建立編輯器 Panel
           const panel = document.createElement("div");
           panel.className = `editor-panel ${idx === currentEditorTab ? 'active' : ''}`;
           panel.dataset.index = idx;
@@ -595,15 +564,13 @@
                 <input type="text" class="group-name-edit" value="${g.group}" 
                     style="border:none; font-size:16px; font-weight:bold; width:100%; outline:none;" 
                     oninput="window.updateGroupName(this, ${idx})">
-                <button onclick="window.deleteGroup(${idx})" class="btn-danger" style="font-size:12px; padding:4px 8px; margin-left:10px; white-space:nowrap;">刪除分頁</button>
+                <button onclick="window.deleteGroup(${idx})" class="btn-danger" style="font-size:12px; padding:4px 8px; margin-left:10px; white-space:nowrap;">刪除</button>
             </div>
             <div class="card-list" id="cardList-${idx}"></div>
             <button onclick="window.addCard(${idx})" class="btn btn-outline" style="width:100%; margin-top:15px; border-style:dashed;">+ 新增書籤</button>
           `;
-          
           editorPanels.appendChild(panel);
           
-          // 渲染卡片
           const cardList = panel.querySelector(".card-list");
           if(g.items) {
               g.items.forEach(item => {
@@ -611,23 +578,20 @@
               });
           }
 
-          // ★ 啟動卡片拖曳 (手機優化版)
+          // 綁定卡片拖曳
           new Sortable(cardList, {
-              ...sortableConfig,
-              handle: ".drag-handle", // 指定只能拉漢堡圖示
-              group: "cards" // 允許跨組拖曳(如果需要的話，暫時不開跨組，讓結構單純)
+              ...getSortableConfig(),
+              handle: ".drag-handle",
+              group: "cards"
           });
       });
 
-      // ★ 啟動分頁 Tab 拖曳 (手機優化版)
+      // 綁定 Tab 拖曳
       new Sortable(editorTabs, {
-          ...sortableConfig,
+          ...getSortableConfig(),
           direction: 'horizontal',
-          onEnd: (evt) => {
-             // 拖曳結束後，視覺上 Tab 已經換位子了，但對應的 Panel 還沒動
-             // 這裡為了簡單，儲存時我們會直接依照 DOM 的順序來重組 data
-             console.log("Tab reordered");
-          }
+          handle: '.editor-tab', // 讓整個 tab 都可以拉
+          onEnd: () => console.log("Tabs Reordered")
       });
   };
 
@@ -637,7 +601,6 @@
       document.querySelectorAll(".editor-panel").forEach(p => p.classList.toggle("active", parseInt(p.dataset.index) === idx));
   }
 
-  // --- HTML 生成輔助 ---
   function createCardHTML(item = {}) {
       const { url='', text='', img='', order=0 } = item;
       return `
@@ -659,7 +622,6 @@
       `;
   }
 
-  // --- 全域功能 (Expose to Window) ---
   window.updateGroupName = (input, idx) => {
       const tab = document.querySelector(`.editor-tab[data-index="${idx}"]`);
       if(tab) tab.textContent = input.value || "(未命名)";
@@ -668,7 +630,6 @@
   window.addCard = (idx) => {
       const list = document.querySelector(`#cardList-${idx}`);
       list.insertAdjacentHTML('beforeend', createCardHTML({text:'新書籤', url:'https://'}));
-      // 自動展開剛新增的
       const newCard = list.lastElementChild;
       setTimeout(() => newCard.classList.add('active'), 50);
   };
@@ -680,20 +641,18 @@
   };
 
   window.deleteGroup = (idx) => {
-      if(confirm("確定刪除此分頁及所有內容？")) {
+      if(confirm("確定刪除此分頁？")) {
           data.groups.splice(idx, 1);
           window.openEditor();
       }
   };
 
   window.saveAll = async () => {
-      // 從 DOM 重組 Data
       const newGroups = [];
       const tabs = document.querySelectorAll(".editor-tab");
       
-      // 因為 Tab 可以拖曳排序，所以我們要依照 Tab 的顯示順序來抓取對應的 Panel 資料
       tabs.forEach(tab => {
-          const originalIndex = tab.dataset.index; // 這是開啟視窗時的原始索引
+          const originalIndex = tab.dataset.index;
           const panel = document.querySelector(`.editor-panel[data-index="${originalIndex}"]`);
           
           if(panel) {
@@ -703,8 +662,6 @@
                   const inputs = card.querySelectorAll("input");
                   const item = { order: i + 1 };
                   inputs.forEach(inp => item[inp.dataset.key] = inp.value.trim());
-                  
-                  // 自動補全
                   if(item.url && !item.url.startsWith("http")) item.url = "http://" + item.url;
                   if(item.url && !item.img) {
                       try { item.img = new URL(item.url).origin + "/favicon.ico"; } catch(e){}
@@ -723,10 +680,8 @@
       
       renderMain();
       if(currentUser) await saveDataToFirestore();
-      else alert("已更新畫面 (未登入，重整後將消失)");
   };
 
-  // 備份還原
   window.backupData = () => {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:"application/json"}));
@@ -742,7 +697,7 @@
           try {
               data = JSON.parse(evt.target.result);
               alert("匯入成功，請點擊「儲存變更」以生效");
-              window.openEditor(); // 重新打開編輯器顯示匯入內容
+              window.openEditor();
           } catch(err) { alert("格式錯誤"); }
       };
       if(e.target.files[0]) r.readAsText(e.target.files[0]);
@@ -756,7 +711,6 @@
   
   document.getElementById("overlay").onclick = document.getElementById("closeBtn").onclick;
 
-  // 時間
   setInterval(() => {
       const d = new Date();
       document.getElementById("time").innerText = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
