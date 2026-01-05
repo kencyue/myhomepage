@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Ken的首頁 (Firebase版)</title>
   <link rel="shortcut icon" href="images/tool-box.png" type="image/x-icon">
   <style>
@@ -124,35 +124,75 @@
     .modal-body{flex:1;overflow-y:auto;}
     .modal-footer{padding:16px 20px;border-top:1px solid #eee;text-align:right;background:#fafafa;}
 
-    .editor-tabs{display:flex;background:#f1f3f5;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:10;}
-/* 修改 CSS 中 .editor-tab 的部分 */
-.editor-tab {
-    padding: 12px 20px;
-    font-weight: 600;
-    cursor: grab;          /* 明確顯示抓取手勢 */
-    background: #e2e6ea;
-    transition: transform .2s; /* 減少過度複雜的動畫 */
-    user-select: auto !important; /* 確保內容不會被禁止選擇而干擾拖拽 */
-    touch-action: none;    /* 解決某些瀏覽器下的觸控干擾 */
-  /* ...現有樣式... */
-    -webkit-tap-highlight-color: transparent; /* 移除手機點擊高亮 */
-    touch-action: pan-y;                      /* 重要：允許上下滑動翻看，左右留給拖拽 */
-    user-select: none;                        /* 防止拖拽時選取到文字產生殘影 */
-}
+    /* 編輯器 Tabs 區域 */
+    .editor-tabs {
+        display:flex;
+        background:#f1f3f5;
+        border-bottom:1px solid #ddd;
+        position:sticky;
+        top:0;
+        z-index:10;
+        overflow-x: auto; /* 允許過多 Tab 時橫向捲動 */
+        padding-bottom: 2px;
+        /* 隱藏捲軸 */
+        scrollbar-width: none; 
+        -ms-overflow-style: none;
+    }
+    .editor-tabs::-webkit-scrollbar { display: none; }
 
-.editor-tab:active {
-    cursor: grabbing;      /* 抓取時變更手勢 */
-}
+    /* 修改 CSS 中 .editor-tab 的部分 - 針對手機拖曳優化 */
+    .editor-tab {
+        flex: 0 0 auto;
+        padding: 12px 20px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #e2e6ea;
+        transition: background .2s, transform .1s;
+        border-right: 1px solid #dcdcdc;
+        user-select: none; /* 禁止選取文字，避免拖曳變選取 */
+        -webkit-user-select: none;
+        
+        /* 關鍵設定：允許垂直捲動(瀏覽內容)，但由 JS 控制水平拖曳 */
+        touch-action: pan-y; 
+    }
+    
+    .editor-tab.active {
+        background: #fff;
+        border-bottom: 2px solid #4a90e2;
+        color: #4a90e2;
+    }
+
+    /* Sortable 拖曳時的視覺效果 */
+    .sortable-ghost { 
+        opacity: 0.4; 
+        background: #cce5ff; 
+    }
+    .sortable-chosen {
+        background: #dbeaff;
+        transform: scale(1.05); /* 抓取時稍微放大 */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        z-index: 99;
+    }
+
     .editor-panel{display:none;padding:20px;}
     .editor-panel.active{display:block;}
 
     /* 編輯器卡片列表樣式 */
     .card-list { margin-top: 15px; user-select: none; }
     .bookmark-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
-    .sortable-ghost { opacity: 0.2; background: #a2c5ff; border: 2px dashed #4a90e2; }
-    .card-header { padding: 12px 15px; background: #f1f1f1; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-    .drag-handle { font-size: 16px; color: #888; margin-right: 10px; cursor: grab; }
-    .card-title { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; cursor: default; }
+    
+    .card-header { 
+        padding: 12px 15px; 
+        background: #f1f1f1; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        font-weight: 600; 
+        touch-action: none; /* 卡片標題區塊完全交給 JS 處理拖曳 */
+    }
+    
+    .drag-handle { font-size: 16px; color: #888; margin-right: 10px; cursor: grab; padding: 0 5px;}
+    .card-title { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; cursor: pointer; }
     .toggle-icon { font-size: 18px; transition: transform 0.3s; font-family: Arial, sans-serif; cursor: pointer; padding-left: 10px; }
     .bookmark-card.active .toggle-icon { transform: rotate(180deg); }
     .card-content { padding: 0 15px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out; }
@@ -209,6 +249,9 @@
       <label>頁面標題: <input id="titleInput" style="width:70%;padding:6px;font-size:14px;"></label>
     </div>
     <div class="modal-body">
+      <div style="padding: 0 10px; font-size: 12px; color: #888; background: #f1f3f5;">
+          提示：(手機版) 長按組別名稱可拖曳排序
+      </div>
       <div class="editor-tabs" id="editorTabs"></div>
       <div id="editorPanels"></div>
     </div>
@@ -390,6 +433,7 @@
           if (i === currentEditorTab) tab.classList.add("active");
           tab.textContent = g.group;
           
+          // 點擊事件 (區分拖曳與點擊)
           tab.onclick = () => {
               document.querySelectorAll(".editor-tab").forEach(t => t.classList.remove("active"));
               document.querySelectorAll(".editor-panel").forEach(p => p.classList.remove("active"));
@@ -439,40 +483,44 @@
                   }
               });
 
-              // 初始化 Sortable (卡片拖曳)
+              // 初始化 Sortable (卡片垂直拖曳)
               if (Sortable) {
                   new Sortable(cardList, {
                       animation: 150,
                       handle: '.drag-handle',
                       ghostClass: 'sortable-ghost',
-                      forceFallback: true ,
-
+                      // 手機優化：卡片用 handle 拖曳，所以反應要快
+                      delay: 0, 
+                      touchStartThreshold: 3 // 防止手抖誤觸
                   });
               }
           }
           panels.appendChild(panel);
       });
 
-// 初始化 Sortable (組別 Tab 拖曳)
-if (Sortable && data.groups.length > 0) {
-    const isTouch = 'ontouchstart' in window; // 偵測是否為觸控設備
+    // 初始化 Sortable (組別 Tab 水平拖曳)
+    if (Sortable && data.groups.length > 0) {
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-    new Sortable(tabs, {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        direction: 'horizontal', 
-        
-        // 核心修正：PC 用原生模式(流暢)，手機用模擬模式(相容)
-        forceFallback: isTouch, 
-        
-        // 解決手機殘影與拉不動的關鍵：
-        fallbackTolerance: isTouch ? 5 : 0, // 手機給予 5px 緩衝，避免誤觸捲動
-        delay: isTouch ? 150 : 0,           // 手機長按 150ms 才觸發拖拽，區分「滑動頁面」與「拖拽」
-        delayOnTouchOnly: true,             // 只在觸控時啟用延遲
-        
-        touchAction: 'pan-y' // 允許垂直捲動，但鎖定水平拖拽
-    });
-}
+        new Sortable(tabs, {
+            animation: 200,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen', // 被選中時的樣式
+            direction: 'horizontal', 
+            
+            // 關鍵：延遲設定，防止滑動 Tabs 時誤觸拖曳
+            delay: isTouch ? 200 : 0, 
+            delayOnTouchOnly: true, // 只在觸控設備啟用延遲
+            
+            // 容錯：手指按住時可以微幅抖動 (10px) 而不取消拖曳
+            touchStartThreshold: 10, 
+
+            // 震動回饋 (如果瀏覽器支援)
+            onChoose: function() {
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+        });
+    }
 
       document.getElementById("modal").style.display = "flex";
       document.getElementById("overlay").style.display = "block";
@@ -497,9 +545,11 @@ if (Sortable && data.groups.length > 0) {
     return `
         <div class="bookmark-card">
             <div class="card-header">
-                <div class="drag-handle">☰</div>
-                <div class="card-title">${text || '未命名書籤'}</div>
-                <div class="toggle-icon" onclick="window.toggleCard(this)">▼</div>
+                <div style="display:flex;align-items:center;flex-grow:1;">
+                    <div class="drag-handle">☰</div>
+                    <div class="card-title" onclick="window.toggleCard(this.parentNode.parentNode)">${text || '未命名書籤'}</div>
+                </div>
+                <div class="toggle-icon" onclick="window.toggleCard(this.parentNode.parentNode)">▼</div>
             </div>
             <div class="card-content">
                 ${content}
@@ -512,8 +562,10 @@ if (Sortable && data.groups.length > 0) {
   }
 
   // 3. UI 操作函式
-  window.toggleCard = function(iconElement) {
-      iconElement.closest('.bookmark-card').classList.toggle('active');
+  window.toggleCard = function(headerOrCard) {
+      // 兼容傳入 icon 或 card 本身
+      let card = headerOrCard.classList.contains('bookmark-card') ? headerOrCard : headerOrCard.closest('.bookmark-card');
+      if(card) card.classList.toggle('active');
   };
 
   window.removeCard = function(btn) {
@@ -534,6 +586,9 @@ if (Sortable && data.groups.length > 0) {
               addedCard.querySelector('.card-title').textContent = e.target.value.trim() || '未命名書籤';
           });
       }
+      
+      // 新增後滾動到底部
+      addedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   window.addGroup = function() {
@@ -587,7 +642,7 @@ if (Sortable && data.groups.length > 0) {
                   
                   // Auto favicon logic
                   if (!img && (url.startsWith('http'))) {
-                     try { img = new URL(url).origin + "/favicon.ico"; } catch(e){}
+                      try { img = new URL(url).origin + "/favicon.ico"; } catch(e){}
                   }
 
                   items.push({url, text, img, order});
