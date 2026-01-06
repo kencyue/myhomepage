@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年度經銷商冷氣維修講習提案</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- 引入 Google Fonts (Noto Sans TC) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* 基礎字體設定 */
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* 動畫設定 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Tab 內容切換控制 */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 隱藏滾動條但保持功能 (可選) */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-4 sm:py-6 px-2 sm:px-4 flex justify-center text-slate-800">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 flex flex-col min-h-[800px]">
+        
+        <!-- Header Section -->
+        <div class="bg-blue-900 text-white p-6 text-center shrink-0">
+            <div class="flex justify-center mb-3">
+                <div class="bg-blue-800 p-2 rounded-full">
+                    <i data-lucide="wrench" class="text-blue-200 w-6 h-6"></i>
+                </div>
+            </div>
+            <h1 class="text-xl md:text-2xl font-bold mb-1">2026年度經銷商冷氣維修講習</h1>
+            <p class="text-blue-200 text-sm">空調品質技術促進部｜巡迴方案決策評估</p>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="flex border-b border-slate-200 bg-slate-50 sticky top-0 z-10 shadow-sm">
+            <!-- Tab Button 1 -->
+            <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn flex-1 flex items-center justify-center py-4 text-sm font-bold transition-all relative text-blue-700 bg-white">
+                <span>決策總覽</span>
+                <div class="active-indicator absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4"></div>
+            </button>
+            
+            <!-- Tab Button 2 -->
+            <button onclick="switchTab('schedule')" id="btn-schedule" class="tab-btn flex-1 flex items-center justify-center py-4 text-sm font-bold transition-all relative text-slate-500 hover:bg-slate-100 hover:text-slate-600">
+                <span>行程與天數</span>
+                <div class="active-indicator absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4 hidden"></div>
+            </button>
+            
+            <!-- Tab Button 3 -->
+            <button onclick="switchTab('details')" id="btn-details" class="tab-btn flex-1 flex items-center justify-center py-4 text-sm font-bold transition-all relative text-slate-500 hover:bg-slate-100 hover:text-slate-600">
+                <span>詳細效益</span>
+                <div class="active-indicator absolute bottom-0 left-0 right-0 h-1 bg-blue-600 rounded-t-full mx-4 hidden"></div>
+            </button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="p-4 sm:p-6 flex-1 bg-slate-50/50 overflow-y-auto">
+            
+            <!-- TAB 1: OVERVIEW -->
+            <div id="content-overview" class="tab-content active animate-fadeIn space-y-6">
+                
+                <!-- Summary Cards -->
+                <div class="flex flex-col sm:flex-row gap-4 items-stretch">
+                    <!-- Plan A Summary -->
+                    <div class="flex-1 bg-white border-t-4 border-slate-400 p-4 rounded-xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-slate-700">方案 A：原方案</h3>
+                            <span class="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500">維持現狀</span>
+                        </div>
+                        <ul class="text-xs text-slate-500 space-y-1 list-disc list-inside">
+                            <li>AB兩組平行運作</li>
+                            <li>下午僅 1 組機器教學</li>
+                            <li>部門空窗期：約 2 週</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="flex items-center justify-center text-slate-300">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </div>
+
+                    <!-- Plan B Summary -->
+                    <div class="flex-1 bg-blue-50 border-t-4 border-blue-600 p-4 rounded-xl shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">建議採用</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-blue-900">方案 B：體驗優化案</h3>
+                            <span class="text-[10px] bg-blue-200 text-blue-800 px-2 py-1 rounded">品質升級</span>
+                        </div>
+                        <ul class="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                            <li>大場次 4 人合流</li>
+                            <li>下午 <span class="font-bold">2 組機器</span> 教學</li>
+                            <li>部門空窗期：約 2 週 + 2 天</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="bg-white border rounded-xl shadow-sm overflow-hidden text-sm">
+                    <div class="grid grid-cols-12 bg-slate-100 border-b border-slate-200 p-3 text-xs font-bold text-slate-500 uppercase tracking-tight">
+                        <div class="col-span-3 sm:col-span-3">評估項目</div>
+                        <div class="col-span-4 sm:col-span-4 border-l border-slate-200 pl-2 sm:pl-4">方案 A (原案)</div>
+                        <div class="col-span-5 sm:col-span-5 border-l border-slate-200 pl-2 sm:pl-4 text-blue-700">方案 B (優化案)</div>
+                    </div>
+
+                    <!-- Row 1: 實作體驗 -->
+                    <div class="grid grid-cols-12 border-b border-slate-100 last:border-0 text-sm">
+                        <div class="col-span-3 sm:col-span-3 p-2 sm:p-3 flex flex-col justify-center gap-1 bg-slate-50/50">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-slate-700 font-bold">
+                                <i data-lucide="monitor-play" class="hidden sm:block text-slate-400 shrink-0 w-4 h-4"></i>
+                                <span class="leading-tight">實作體驗</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 sm:pl-6 leading-tight">(關鍵差異)</span>
+                        </div>
+                        <div class="col-span-4 sm:col-span-4 p-2 sm:p-3 border-l border-slate-200 text-slate-600 flex items-center text-xs sm:text-sm">
+                            擁擠：百人場僅1組機器，等待長，操作少。
+                        </div>
+                        <div class="col-span-5 sm:col-span-5 p-2 sm:p-3 border-l border-slate-200 flex items-center text-xs sm:text-sm bg-blue-50/40 text-blue-900 font-medium">
+                            流暢：2組機器、4位講師，雙倍資源，人人能動手。
+                        </div>
+                    </div>
+
+                    <!-- Row 2: 技術同步 -->
+                    <div class="grid grid-cols-12 border-b border-slate-100 last:border-0 text-sm">
+                        <div class="col-span-3 sm:col-span-3 p-2 sm:p-3 flex flex-col justify-center gap-1 bg-slate-50/50">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-slate-700 font-bold">
+                                <i data-lucide="wrench" class="hidden sm:block text-slate-400 shrink-0 w-4 h-4"></i>
+                                <span class="leading-tight">技術同步</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 sm:pl-6 leading-tight">(維修標準)</span>
+                        </div>
+                        <div class="col-span-4 sm:col-span-4 p-2 sm:p-3 border-l border-slate-200 text-slate-600 flex items-center text-xs sm:text-sm">
+                            風險：兩組說法可能不一，影響標準一致性。
+                        </div>
+                        <div class="col-span-5 sm:col-span-5 p-2 sm:p-3 border-l border-slate-200 flex items-center text-xs sm:text-sm bg-blue-50/40 text-blue-900 font-medium">
+                            統一：資深講師群示範，統一SOP，降低誤判。
+                        </div>
+                    </div>
+
+                    <!-- Row 3: 部門運作 -->
+                    <div class="grid grid-cols-12 border-b border-slate-100 last:border-0 text-sm">
+                        <div class="col-span-3 sm:col-span-3 p-2 sm:p-3 flex flex-col justify-center gap-1 bg-slate-50/50">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-slate-700 font-bold">
+                                <i data-lucide="building-2" class="hidden sm:block text-slate-400 shrink-0 w-4 h-4"></i>
+                                <span class="leading-tight">部門運作</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 sm:pl-6 leading-tight">(空窗期)</span>
+                        </div>
+                        <div class="col-span-4 sm:col-span-4 p-2 sm:p-3 border-l border-slate-200 text-slate-600 flex items-center text-xs sm:text-sm">
+                            約 2 週部門無人 (除週一外)。
+                        </div>
+                        <div class="col-span-5 sm:col-span-5 p-2 sm:p-3 border-l border-slate-200 flex items-center text-xs sm:text-sm text-slate-600">
+                            約 2 週 + 2 天部門無人 (差異極小)。
+                        </div>
+                    </div>
+
+                    <!-- Row 4: 成本投入 -->
+                    <div class="grid grid-cols-12 border-b border-slate-100 last:border-0 text-sm">
+                        <div class="col-span-3 sm:col-span-3 p-2 sm:p-3 flex flex-col justify-center gap-1 bg-slate-50/50">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-slate-700 font-bold">
+                                <i data-lucide="dollar-sign" class="hidden sm:block text-slate-400 shrink-0 w-4 h-4"></i>
+                                <span class="leading-tight">成本投入</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 sm:pl-6 leading-tight">(差旅費)</span>
+                        </div>
+                        <div class="col-span-4 sm:col-span-4 p-2 sm:p-3 border-l border-slate-200 text-slate-600 flex items-center text-xs sm:text-sm">
+                            成本較低 (基準值)。
+                        </div>
+                        <div class="col-span-5 sm:col-span-5 p-2 sm:p-3 border-l border-slate-200 flex items-center text-xs sm:text-sm text-slate-600">
+                            成本增加 (大場次全員出動住宿費)。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendation Box -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 flex items-start gap-4">
+                    <div class="bg-white p-2 rounded-full text-indigo-600 shadow-sm mt-1 shrink-0">
+                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-indigo-900 mb-1">決策建議</h4>
+                        <p class="text-sm text-indigo-800 leading-relaxed">
+                            兩方案對部門行政運作的影響<span class="font-bold border-b border-indigo-300">幾無差異</span>。
+                            建議採用方案 B，以些微增加的旅費，換取經銷商對本次新冷氣維修技術的完整掌握度，投資效益極高。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: SCHEDULE & DAYS -->
+            <div id="content-schedule" class="tab-content animate-fadeIn space-y-8">
+                
+                <!-- Chart: Office Empty Days -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <i data-lucide="building-2" class="text-slate-400 w-5 h-5"></i>
+                        部門人力空窗期比較
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Plan A Bar -->
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="font-bold text-slate-600">方案 A (原案)</span>
+                                <span class="text-slate-500">約 10 個工作天無人</span>
+                            </div>
+                            <div class="h-8 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-slate-400 w-[70%] flex items-center justify-center text-xs text-white font-bold relative group cursor-help">
+                                    部門無人 (兩組同時出差)
+                                    <div class="absolute top-full mt-2 bg-slate-800 text-white text-xs p-2 rounded hidden group-hover:block z-10 whitespace-nowrap shadow-lg">
+                                        AB組同時跑，僅週一上午在
+                                    </div>
+                                </div>
+                                <div class="h-full bg-slate-200 w-[30%]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Plan B Bar -->
+                        <div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="font-bold text-blue-700">方案 B (優化案)</span>
+                                <span class="text-blue-600 font-bold">約 12 個工作天無人 (+2天)</span>
+                            </div>
+                            <div class="h-8 w-full bg-slate-100 rounded-full overflow-hidden flex relative">
+                                <div class="h-full bg-blue-500 w-[84%] flex items-center justify-center text-xs text-white font-bold relative group cursor-help">
+                                    部門無人 (合流期間)
+                                    <div class="absolute top-full mt-2 bg-slate-800 text-white text-xs p-2 rounded hidden group-hover:block z-10 whitespace-nowrap shadow-lg">
+                                        前兩週+第三週前兩天，全員出動
+                                    </div>
+                                </div>
+                                <div class="h-full bg-green-200 w-[16%] flex items-center justify-center text-[10px] text-green-800 font-bold relative group cursor-help">
+                                    有人留守
+                                    <div class="absolute top-full mt-2 bg-slate-800 text-white text-xs p-2 rounded hidden group-hover:block z-10 whitespace-nowrap shadow-lg">
+                                        小場次分流，2人回防部門
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2 text-right">
+                                * 註：方案 B 雖然總期程拉長至 3-4 週，但後段小場次有人力回防，故實際空窗期差異極小。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Comparison Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Plan A Schedule -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-700 mb-3 text-sm border-b border-slate-200 pb-2">方案 A 行程結構</h4>
+                        <div class="space-y-3">
+                            <!-- Week 1 -->
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W1</span>
+                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-white border-slate-200 text-slate-600">
+                                    <span class="text-xs sm:text-sm">AB 組同時出發 (全台)</span>
+                                    <span class="hidden sm:inline text-[10px] font-bold bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">部門無人</span>
+                                    <div class="sm:hidden w-2 h-2 rounded-full bg-slate-300"></div>
+                                </div>
+                            </div>
+                            <!-- Week 2 -->
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W2</span>
+                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-white border-slate-200 text-slate-600">
+                                    <span class="text-xs sm:text-sm">AB 組同時出發 (全台)</span>
+                                    <span class="hidden sm:inline text-[10px] font-bold bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">部門無人</span>
+                                    <div class="sm:hidden w-2 h-2 rounded-full bg-slate-300"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-slate-500 bg-white p-3 rounded border border-slate-200">
+                            <span class="font-bold text-red-500">缺點：</span> 行程過於緊湊，講師無喘息空間，且部門連續兩週完全真空。
+                        </div>
+                    </div>
+
+                    <!-- Plan B Schedule -->
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-200">
+                        <h4 class="font-bold text-blue-900 mb-3 text-sm border-b border-blue-200 pb-2">方案 B 行程結構</h4>
+                        <div class="space-y-3">
+                             <!-- Week 1 -->
+                             <div class="flex items-center gap-3 text-sm">
+                                <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W1</span>
+                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-white border-slate-200 text-slate-600">
+                                    <span class="text-xs sm:text-sm">4 人合流 (北區大場)</span>
+                                    <span class="hidden sm:inline text-[10px] font-bold bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">部門無人</span>
+                                    <div class="sm:hidden w-2 h-2 rounded-full bg-slate-300"></div>
+                                </div>
+                            </div>
+                            <!-- Week 2 -->
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W2</span>
+                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-white border-slate-200 text-slate-600">
+                                    <span class="text-xs sm:text-sm">4 人合流 (南區大場)</span>
+                                    <span class="hidden sm:inline text-[10px] font-bold bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full whitespace-nowrap">部門無人</span>
+                                    <div class="sm:hidden w-2 h-2 rounded-full bg-slate-300"></div>
+                                </div>
+                            </div>
+                            <!-- Week 3 -->
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W3</span>
+                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-green-50 border-green-200 text-green-800">
+                                    <span class="text-xs sm:text-sm">2 人分流 (中區/澎湖)</span>
+                                    <span class="hidden sm:inline text-[10px] font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded-full whitespace-nowrap">有人留守</span>
+                                    <div class="sm:hidden w-2 h-2 rounded-full bg-green-500"></div>
+                                </div>
+                            </div>
+                            <!-- Week 4 -->
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W4</span>
+                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-green-50 border-green-200 text-green-800">
+                                    <span class="text-xs sm:text-sm">2 人分流 (東部)</span>
+                                    <span class="hidden sm:inline text-[10px] font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded-full whitespace-nowrap">有人留守</span>
+                                    <div class="sm:hidden w-2 h-2 rounded-full bg-green-500"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-blue-700 bg-white p-3 rounded border border-blue-100">
+                            <span class="font-bold text-blue-600">優勢：</span> 雖然跨到 W3/W4，但後段已恢復 50% 人力留守，可處理行政積案。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: DETAILS -->
+            <div id="content-details" class="tab-content animate-fadeIn space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                        <i data-lucide="monitor-play" class="text-blue-600 w-5 h-5"></i>
+                        為什麼我們需要「4 位講師 + 2 組機器」？
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Scenario A -->
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <div class="text-red-500 font-bold mb-2 text-sm flex items-center gap-1">
+                                <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> 原方案場景 (100人場次)
+                            </div>
+                            <ul class="text-sm text-slate-600 space-y-3">
+                                <li class="flex gap-2">
+                                    <span class="font-bold text-slate-400">01.</span>
+                                    <span>機器僅 1 組，學員需分批排隊，每人實際摸到機器的時間可能<span class="text-red-500 font-bold">不到 3 分鐘</span>。</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="font-bold text-slate-400">02.</span>
+                                    <span>2 位講師被人群包圍，後排學員看不到操作細節，容易分心或滑手機。</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="font-bold text-slate-400">03.</span>
+                                    <span>課程結束後，許多經銷商仍不懂如何拆解，增加日後亂修搞壞的風險。</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Scenario B -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <div class="text-green-600 font-bold mb-2 text-sm flex items-center gap-1">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 優化案場景 (100人場次)
+                            </div>
+                            <ul class="text-sm text-slate-700 space-y-3">
+                                <li class="flex gap-2">
+                                    <span class="font-bold text-blue-300">01.</span>
+                                    <span>機器增為 2 組，分流操作，排隊時間減半，實作體驗大幅提升。</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="font-bold text-blue-300">02.</span>
+                                    <span>4 位講師配置：1人主講、3人巡場。主動糾正錯誤手勢，確保每個人都學會。</span>
+                                </li>
+                                <li class="flex gap-2">
+                                    <span class="font-bold text-blue-300">03.</span>
+                                    <span>「手把手」教學感強，經銷商感受到原廠的重視，滿意度與品牌忠誠度提升。</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-orange-50 p-5 rounded-xl border border-orange-100 flex gap-4">
+                    <div class="shrink-0 mt-1">
+                        <i data-lucide="alert-triangle" class="text-orange-500 w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-orange-800 text-sm mb-1">關於旅費增加的說明</h4>
+                        <p class="text-xs text-orange-700 leading-relaxed">
+                            雖然方案 B 增加了大場次的住宿與交通成本，但我們應將此視為<span class="font-bold">「降低未來保固維修成本」</span>的必要投資。一次講習如果沒教會，日後技師修壞一台壓縮機的賠償成本，可能就超過這多出來的旅費了。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript Control Logic -->
+    <script>
+        // 初始化 Icons
+        lucide.createIcons();
+
+        function switchTab(tabId) {
+            // 1. 處理按鈕樣式
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                // Reset to default
+                btn.classList.remove('text-blue-700', 'bg-white');
+                btn.classList.add('text-slate-500', 'hover:bg-slate-100', 'hover:text-slate-600');
+                
+                // Hide indicator
+                const indicator = btn.querySelector('.active-indicator');
+                if(indicator) indicator.classList.add('hidden');
+            });
+
+            // Set active button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('text-slate-500', 'hover:bg-slate-100', 'hover:text-slate-600');
+            activeBtn.classList.add('text-blue-700', 'bg-white');
+            activeBtn.querySelector('.active-indicator').classList.remove('hidden');
+
+            // 2. 處理內容顯示
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            const activeContent = document.getElementById('content-' + tabId);
+            activeContent.classList.add('active');
+
+            // 重新觸發動畫
+            activeContent.classList.remove('animate-fadeIn');
+            void activeContent.offsetWidth; // trigger reflow
+            activeContent.classList.add('animate-fadeIn');
+        }
+    </script>
+</body>
+</html>
