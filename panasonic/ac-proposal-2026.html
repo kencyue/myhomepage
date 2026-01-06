@@ -325,10 +325,29 @@
                             <!-- Week 3 -->
                             <div class="flex items-center gap-3 text-sm">
                                 <span class="font-mono font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded w-10 text-center">W3</span>
-                                <div class="flex-1 px-3 py-2 rounded border flex justify-between items-center bg-green-50 border-green-200 text-green-800">
-                                    <span class="text-xs sm:text-sm">2 人分流 (中區/澎湖)</span>
-                                    <span class="hidden sm:inline text-[10px] font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded-full whitespace-nowrap">有人留守</span>
-                                    <div class="sm:hidden w-2 h-2 rounded-full bg-green-500"></div>
+                                <div class="flex-1 px-3 py-2 rounded border border-slate-200 flex justify-between items-center relative overflow-hidden">
+                                    <!-- Split Background: Left White (Empty), Right Green (Partial) -->
+                                    <div class="absolute inset-0 z-0" style="background: linear-gradient(90deg, #ffffff 55%, #f0fdf4 55%);"></div>
+                                    
+                                    <!-- Content -->
+                                    <div class="relative z-10 flex justify-between items-center w-full">
+                                        <div class="text-xs sm:text-sm flex flex-col sm:flex-row sm:gap-1">
+                                            <span class="text-slate-600 font-medium">4人合流(中區)</span>
+                                            <span class="hidden sm:inline text-slate-300">/</span>
+                                            <span class="text-green-700 font-medium">1人(澎湖)</span>
+                                        </div>
+                                        
+                                        <div class="hidden sm:flex gap-1">
+                                            <span class="text-[10px] font-bold bg-slate-100 text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">無人</span>
+                                            <span class="text-[10px] font-bold bg-green-200 text-green-800 px-2 py-0.5 rounded-full whitespace-nowrap">有留守</span>
+                                        </div>
+                                        
+                                        <!-- Mobile dots -->
+                                        <div class="sm:hidden flex gap-1">
+                                            <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+                                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <!-- Week 4 -->
