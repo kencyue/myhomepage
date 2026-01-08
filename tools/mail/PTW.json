@@ -61,6 +61,7 @@
       "name": "陳條明 經理",
       "mail": "chen.tiaoming@tw.panasonic.com",
       "ext": ""
+    }
     },
     {
     "單位": "空調開發技術(612)",
@@ -69,6 +70,7 @@
       "name": "鄒凱文 課長(RAC課長)",
       "mail": "tsou.kevin@tw.panasonic.com",
       "ext": ""
+    }
     },
     {
     "單位": "空調開發技術(612)",
@@ -77,6 +79,7 @@
       "name": "李孟耀(DUCT/四方吹(含CAC  DUCT/四方吹)機種擔當)",
       "mail": "chang.shuwei@tw.panasonic.com",
       "ext": ""
+      }
     },
     {
     "單位": "空調開發技術(612)",
@@ -85,6 +88,7 @@
       "name": "吳奕緯(壁掛室內機(含CAC壁掛))",
       "mail": "wu.yiwei@tw.panasonic.com",
       "ext": ""
+    }
     },
      {
       "單位": "空調開發技術(612)",
@@ -93,6 +97,7 @@
       "name": "周孟緯(壁掛式外機(含一對多))",
       "mail": "chou.mengwei@tw.panasonic.com",
       "ext": ""
+     }
     },
          {
       "單位": "空調開發技術(612)",
@@ -101,6 +106,7 @@
       "name": "李新傑(上吹VRF)",
       "mail": "lee.jay@tw.panasonic.com",
       "ext": ""
+       }
     },
            {
       "單位": "空調開發技術",
@@ -109,6 +115,7 @@
       "name": "葉子嘉(側吹VRF)",
       "mail": "ye.zijia@tw.panasonic.com",
       "ext": ""
+       }
     },
         {
     "單位": "大型空調技術(622)",
@@ -117,6 +124,7 @@
       "name": "張書瑋 課長(CAC課長)",
       "mail": "chang.shuwei@tw.panasonic.com",
       "ext": ""
+    }
     },
     {
     "單位": "大型空調技術(622)",
@@ -125,6 +133,7 @@
       "name": "許正曄(壁掛室內機(含CAC壁掛))",
       "mail": "hsu.chengyeh@tw.panasonic.com",
       "ext": ""
+    }
     },
     {
       "單位": "大型空調技術(622)",
@@ -134,5 +143,7 @@
       "mail": "liu.tailin@tw.panasonic.com",
       "ext": ""
     }
+    }
 ]
+
 
