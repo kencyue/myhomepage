@@ -3,96 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車輛管家 V2</title>
+  <title>車輛管家 V2.1 (穩定版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .loader { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
-    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans antialiased">
+<body class="bg-gray-50 text-gray-800 font-sans">
 
   <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-sm text-center border-t-4 border-blue-500">
-      <h1 class="text-2xl font-bold mb-2">🚗 車輛管家</h1>
-      <p class="text-gray-500 mb-6 text-sm">里程紀錄與油耗追蹤系統</p>
-      <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
-        Google 帳號登入
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center border">
+      <h1 class="text-3xl font-black mb-2 text-blue-600">車輛管家</h1>
+      <p class="text-gray-400 mb-8">里程與花費雲端紀錄</p>
+      <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+        使用 Google 帳號登入
       </button>
     </div>
   </div>
 
-  <div id="app-screen" class="hidden min-h-screen flex flex-col pb-20">
-    <header class="bg-white border-b p-4 sticky top-0 z-20 flex justify-between items-center shadow-sm">
+  <div id="app-screen" class="hidden min-h-screen flex flex-col pb-24">
+    <header class="bg-white border-b sticky top-0 z-30 p-4 shadow-sm flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <select id="vehicle-select" class="font-bold text-lg bg-transparent border-none focus:ring-0 cursor-pointer">
+        <select id="vehicle-select" class="font-bold text-lg bg-gray-100 border-none rounded-lg px-2 py-1">
           <option value="">載入中...</option>
         </select>
-        <button id="btn-add-vehicle" class="text-blue-500 text-sm font-bold">+ 新增</button>
+        <button id="btn-add-vehicle" class="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1 rounded-full">+ 新增車輛</button>
       </div>
       <button id="btn-logout" class="text-xs text-gray-400">登出</button>
     </header>
 
-    <main class="p-4 space-y-4">
+    <main class="p-4 space-y-5">
       <div class="grid grid-cols-2 gap-4">
-        <div class="bg-blue-600 p-4 rounded-2xl text-white shadow-lg shadow-blue-100">
-          <div class="text-xs opacity-80">平均油耗</div>
-          <div class="text-2xl font-black mt-1"><span id="avg-fuel">--</span> <span class="text-xs font-normal">km/L</span></div>
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl text-white shadow-lg">
+          <div class="text-xs opacity-70">平均油耗</div>
+          <div class="text-2xl font-black mt-1"><span id="avg-fuel">--</span> <small class="text-xs font-normal">km/L</small></div>
         </div>
-        <div class="bg-emerald-600 p-4 rounded-2xl text-white shadow-lg shadow-emerald-100">
-          <div class="text-xs opacity-80">總行駛里程</div>
-          <div class="text-2xl font-black mt-1"><span id="total-dist">0</span> <span class="text-xs font-normal">km</span></div>
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 p-4 rounded-2xl text-white shadow-lg">
+          <div class="text-xs opacity-70">總里程</div>
+          <div class="text-2xl font-black mt-1"><span id="total-dist">0</span> <small class="text-xs font-normal">km</small></div>
         </div>
       </div>
 
-      <div id="tab-record" class="tab-content active space-y-4">
-        <div id="mileage-card" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-          <h3 class="font-bold mb-4 flex items-center gap-2">🛣️ 里程紀錄</h3>
-          <div id="mileage-input-area">
-            <div class="animate-pulse h-12 bg-gray-100 rounded"></div>
+      <div id="tab-record" class="tab-content block space-y-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold">🛣️ 里程紀錄</h3>
+            <button onclick="refreshData()" class="text-xs text-blue-500">🔄 手動刷新</button>
+          </div>
+          <div id="mileage-ui-container" class="space-y-3">
+             <div class="animate-pulse bg-gray-100 h-20 rounded-xl"></div>
           </div>
         </div>
 
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h3 class="font-bold mb-4">💰 紀錄花費</h3>
           <div class="grid grid-cols-2 gap-3 mb-3">
-            <select id="exp-type" class="p-3 bg-gray-50 rounded-xl border-none">
+            <select id="exp-type" class="p-4 bg-gray-50 rounded-xl border-none text-base">
               <option value="gas">⛽ 加油</option>
               <option value="maintain">🔧 保養</option>
               <option value="wash">🧼 洗車</option>
               <option value="repair">🛠️ 維修</option>
             </select>
-            <input type="number" id="exp-amount" placeholder="金額" class="p-3 bg-gray-50 rounded-xl border-none">
+            <input type="number" id="exp-amount" inputmode="numeric" placeholder="金額" class="p-4 bg-gray-50 rounded-xl border-none text-base font-bold">
           </div>
-          <div id="gas-extra" class="mb-3">
-            <input type="number" id="exp-volume" step="0.01" placeholder="加油公升數" class="w-full p-3 bg-gray-50 rounded-xl border-none">
+          <div id="gas-extra-input" class="mb-4">
+            <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="加油公升數 (計算油耗用)" class="w-full p-4 bg-blue-50 rounded-xl border-none text-base">
           </div>
-          <button id="btn-save-exp" class="w-full py-3 bg-gray-800 text-white rounded-xl font-bold">儲存花費</button>
+          <button id="btn-save-exp" class="w-full py-4 bg-gray-800 text-white rounded-xl font-bold shadow-lg">儲存花費</button>
         </div>
       </div>
 
-      <div id="tab-history" class="tab-content space-y-4">
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div class="p-4 border-b font-bold flex justify-between">
-            <span>歷史明細</span>
-            <span class="text-xs text-gray-400 font-normal">長按或點擊右側可刪除</span>
-          </div>
+      <div id="tab-history" class="tab-content hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border">
+          <div class="p-4 border-b font-bold bg-gray-50">最近 20 筆紀錄</div>
           <div id="history-list" class="divide-y max-h-[60vh] overflow-y-auto">
-            <div class="p-8 text-center text-gray-400 italic">尚未有紀錄</div>
+            <div class="p-10 text-center text-gray-400">尚無資料</div>
           </div>
         </div>
       </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 pb-6 shadow-2xl z-30">
-      <button onclick="switchTab('record')" class="flex flex-col items-center p-2 text-blue-600">
-        <span class="text-xl">📝</span><span class="text-[10px] font-bold">紀錄</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t flex justify-around p-3 pb-8 z-40">
+      <button onclick="showTab('record')" class="flex flex-col items-center gap-1">
+        <span class="text-2xl">📝</span><span class="text-xs font-bold">快速紀錄</span>
       </button>
-      <button onclick="switchTab('history')" class="flex flex-col items-center p-2 text-gray-400">
-        <span class="text-xl">📊</span><span class="text-[10px] font-bold">歷史</span>
+      <button onclick="showTab('history')" class="flex flex-col items-center gap-1">
+        <span class="text-2xl">📊</span><span class="text-xs font-bold">歷史明細</span>
       </button>
     </nav>
   </div>
@@ -117,184 +110,213 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    let user = null, vid = null, activeTrip = null;
+    let user = null, vid = null, ongoingTrip = null;
 
-    // --- 初始化 UI 邏輯 ---
-    onAuthStateChanged(auth, u => {
+    // --- 核心流程：監聽登入 ---
+    onAuthStateChanged(auth, async (u) => {
       user = u;
       document.getElementById('login-screen').classList.toggle('hidden', !!u);
       document.getElementById('app-screen').classList.toggle('hidden', !u);
-      if (u) loadVehicles();
+      if (u) {
+        console.log("Logged in:", u.email);
+        await loadVehicles();
+      }
     });
 
     document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
     document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-    window.switchTab = (name) => {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.getElementById(`tab-${name}`).classList.add('active');
-      if(name === 'history') loadHistory();
+    // --- 分頁切換 ---
+    window.showTab = (tabId) => {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      if (tabId === 'history') loadHistory();
     };
 
-    // --- 車輛管理 ---
+    // --- 車輛載入 ---
     async function loadVehicles() {
-      const snap = await getDocs(query(collection(db, "vehicles"), where("userId", "==", user.uid)));
-      const select = document.getElementById('vehicle-select');
-      select.innerHTML = snap.empty ? '<option value="">請新增車輛</option>' : '';
-      snap.forEach(d => select.innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
-      if (!snap.empty) { vid = select.value; refreshData(); }
+      try {
+        const q = query(collection(db, "vehicles"), where("userId", "==", user.uid));
+        const snap = await getDocs(q);
+        const select = document.getElementById('vehicle-select');
+        
+        if (snap.empty) {
+          select.innerHTML = '<option value="">請新增車輛</option>';
+          vid = null;
+        } else {
+          select.innerHTML = '';
+          snap.forEach(d => {
+            select.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+          });
+          vid = select.value;
+          refreshData();
+        }
+      } catch (e) {
+        console.error("Load Vehicles Error:", e);
+      }
     }
 
     document.getElementById('btn-add-vehicle').onclick = async () => {
-      const name = prompt("輸入新車輛名稱：");
+      const name = prompt("請輸入車輛名稱 (例如：勁戰 125):");
       if (name) {
-        await addDoc(collection(db, "vehicles"), { name, userId: user.uid });
-        loadVehicles();
+        await addDoc(collection(db, "vehicles"), { name, userId: user.uid, createdAt: serverTimestamp() });
+        await loadVehicles();
       }
     };
 
-    document.getElementById('vehicle-select').onchange = (e) => { vid = e.target.value; refreshData(); };
+    document.getElementById('vehicle-select').onchange = (e) => {
+      vid = e.target.value;
+      refreshData();
+    };
 
-    // --- 里程狀態機邏輯 (重要) ---
-    async function refreshData() {
+    // --- 刷新目前資料狀態 ---
+    window.refreshData = async () => {
       if (!vid) return;
+      console.log("Refreshing data for vehicle:", vid);
       
-      // 1. 檢查是否有未完成行程
+      // 1. 檢查是否有進行中行程 (status == 'ongoing')
       const q = query(collection(db, "trips"), where("vid", "==", vid), where("status", "==", "ongoing"), limit(1));
       const snap = await getDocs(q);
-      activeTrip = snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
+      ongoingTrip = snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() };
       
       renderMileageUI();
       calculateStats();
-    }
+    };
 
     function renderMileageUI() {
-      const container = document.getElementById('mileage-input-area');
-      if (!activeTrip) {
+      const container = document.getElementById('mileage-ui-container');
+      if (!ongoingTrip) {
         container.innerHTML = `
-          <div class="flex flex-col gap-3">
-            <p class="text-xs text-gray-400 italic">目前車輛處於靜止狀態</p>
-            <input type="number" id="odo-input" placeholder="出發里程數" class="w-full p-4 bg-blue-50 rounded-xl border-2 border-blue-100 text-xl font-bold">
-            <button id="btn-odo-start" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200">🚩 出發紀錄 (起)</button>
+          <div class="space-y-3">
+            <p class="text-sm text-gray-500 font-medium">✨ 準備出發？請紀錄當前里程：</p>
+            <input type="number" id="odo-input" inputmode="numeric" placeholder="請輸入出發里程" class="w-full p-4 bg-blue-50 rounded-xl border-2 border-blue-200 text-xl font-bold focus:outline-none">
+            <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform">🚩 紀錄出發里程 (起)</button>
           </div>
         `;
-        document.getElementById('btn-odo-start').onclick = startTrip;
+        document.getElementById('btn-odo-action').onclick = startTrip;
       } else {
         container.innerHTML = `
-          <div class="flex flex-col gap-3">
-            <div class="flex justify-between items-center bg-orange-50 p-3 rounded-lg border border-orange-100">
-              <span class="text-sm text-orange-600 font-bold">行駛中...</span>
-              <span class="text-xs text-orange-400">起點: ${activeTrip.startOdo} km</span>
+          <div class="space-y-3">
+            <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 flex justify-between items-center">
+               <span class="text-orange-700 font-bold">行駛中...</span>
+               <span class="text-sm text-orange-600">起點里程: ${ongoingTrip.startOdo}</span>
             </div>
-            <input type="number" id="odo-input" placeholder="抵達里程數" class="w-full p-4 bg-emerald-50 rounded-xl border-2 border-emerald-100 text-xl font-bold">
-            <button id="btn-odo-end" class="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-200">🏁 抵達紀錄 (迄)</button>
+            <input type="number" id="odo-input" inputmode="numeric" placeholder="請輸入抵達里程" class="w-full p-4 bg-emerald-50 rounded-xl border-2 border-emerald-200 text-xl font-bold focus:outline-none">
+            <button id="btn-odo-action" class="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform">🏁 紀錄抵達里程 (迄)</button>
           </div>
         `;
-        document.getElementById('btn-odo-end').onclick = endTrip;
+        document.getElementById('btn-odo-action').onclick = endTrip;
       }
     }
 
     async function startTrip() {
       const odo = Number(document.getElementById('odo-input').value);
-      if (!odo) return alert("請輸入起點里程");
-      await addDoc(collection(db, "trips"), { vid, userId: user.uid, startOdo: odo, status: "ongoing", startTime: serverTimestamp() });
+      if (!odo) return alert("請輸入里程數");
+      await addDoc(collection(db, "trips"), {
+        vid, userId: user.uid, startOdo: odo, status: "ongoing", startTime: serverTimestamp()
+      });
       refreshData();
     }
 
     async function endTrip() {
       const odo = Number(document.getElementById('odo-input').value);
-      if (!odo || odo <= activeTrip.startOdo) return alert("抵達里程需大於起點里程");
-      await updateDoc(doc(db, "trips", activeTrip.id), {
+      if (!odo) return alert("請輸入里程數");
+      if (odo <= ongoingTrip.startOdo) return alert("抵達里程必須大於出發里程！");
+      
+      await updateDoc(doc(db, "trips", ongoingTrip.id), {
         endOdo: odo,
-        distance: odo - activeTrip.startOdo,
+        distance: odo - ongoingTrip.startOdo,
         status: "completed",
         endTime: serverTimestamp()
       });
       refreshData();
     }
 
-    // --- 花費紀錄 ---
+    // --- 花費儲存 ---
     document.getElementById('btn-save-exp').onclick = async () => {
       const amount = Number(document.getElementById('exp-amount').value);
       const volume = Number(document.getElementById('exp-volume').value || 0);
       const type = document.getElementById('exp-type').value;
+      
+      if (!vid) return alert("請先新增並選擇車輛");
       if (!amount) return alert("請輸入金額");
-      await addDoc(collection(db, "expenses"), { vid, userId: user.uid, type, amount, volume, time: serverTimestamp() });
-      alert("已儲存");
+      if (type === 'gas' && !volume) return alert("加油請輸入公升數以計算油耗");
+
+      await addDoc(collection(db, "expenses"), {
+        vid, userId: user.uid, type, amount, volume, time: serverTimestamp()
+      });
+      
       document.getElementById('exp-amount').value = '';
       document.getElementById('exp-volume').value = '';
+      alert("儲存成功！");
       calculateStats();
     };
 
-    // --- 統計資訊 ---
+    // --- 統計計算 ---
     async function calculateStats() {
-      const tripsSnap = await getDocs(query(collection(db, "trips"), where("vid", "==", vid), where("status", "==", "completed")));
+      const tSnap = await getDocs(query(collection(db, "trips"), where("vid", "==", vid), where("status", "==", "completed")));
       let totalDist = 0;
-      tripsSnap.forEach(d => totalDist += d.data().distance);
-      
-      const gasSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid), where("type", "==", "gas")));
+      tSnap.forEach(d => totalDist += (d.data().distance || 0));
+
+      const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid), where("type", "==", "gas")));
       let totalVol = 0;
-      gasSnap.forEach(d => totalVol += d.data().volume);
+      eSnap.forEach(d => totalVol += (d.data().volume || 0));
 
       document.getElementById('total-dist').innerText = totalDist;
       document.getElementById('avg-fuel').innerText = totalVol > 0 ? (totalDist / totalVol).toFixed(1) : "--";
     }
 
-    // --- 歷史紀錄列表與刪除 ---
+    // --- 歷史紀錄 ---
     async function loadHistory() {
       const list = document.getElementById('history-list');
-      list.innerHTML = '<div class="p-8 text-center text-gray-400">載入中...</div>';
+      list.innerHTML = '<div class="p-8 text-center text-gray-400">讀取中...</div>';
       
-      // 合併里程與花費
-      const tSnap = await getDocs(query(collection(db, "trips"), where("vid", "==", vid), orderBy("startTime", "desc"), limit(20)));
-      const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid), orderBy("time", "desc"), limit(20)));
+      const tSnap = await getDocs(query(collection(db, "trips"), where("vid", "==", vid), orderBy("startTime", "desc"), limit(10)));
+      const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid), orderBy("time", "desc"), limit(10)));
       
-      let all = [];
-      tSnap.forEach(d => all.push({ id: d.id, type: 'trip', ...d.data(), date: d.data().startTime?.toDate() }));
-      eSnap.forEach(d => all.push({ id: d.id, type: 'exp', ...d.data(), date: d.data().time?.toDate() }));
+      let items = [];
+      tSnap.forEach(d => items.push({ id: d.id, db: 'trips', ...d.data(), date: d.data().startTime?.toDate() }));
+      eSnap.forEach(d => items.push({ id: d.id, db: 'expenses', ...d.data(), date: d.data().time?.toDate() }));
       
-      all.sort((a, b) => b.date - a.date);
+      items.sort((a, b) => b.date - a.date);
 
-      if (all.length === 0) {
-        list.innerHTML = '<div class="p-8 text-center text-gray-400 italic">尚無紀錄</div>';
+      if (items.length === 0) {
+        list.innerHTML = '<div class="p-10 text-center text-gray-400 italic">目前沒有紀錄</div>';
         return;
       }
 
-      list.innerHTML = all.map(item => {
-        const dateStr = item.date ? `${item.date.getMonth()+1}/${item.date.getDate()} ${item.date.getHours()}:${item.date.getMinutes().toString().padStart(2,'0')}` : '處理中...';
-        if (item.type === 'trip') {
+      list.innerHTML = items.map(item => {
+        const timeStr = item.date ? `${item.date.getMonth()+1}/${item.date.getDate()} ${item.date.getHours()}:${item.date.getMinutes().toString().padStart(2,'0')}` : '處理中...';
+        if (item.db === 'trips') {
           return `
-            <div class="p-4 flex justify-between items-center group">
+            <div class="p-4 flex justify-between items-center">
               <div>
-                <div class="text-xs text-gray-400">${dateStr} · 🛣️ 里程</div>
-                <div class="font-bold">${item.status === 'ongoing' ? '行程進行中' : item.distance + ' km'}</div>
-                <div class="text-[10px] text-gray-400">${item.startOdo} → ${item.endOdo || '?'}</div>
+                <div class="text-[10px] text-gray-400 uppercase font-bold">${timeStr} · 里程紀錄</div>
+                <div class="text-lg font-bold ${item.status==='ongoing'?'text-orange-500':'text-gray-800'}">
+                  ${item.status === 'ongoing' ? '行駛中...' : item.distance + ' km'}
+                </div>
+                <div class="text-xs text-gray-400">${item.startOdo} → ${item.endOdo || '?'}</div>
               </div>
-              <button onclick="deleteRecord('trips', '${item.id}')" class="text-red-300 hover:text-red-500 text-sm p-2">✕</button>
+              <button onclick="deleteItem('trips', '${item.id}')" class="text-red-300 p-2">✕</button>
             </div>
           `;
         } else {
           return `
             <div class="p-4 flex justify-between items-center">
               <div>
-                <div class="text-xs text-gray-400">${dateStr} · ${getExpEmoji(item.type_text || item.type)}</div>
-                <div class="font-bold text-orange-600">$${item.amount}</div>
-                ${item.volume ? `<div class="text-[10px] text-gray-400">${item.volume} L</div>` : ''}
+                <div class="text-[10px] text-gray-400 uppercase font-bold">${timeStr} · ${item.type}</div>
+                <div class="text-lg font-bold text-blue-600">$${item.amount}</div>
+                ${item.volume ? `<div class="text-xs text-gray-400">${item.volume} L</div>` : ''}
               </div>
-              <button onclick="deleteRecord('expenses', '${item.id}')" class="text-red-300 hover:text-red-500 text-sm p-2">✕</button>
+              <button onclick="deleteItem('expenses', '${item.id}')" class="text-red-300 p-2">✕</button>
             </div>
           `;
         }
       }).join('');
     }
 
-    function getExpEmoji(type) {
-      const map = { gas: '⛽ 加油', maintain: '🔧 保養', wash: '🧼 洗車', repair: '🛠️ 維修' };
-      return map[type] || '💰 花費';
-    }
-
-    window.deleteRecord = async (col, id) => {
-      if (confirm("確定要刪除此紀錄嗎？")) {
+    window.deleteItem = async (col, id) => {
+      if (confirm("確定刪除？")) {
         await deleteDoc(doc(db, col, id));
         loadHistory();
         refreshData();
