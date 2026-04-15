@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車輛管家 V2.4 (加入年份顯示版)</title>
+  <title>車輛管家 V2.5 (自動帶入里程與防呆版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
@@ -121,7 +121,7 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    let user = null, vid = null, ongoingTrip = null;
+    let user = null, vid = null, ongoingTrip = null, lastEndOdo = 0; // 新增 lastEndOdo 全域變數
     let allHistoryItems = []; 
     let currentFilter = 'all';
 
@@ -209,6 +209,11 @@
         snap.forEach(d => trips.push({ id: d.id, ...d.data() }));
 
         ongoingTrip = trips.find(t => t.status === 'ongoing') || null;
+        
+        // ★ 找出歷史中最大的迄點里程 (也就是上次抵達的里程)
+        let completedTrips = trips.filter(t => t.status === 'completed');
+        lastEndOdo = completedTrips.length > 0 ? Math.max(...completedTrips.map(t => t.endOdo || 0)) : 0;
+
         renderMileageUI();
         calculateStats(trips);
       } catch (e) {
@@ -219,10 +224,14 @@
     function renderMileageUI() {
       const container = document.getElementById('mileage-ui-container');
       if (!ongoingTrip) {
+        // ★ 若有上次紀錄，自動帶入數值與提示
+        let autoFillValue = lastEndOdo > 0 ? lastEndOdo : '';
+        let hintMsg = lastEndOdo > 0 ? `<span class="text-blue-500 font-bold">已自動帶入上次抵達里程 (${lastEndOdo})</span>` : `✨ 準備出發？請輸入目前儀表板里程：`;
+        
         container.innerHTML = `
           <div class="space-y-3">
-            <p class="text-sm text-gray-500 font-medium">✨ 準備出發？請輸入目前儀表板里程：</p>
-            <input type="number" id="odo-input" inputmode="numeric" placeholder="例如: 15200" class="w-full p-4 bg-blue-50 rounded-xl border border-blue-200 text-2xl font-black text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <p class="text-sm text-gray-500 font-medium">${hintMsg}</p>
+            <input type="number" id="odo-input" inputmode="numeric" value="${autoFillValue}" placeholder="例如: 15200" class="w-full p-4 bg-blue-50 rounded-xl border border-blue-200 text-2xl font-black text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
             <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-lg">🚩 紀錄出發里程 (起)</button>
           </div>
         `;
@@ -249,6 +258,12 @@
     async function startTrip() {
       const odo = Number(document.getElementById('odo-input').value);
       if (!odo) return alert("請輸入出發里程數！");
+      
+      // ★ 防呆邏輯：出發不能小於上次抵達
+      if (lastEndOdo > 0 && odo < lastEndOdo) {
+        return alert(`輸入錯誤！本次出發里程 (${odo}) 不能小於上次的抵達里程 (${lastEndOdo}) 喔！`);
+      }
+
       document.getElementById('btn-odo-action').innerText = "儲存中...";
       document.getElementById('btn-odo-action').disabled = true;
 
@@ -369,7 +384,6 @@
       }
 
       list.innerHTML = filteredItems.map(item => {
-        // --- ★ 這裡就是加上年份與補零的地方 ★ ---
         const yyyy = item.date.getFullYear();
         const mm = String(item.date.getMonth() + 1).padStart(2, '0');
         const dd = String(item.date.getDate()).padStart(2, '0');
