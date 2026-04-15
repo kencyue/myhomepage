@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車輛管家 V2.2 (無索引報錯版)</title>
+  <title>車輛管家 V2.4 (加入年份顯示版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
@@ -24,7 +24,7 @@
         <select id="vehicle-select" class="font-bold text-lg bg-gray-100 border-none rounded-lg px-2 py-1">
           <option value="">載入中...</option>
         </select>
-        <button id="btn-add-vehicle" class="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1 rounded-full">+ 新增車輛</button>
+        <button id="btn-add-vehicle" class="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1 rounded-full">+ 新增</button>
       </div>
       <button id="btn-logout" class="text-xs text-gray-400">登出</button>
     </header>
@@ -55,16 +55,16 @@
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h3 class="font-bold mb-4">💰 紀錄花費</h3>
           <div class="grid grid-cols-2 gap-3 mb-3">
-            <select id="exp-type" class="p-4 bg-gray-50 rounded-xl border-none text-base">
+            <select id="exp-type" class="p-4 bg-gray-50 rounded-xl border-none text-base font-bold text-gray-700 focus:ring-2 focus:ring-blue-200 outline-none">
               <option value="gas">⛽ 加油</option>
               <option value="maintain">🔧 保養</option>
               <option value="wash">🧼 洗車</option>
               <option value="repair">🛠️ 維修</option>
             </select>
-            <input type="number" id="exp-amount" inputmode="numeric" placeholder="金額" class="p-4 bg-gray-50 rounded-xl border-none text-base font-bold">
+            <input type="number" id="exp-amount" inputmode="numeric" placeholder="總金額" class="p-4 bg-gray-50 rounded-xl border-none text-base font-bold focus:ring-2 focus:ring-blue-200 outline-none">
           </div>
-          <div id="gas-extra-input" class="mb-4">
-            <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="加油公升數 (計算油耗用)" class="w-full p-4 bg-blue-50 rounded-xl border-none text-base">
+          <div id="gas-extra-input" class="mb-4 transition-all duration-300">
+            <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="加油公升數 (計算油耗用)" class="w-full p-4 bg-blue-50 rounded-xl border-none text-base focus:ring-2 focus:ring-blue-300 outline-none">
           </div>
           <button id="btn-save-exp" class="w-full py-4 bg-gray-800 text-white rounded-xl font-bold shadow-lg">儲存花費</button>
         </div>
@@ -73,22 +73,30 @@
       <div id="tab-history" class="tab-content hidden space-y-4">
         <div class="bg-white rounded-2xl shadow-sm overflow-hidden border">
           <div class="p-4 border-b font-bold bg-gray-50 flex justify-between items-center">
-            <span>最近 20 筆紀錄</span>
+            <span>歷史明細</span>
             <button onclick="loadHistory()" class="text-xs text-blue-500">🔄 整理</button>
           </div>
-          <div id="history-list" class="divide-y max-h-[60vh] overflow-y-auto">
+          
+          <div class="p-3 border-b flex gap-2 overflow-x-auto whitespace-nowrap bg-white sticky top-0">
+            <button onclick="setHistoryFilter('all', this)" class="filter-btn px-4 py-1.5 rounded-full text-sm font-bold bg-blue-600 text-white shadow-md transition-all">全部</button>
+            <button onclick="setHistoryFilter('trips', this)" class="filter-btn px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">🛣️ 里程</button>
+            <button onclick="setHistoryFilter('gas', this)" class="filter-btn px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">⛽ 加油</button>
+            <button onclick="setHistoryFilter('other', this)" class="filter-btn px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">🔧 保養與其他</button>
+          </div>
+
+          <div id="history-list" class="divide-y max-h-[60vh] overflow-y-auto bg-gray-50/50">
             <div class="p-10 text-center text-gray-400">尚無資料</div>
           </div>
         </div>
       </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t flex justify-around p-3 pb-8 z-40">
-      <button onclick="showTab('record')" class="flex flex-col items-center gap-1">
-        <span class="text-2xl">📝</span><span class="text-xs font-bold text-gray-700">快速紀錄</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t flex justify-around p-3 pb-8 z-40 shadow-[0_-5px_15px_-10px_rgba(0,0,0,0.1)]">
+      <button onclick="showTab('record')" id="nav-btn-record" class="flex flex-col items-center gap-1 text-blue-600">
+        <span class="text-2xl">📝</span><span class="text-xs font-bold">快速紀錄</span>
       </button>
-      <button onclick="showTab('history')" class="flex flex-col items-center gap-1">
-        <span class="text-2xl">📊</span><span class="text-xs font-bold text-gray-700">歷史明細</span>
+      <button onclick="showTab('history')" id="nav-btn-history" class="flex flex-col items-center gap-1 text-gray-400">
+        <span class="text-2xl">📊</span><span class="text-xs font-bold">歷史明細</span>
       </button>
     </nav>
   </div>
@@ -114,8 +122,9 @@
     const provider = new GoogleAuthProvider();
 
     let user = null, vid = null, ongoingTrip = null;
+    let allHistoryItems = []; 
+    let currentFilter = 'all';
 
-    // 監聽登入
     onAuthStateChanged(auth, async (u) => {
       user = u;
       document.getElementById('login-screen').classList.toggle('hidden', !!u);
@@ -126,14 +135,29 @@
     document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
     document.getElementById('btn-logout').onclick = () => signOut(auth);
 
-    // 切換分頁
     window.showTab = (tabId) => {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      
+      document.getElementById('nav-btn-record').className = tabId === 'record' ? 'flex flex-col items-center gap-1 text-blue-600' : 'flex flex-col items-center gap-1 text-gray-400';
+      document.getElementById('nav-btn-history').className = tabId === 'history' ? 'flex flex-col items-center gap-1 text-blue-600' : 'flex flex-col items-center gap-1 text-gray-400';
+      
       if (tabId === 'history') loadHistory();
     };
 
-    // 載入車輛
+    const expTypeSelect = document.getElementById('exp-type');
+    const gasExtraInput = document.getElementById('gas-extra-input');
+    const expVolumeInput = document.getElementById('exp-volume');
+    
+    expTypeSelect.addEventListener('change', (e) => {
+      if (e.target.value === 'gas') {
+        gasExtraInput.classList.remove('hidden');
+      } else {
+        gasExtraInput.classList.add('hidden');
+        expVolumeInput.value = ''; 
+      }
+    });
+
     async function loadVehicles() {
       try {
         const q = query(collection(db, "vehicles"), where("userId", "==", user.uid));
@@ -141,7 +165,7 @@
         const select = document.getElementById('vehicle-select');
         
         if (snap.empty) {
-          select.innerHTML = '<option value="">(尚未設定車輛)</option>';
+          select.innerHTML = '<option value="">(請先新增車輛)</option>';
           vid = null;
         } else {
           select.innerHTML = '';
@@ -155,7 +179,7 @@
     }
 
     document.getElementById('btn-add-vehicle').onclick = async () => {
-      const name = prompt("請輸入車輛名稱 (例如：勁戰 125):");
+      const name = prompt("請輸入車輛名稱 (例如：我的機車):");
       if (name) {
         await addDoc(collection(db, "vehicles"), { name, userId: user.uid, createdAt: serverTimestamp() });
         await loadVehicles();
@@ -167,31 +191,24 @@
       refreshData();
     };
 
-    // 刷新與繪製里程 UI (重點修復區)
     window.refreshData = async () => {
       const container = document.getElementById('mileage-ui-container');
-      
-      // 狀態1：還沒選車子
       if (!vid) {
-        container.innerHTML = '<div class="p-6 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">👉 請先點擊上方「+ 新增車輛」</div>';
+        container.innerHTML = '<div class="p-6 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">👉 請先點擊上方「+ 新增」車輛</div>';
         document.getElementById('total-dist').innerText = "0";
         document.getElementById('avg-fuel').innerText = "--";
         return;
       }
 
-      container.innerHTML = '<div class="p-6 text-center text-blue-500 font-bold animate-pulse">正在讀取雲端資料...</div>';
+      container.innerHTML = '<div class="p-6 text-center text-blue-500 font-bold animate-pulse">正在同步雲端資料...</div>';
 
       try {
-        // 為了避免 Firebase 索引錯誤，我們只用 vid 查詢，其餘在前端處理
         const q = query(collection(db, "trips"), where("vid", "==", vid));
         const snap = await getDocs(q);
-
         let trips = [];
         snap.forEach(d => trips.push({ id: d.id, ...d.data() }));
 
-        // 找尋是否有「進行中」的行程
         ongoingTrip = trips.find(t => t.status === 'ongoing') || null;
-        
         renderMileageUI();
         calculateStats(trips);
       } catch (e) {
@@ -199,27 +216,30 @@
       }
     };
 
-    // 根據狀態繪製「起」或「迄」
     function renderMileageUI() {
       const container = document.getElementById('mileage-ui-container');
       if (!ongoingTrip) {
         container.innerHTML = `
           <div class="space-y-3">
-            <p class="text-sm text-gray-500 font-medium">✨ 準備出發？請紀錄當前里程：</p>
-            <input type="number" id="odo-input" inputmode="numeric" placeholder="請輸入 出發 里程" class="w-full p-4 bg-blue-50 rounded-xl border-2 border-blue-200 text-xl font-bold focus:outline-none">
-            <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg">🚩 紀錄出發里程 (起)</button>
+            <p class="text-sm text-gray-500 font-medium">✨ 準備出發？請輸入目前儀表板里程：</p>
+            <input type="number" id="odo-input" inputmode="numeric" placeholder="例如: 15200" class="w-full p-4 bg-blue-50 rounded-xl border border-blue-200 text-2xl font-black text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-lg">🚩 紀錄出發里程 (起)</button>
           </div>
         `;
         document.getElementById('btn-odo-action').onclick = startTrip;
       } else {
         container.innerHTML = `
           <div class="space-y-3">
-            <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 flex justify-between items-center">
-               <span class="text-orange-700 font-bold">行駛中...</span>
-               <span class="text-sm text-orange-600">起點: ${ongoingTrip.startOdo} km</span>
+            <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 flex justify-between items-center shadow-inner">
+               <div class="flex items-center gap-2">
+                 <span class="animate-pulse w-3 h-3 bg-orange-500 rounded-full"></span>
+                 <span class="text-orange-700 font-bold">行駛紀錄中...</span>
+               </div>
+               <span class="text-sm text-orange-600 bg-orange-100 px-2 py-1 rounded">起點: ${ongoingTrip.startOdo} km</span>
             </div>
-            <input type="number" id="odo-input" inputmode="numeric" placeholder="請輸入 抵達 里程" class="w-full p-4 bg-emerald-50 rounded-xl border-2 border-emerald-200 text-xl font-bold focus:outline-none">
-            <button id="btn-odo-action" class="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg">🏁 紀錄抵達里程 (迄)</button>
+            <p class="text-sm text-gray-500 font-medium mt-2">抵達目的地！請輸入最新儀表板里程：</p>
+            <input type="number" id="odo-input" inputmode="numeric" placeholder="例如: 15235" class="w-full p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-2xl font-black text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+            <button id="btn-odo-action" class="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg active:scale-95 transition-transform text-lg">🏁 紀錄抵達里程 (迄)</button>
           </div>
         `;
         document.getElementById('btn-odo-action').onclick = endTrip;
@@ -229,8 +249,6 @@
     async function startTrip() {
       const odo = Number(document.getElementById('odo-input').value);
       if (!odo) return alert("請輸入出發里程數！");
-      
-      // 先顯示 loading 狀態，避免重複點擊
       document.getElementById('btn-odo-action').innerText = "儲存中...";
       document.getElementById('btn-odo-action').disabled = true;
 
@@ -243,9 +261,9 @@
     async function endTrip() {
       const odo = Number(document.getElementById('odo-input').value);
       if (!odo) return alert("請輸入抵達里程數！");
-      if (odo <= ongoingTrip.startOdo) return alert("抵達里程必須大於出發里程喔！");
+      if (odo <= ongoingTrip.startOdo) return alert(`抵達里程必須大於出發里程 (${ongoingTrip.startOdo}) 喔！`);
       
-      document.getElementById('btn-odo-action').innerText = "儲存中...";
+      document.getElementById('btn-odo-action').innerText = "計算中...";
       document.getElementById('btn-odo-action').disabled = true;
 
       await updateDoc(doc(db, "trips", ongoingTrip.id), {
@@ -254,34 +272,36 @@
         status: "completed",
         endTime: serverTimestamp()
       });
+      alert(`已成功紀錄！本次行駛了 ${odo - ongoingTrip.startOdo} 公里`);
       refreshData();
     }
 
-    // 儲存花費
     document.getElementById('btn-save-exp').onclick = async () => {
       const amount = Number(document.getElementById('exp-amount').value);
-      const volume = Number(document.getElementById('exp-volume').value || 0);
-      const type = document.getElementById('exp-type').value;
+      const volume = Number(expVolumeInput.value || 0);
+      const type = expTypeSelect.value;
       
       if (!vid) return alert("請先新增並選擇車輛");
-      if (!amount) return alert("請輸入金額");
-      if (type === 'gas' && !volume) return alert("加油請輸入公升數以計算油耗");
+      if (!amount) return alert("請輸入花費金額");
+      if (type === 'gas' && !volume) return alert("加油請輸入公升數以計算精準油耗喔！");
 
       const btn = document.getElementById('btn-save-exp');
-      btn.innerText = "儲存中...";
+      btn.innerText = "寫入雲端中...";
+      btn.disabled = true;
       
       await addDoc(collection(db, "expenses"), {
         vid, userId: user.uid, type, amount, volume, time: serverTimestamp()
       });
       
       document.getElementById('exp-amount').value = '';
-      document.getElementById('exp-volume').value = '';
+      expVolumeInput.value = '';
       btn.innerText = "儲存花費";
-      alert("儲存成功！");
-      refreshData(); // 更新油耗
+      btn.disabled = false;
+      
+      alert("帳目儲存成功！");
+      refreshData();
     };
 
-    // 計算總計 (前端處理)
     async function calculateStats(trips) {
       if(!vid) return;
       let totalDist = 0;
@@ -297,74 +317,108 @@
       document.getElementById('avg-fuel').innerText = totalVol > 0 ? (totalDist / totalVol).toFixed(1) : "--";
     }
 
-    // 載入歷史紀錄 (前端排序，避開 Firebase 索引問題)
     window.loadHistory = async () => {
       if (!vid) return;
       const list = document.getElementById('history-list');
-      list.innerHTML = '<div class="p-8 text-center text-blue-500 font-bold animate-pulse">讀取歷史中...</div>';
+      list.innerHTML = '<div class="p-10 text-center text-blue-500 font-bold animate-pulse">讀取明細中...</div>';
       
       try {
         const tSnap = await getDocs(query(collection(db, "trips"), where("vid", "==", vid)));
         const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid)));
         
-        let items = [];
+        allHistoryItems = [];
         tSnap.forEach(d => {
-           // serverTimestamp 在剛存入時可能為 null，用 new Date() 容錯
            const dateObj = d.data().startTime?.toDate() || new Date(); 
-           items.push({ id: d.id, db: 'trips', ...d.data(), date: dateObj });
+           allHistoryItems.push({ id: d.id, db: 'trips', ...d.data(), date: dateObj });
         });
         eSnap.forEach(d => {
            const dateObj = d.data().time?.toDate() || new Date();
-           items.push({ id: d.id, db: 'expenses', ...d.data(), date: dateObj });
+           allHistoryItems.push({ id: d.id, db: 'expenses', ...d.data(), date: dateObj });
         });
         
-        // 依照時間新到舊排序
-        items.sort((a, b) => b.date - a.date);
-        items = items.slice(0, 20); // 只顯示前20筆
-
-        if (items.length === 0) {
-          list.innerHTML = '<div class="p-10 text-center text-gray-400 italic">目前沒有紀錄</div>';
-          return;
-        }
-
-        list.innerHTML = items.map(item => {
-          const timeStr = `${item.date.getMonth()+1}/${item.date.getDate()} ${item.date.getHours()}:${item.date.getMinutes().toString().padStart(2,'0')}`;
-          if (item.db === 'trips') {
-            return `
-              <div class="p-4 flex justify-between items-center bg-white">
-                <div>
-                  <div class="text-[10px] text-gray-400 font-bold">${timeStr} · 🛣️ 里程</div>
-                  <div class="text-lg font-bold ${item.status==='ongoing'?'text-orange-500':'text-gray-800'}">
-                    ${item.status === 'ongoing' ? '行駛中 (尚未有迄點)' : item.distance + ' km'}
-                  </div>
-                  <div class="text-xs text-gray-400">${item.startOdo} → ${item.endOdo || '???'}</div>
-                </div>
-                <button onclick="deleteItem('trips', '${item.id}')" class="text-red-400 bg-red-50 p-2 rounded-lg hover:bg-red-100">刪除</button>
-              </div>
-            `;
-          } else {
-            const typeMap = { gas: '⛽ 加油', maintain: '🔧 保養', wash: '🧼 洗車', repair: '🛠️ 維修' };
-            return `
-              <div class="p-4 flex justify-between items-center bg-white">
-                <div>
-                  <div class="text-[10px] text-gray-400 font-bold">${timeStr} · ${typeMap[item.type]||'其他'}</div>
-                  <div class="text-lg font-bold text-blue-600">$${item.amount}</div>
-                  ${item.volume ? `<div class="text-xs text-gray-400">加了 ${item.volume} L</div>` : ''}
-                </div>
-                <button onclick="deleteItem('expenses', '${item.id}')" class="text-red-400 bg-red-50 p-2 rounded-lg hover:bg-red-100">刪除</button>
-              </div>
-            `;
-          }
-        }).join('');
+        allHistoryItems.sort((a, b) => b.date - a.date);
+        renderHistoryList();
       } catch (e) {
         list.innerHTML = `<div class="p-4 text-red-500 text-sm">歷史紀錄讀取失敗: ${e.message}</div>`;
       }
     };
 
+    window.setHistoryFilter = (filter, btnElement) => {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all";
+      });
+      btnElement.className = "filter-btn px-4 py-1.5 rounded-full text-sm font-bold bg-blue-600 text-white shadow-md transition-all";
+      renderHistoryList();
+    };
+
+    function renderHistoryList() {
+      const list = document.getElementById('history-list');
+      let filteredItems = allHistoryItems;
+      if (currentFilter === 'trips') {
+        filteredItems = allHistoryItems.filter(i => i.db === 'trips');
+      } else if (currentFilter === 'gas') {
+        filteredItems = allHistoryItems.filter(i => i.db === 'expenses' && i.type === 'gas');
+      } else if (currentFilter === 'other') {
+        filteredItems = allHistoryItems.filter(i => i.db === 'expenses' && i.type !== 'gas');
+      }
+
+      if (filteredItems.length === 0) {
+        list.innerHTML = `<div class="p-12 text-center text-gray-400 italic">這個分類目前沒有紀錄喔</div>`;
+        return;
+      }
+
+      list.innerHTML = filteredItems.map(item => {
+        // --- ★ 這裡就是加上年份與補零的地方 ★ ---
+        const yyyy = item.date.getFullYear();
+        const mm = String(item.date.getMonth() + 1).padStart(2, '0');
+        const dd = String(item.date.getDate()).padStart(2, '0');
+        const hh = String(item.date.getHours()).padStart(2, '0');
+        const min = String(item.date.getMinutes()).padStart(2, '0');
+        const timeStr = `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+        
+        if (item.db === 'trips') {
+          return `
+            <div class="p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded uppercase font-bold">🛣️ 里程</span>
+                  <span class="text-xs text-gray-400">${timeStr}</span>
+                </div>
+                <div class="text-xl font-black ${item.status==='ongoing'?'text-orange-500':'text-gray-800'}">
+                  ${item.status === 'ongoing' ? '行程未結束' : item.distance + ' km'}
+                </div>
+                <div class="text-xs text-gray-400 mt-1">${item.startOdo} <span class="text-blue-300">➜</span> ${item.endOdo || '?'}</div>
+              </div>
+              <button onclick="deleteItem('trips', '${item.id}')" class="text-gray-400 bg-white border border-gray-200 px-3 py-2 rounded-xl shadow-sm hover:text-red-500 hover:border-red-200 transition-all text-sm">刪除</button>
+            </div>
+          `;
+        } else {
+          const typeMap = { gas: '⛽ 加油', maintain: '🔧 保養', wash: '🧼 洗車', repair: '🛠️ 維修' };
+          const isGas = item.type === 'gas';
+          return `
+            <div class="p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition-colors">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-[10px] ${isGas ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'} px-2 py-0.5 rounded uppercase font-bold">${typeMap[item.type]||'其他'}</span>
+                  <span class="text-xs text-gray-400">${timeStr}</span>
+                </div>
+                <div class="text-xl font-black ${isGas ? 'text-blue-600' : 'text-orange-600'}">
+                  $ ${item.amount}
+                </div>
+                ${item.volume ? `<div class="text-xs text-gray-500 mt-1 font-medium">加了 ${item.volume} 公升</div>` : ''}
+              </div>
+              <button onclick="deleteItem('expenses', '${item.id}')" class="text-gray-400 bg-white border border-gray-200 px-3 py-2 rounded-xl shadow-sm hover:text-red-500 hover:border-red-200 transition-all text-sm">刪除</button>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
     window.deleteItem = async (col, id) => {
-      if (confirm("確定要刪除這筆資料嗎？(刪除後油耗與里程會重新計算)")) {
+      if (confirm("確定要刪除這筆資料嗎？(油耗與里程會重新計算)")) {
         await deleteDoc(doc(db, col, id));
-        if(col === 'trips' && ongoingTrip && ongoingTrip.id === id) ongoingTrip = null; // 如果刪掉的是進行中的，清空狀態
+        if(col === 'trips' && ongoingTrip && ongoingTrip.id === id) ongoingTrip = null; 
         loadHistory();
         refreshData();
       }
