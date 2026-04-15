@@ -1,1 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>車輛里程與花費紀錄</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 隱藏未選取的 Tab 內容 */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans antialiased">
 
+  <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-sm text-center">
+      <h1 class="text-2xl font-bold mb-6 text-gray-700">車輛管理小幫手</h1>
+      <button id="btn-login" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
+        使用 Google 登入
+      </button>
+    </div>
+  </div>
+
+  <div id="app-screen" class="hidden min-h-screen flex flex-col">
+    <header class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center sticky top-0 z-10">
+      <h1 class="text-lg font-bold">車輛紀錄</h1>
+      <button id="btn-logout" class="text-sm bg-blue-700 px-3 py-1 rounded">登出</button>
+    </header>
+
+    <div class="p-4 bg-white border-b">
+      <div class="flex gap-2">
+        <select id="vehicle-select" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+          <option value="">請選擇或新增車輛...</option>
+        </select>
+        <button id="btn-add-vehicle" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">新增車輛</button>
+      </div>
+    </div>
+
+    <main class="flex-1 p-4 overflow-y-auto">
+      
+      <div class="bg-white p-4 rounded-xl shadow-sm mb-4 border border-gray-100">
+        <h2 class="text-sm text-gray-500 mb-1">平均油耗 (總里程/總加油量)</h2>
+        <div class="text-2xl font-bold text-blue-600"><span id="avg-fuel">--</span> <span class="text-sm font-normal text-gray-500">km/L</span></div>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <button onclick="switchTab('mileage')" id="tab-btn-mileage" class="flex-1 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold active-tab">紀錄里程</button>
+        <button onclick="switchTab('expense')" id="tab-btn-expense" class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold">紀錄花費</button>
+      </div>
+
+      <div id="tab-mileage" class="tab-content active bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="font-bold mb-3 text-gray-700">新增里程紀錄</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">起點里程數</label>
+            <input type="number" id="odo-start" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-lg" placeholder="例如: 15000">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">迄點里程數</label>
+            <input type="number" id="odo-end" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-lg" placeholder="例如: 15050">
+          </div>
+          <button id="btn-save-mileage" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow-sm mt-2">儲存紀錄</button>
+        </div>
+      </div>
+
+      <div id="tab-expense" class="tab-content bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="font-bold mb-3 text-gray-700">新增花費</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">花費項目</label>
+            <select id="expense-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-lg">
+              <option value="gas">加油</option>
+              <option value="maintain">保養</option>
+              <option value="wash">洗車</option>
+              <option value="repair">維修</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">金額 (元)</label>
+            <input type="number" id="expense-amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-lg" placeholder="0">
+          </div>
+          <div id="gas-volume-container">
+            <label class="block text-sm font-medium text-gray-700">加油公升數 (用於計算油耗)</label>
+            <input type="number" id="expense-volume" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-lg" placeholder="例如: 5.2">
+          </div>
+          <button id="btn-save-expense" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow-sm mt-2">儲存花費</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQW1T46x6GtcfK4xtQ3Z_O3uHyfCKUpd4",
+      authDomain: "scooter-1330b.firebaseapp.com",
+      projectId: "scooter-1330b",
+      storageBucket: "scooter-1330b.firebasestorage.app",
+      messagingSenderId: "259141255844",
+      appId: "1:259141255844:web:3e0fb78235798f1a27dc31",
+      measurementId: "G-5HKMW4VDYD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let currentVehicleId = null;
+
+    // DOM 元素
+    const loginScreen = document.getElementById('login-screen');
+    const appScreen = document.getElementById('app-screen');
+    const vehicleSelect = document.getElementById('vehicle-select');
+    const expenseType = document.getElementById('expense-type');
+    const gasVolumeContainer = document.getElementById('gas-volume-container');
+
+    // 切換分頁 UI 邏輯
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      
+      document.getElementById('tab-btn-mileage').className = "flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold";
+      document.getElementById('tab-btn-expense').className = "flex-1 py-2 bg-gray-100 text-gray-600 rounded-lg font-semibold";
+      document.getElementById(`tab-btn-${tabName}`).className = "flex-1 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold active-tab";
+    }
+
+    // 花費項目切換：只有選擇加油時才顯示公升數輸入框
+    expenseType.addEventListener('change', (e) => {
+      gasVolumeContainer.style.display = e.target.value === 'gas' ? 'block' : 'none';
+    });
+
+    // 監聽登入狀態
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        loginScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        loadVehicles();
+      } else {
+        currentUser = null;
+        loginScreen.classList.remove('hidden');
+        appScreen.classList.add('hidden');
+      }
+    });
+
+    // 登入與登出
+    document.getElementById('btn-login').addEventListener('click', () => {
+      signInWithPopup(auth, provider).catch(error => alert("登入失敗: " + error.message));
+    });
+    document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+    // 載入車輛清單
+    async function loadVehicles() {
+      const q = query(collection(db, "vehicles"), where("userId", "==", currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      
+      vehicleSelect.innerHTML = '<option value="">請選擇車輛...</option>';
+      querySnapshot.forEach((doc) => {
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.text = doc.data().name;
+        vehicleSelect.appendChild(option);
+      });
+
+      // 自動選取第一台車（如果有）
+      if(querySnapshot.docs.length > 0) {
+        vehicleSelect.value = querySnapshot.docs[0].id;
+        currentVehicleId = querySnapshot.docs[0].id;
+        calculateAvgFuel();
+      }
+    }
+
+    // 新增車輛
+    document.getElementById('btn-add-vehicle').addEventListener('click', async () => {
+      const name = prompt("請輸入車輛名稱 (例如：我的勁戰):");
+      if (name && name.trim() !== "") {
+        try {
+          const docRef = await addDoc(collection(db, "vehicles"), {
+            name: name,
+            userId: currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+          await loadVehicles();
+          vehicleSelect.value = docRef.id;
+          currentVehicleId = docRef.id;
+          alert("車輛新增成功！");
+        } catch (e) {
+          alert("新增失敗: " + e.message);
+        }
+      }
+    });
+
+    // 車輛選單改變時
+    vehicleSelect.addEventListener('change', (e) => {
+      currentVehicleId = e.target.value;
+      if(currentVehicleId) calculateAvgFuel();
+    });
+
+    // 儲存里程
+    document.getElementById('btn-save-mileage').addEventListener('click', async () => {
+      if (!currentVehicleId) return alert("請先選擇車輛！");
+      const start = Number(document.getElementById('odo-start').value);
+      const end = Number(document.getElementById('odo-end').value);
+      
+      if (!start || !end || end <= start) return alert("請輸入正確的里程區間！");
+
+      try {
+        await addDoc(collection(db, "mileage"), {
+          vehicleId: currentVehicleId,
+          userId: currentUser.uid,
+          startOdo: start,
+          endOdo: end,
+          distance: end - start, // 自動計算里程
+          timestamp: serverTimestamp() // 自動帶入輸入時間
+        });
+        alert(`已成功紀錄！本次行駛里程：${end - start} km`);
+        document.getElementById('odo-start').value = end; // 將迄點變為下次的起點
+        document.getElementById('odo-end').value = '';
+        calculateAvgFuel(); // 更新油耗
+      } catch (e) {
+        alert("儲存失敗: " + e.message);
+      }
+    });
+
+    // 儲存花費
+    document.getElementById('btn-save-expense').addEventListener('click', async () => {
+      if (!currentVehicleId) return alert("請先選擇車輛！");
+      const type = document.getElementById('expense-type').value;
+      const amount = Number(document.getElementById('expense-amount').value);
+      const volume = Number(document.getElementById('expense-volume').value);
+
+      if (!amount) return alert("請輸入金額！");
+      if (type === 'gas' && !volume) return alert("加油請輸入公升數以利計算油耗！");
+
+      try {
+        await addDoc(collection(db, "expenses"), {
+          vehicleId: currentVehicleId,
+          userId: currentUser.uid,
+          type: type,
+          amount: amount,
+          volume: type === 'gas' ? volume : 0,
+          timestamp: serverTimestamp() // 自動帶入時間
+        });
+        alert("花費紀錄成功！");
+        document.getElementById('expense-amount').value = '';
+        document.getElementById('expense-volume').value = '';
+        calculateAvgFuel(); // 更新油耗
+      } catch (e) {
+        alert("儲存失敗: " + e.message);
+      }
+    });
+
+    // 計算平均油耗 (總里程 / 總加油公升數)
+    async function calculateAvgFuel() {
+      if (!currentVehicleId) return;
+
+      // 取得該車輛總里程
+      const qMileage = query(collection(db, "mileage"), where("vehicleId", "==", currentVehicleId));
+      const mileageSnap = await getDocs(qMileage);
+      let totalDistance = 0;
+      mileageSnap.forEach(doc => totalDistance += doc.data().distance);
+
+      // 取得該車輛總加油量
+      const qGas = query(collection(db, "expenses"), where("vehicleId", "==", currentVehicleId), where("type", "==", "gas"));
+      const gasSnap = await getDocs(qGas);
+      let totalVolume = 0;
+      gasSnap.forEach(doc => totalVolume += doc.data().volume);
+
+      const avgText = document.getElementById('avg-fuel');
+      if (totalDistance > 0 && totalVolume > 0) {
+        const avg = (totalDistance / totalVolume).toFixed(2);
+        avgText.innerText = avg;
+      } else {
+        avgText.innerText = "--";
+      }
+    }
+  </script>
+</body>
+</html>
