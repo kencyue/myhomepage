@@ -423,12 +423,48 @@
       refreshData();
     };
 
-    async function calculateStats(trips) {
-      let d = 0; trips.filter(t => t.status === 'completed').forEach(t => d += (t.distance || 0));
+async function calculateStats(trips) {
+      // 1. 計算所有紀錄的「總里程」（面板顯示用）
+      let totalD = 0; 
+      const completedTrips = trips.filter(t => t.status === 'completed');
+      completedTrips.forEach(t => totalD += (t.distance || 0));
+      document.getElementById('total-dist').innerText = totalD;
+
+      // 2. 取得所有加油紀錄，並按時間排序（舊到新）
       const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid)));
-      let v = 0; eSnap.forEach(d => { if(d.data().type === 'gas') v += (d.data().volume || 0); });
-      document.getElementById('total-dist').innerText = d;
-      document.getElementById('avg-fuel').innerText = v > 0 ? (d / v).toFixed(1) : "--";
+      let gasRecords = [];
+      eSnap.forEach(d => { 
+        const data = d.data();
+        if(data.type === 'gas' && data.time) {
+          gasRecords.push({ volume: data.volume || 0, time: data.time.toDate() });
+        }
+      });
+      gasRecords.sort((a, b) => a.time - b.time);
+
+      // 3. 計算精準油耗（扣除第一次加油之前的數據）
+      if (gasRecords.length > 1) {
+        const firstGasTime = gasRecords[0].time;
+        
+        // 有效油量：排除第一次加油的油量，只加總後續所有的油量
+        let validV = 0;
+        for (let i = 1; i < gasRecords.length; i++) {
+          validV += gasRecords[i].volume;
+        }
+
+        // 有效里程：只加總發生在「第一次加油之後」的行程里程
+        let validD = 0;
+        completedTrips.forEach(t => {
+          if (t.endTime && t.endTime.toDate() > firstGasTime) {
+            validD += (t.distance || 0);
+          }
+        });
+
+        // 算出平均油耗
+        document.getElementById('avg-fuel').innerText = validV > 0 ? (validD / validV).toFixed(1) : "--";
+      } else {
+        // 如果加油次數不到 2 次，無法形成區間，顯示 --
+        document.getElementById('avg-fuel').innerText = "--";
+      }
     }
 
     window.loadHistory = async () => {
