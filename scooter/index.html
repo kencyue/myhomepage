@@ -279,60 +279,60 @@
       document.getElementById('other-loc-fields').style.display = id === 'other' ? 'flex' : 'none';
     };
 
-    function renderMileageUI() {
-      const container = document.getElementById('mileage-ui-container');
-      let defaultStartLocName = lastTripData && lastTripData.endLocName ? lastTripData.endLocName : userLocs[0].name;
-      let lastOdo = lastTripData ? lastTripData.endOdo : '';
+function renderMileageUI() {
+      const container = document.getElementById('mileage-ui-container');
+      let defaultStartLocName = lastTripData && lastTripData.endLocName ? lastTripData.endLocName : userLocs[0].name;
+      let lastOdo = lastTripData ? lastTripData.endOdo : '';
 
-      if (!ongoingTrip) {
-        container.innerHTML = `
-          <div class="space-y-3">
-            <div class="p-3 bg-blue-500/10 rounded-2xl flex justify-between items-center text-sm font-bold">
-               <span class="opacity-60">自動帶入起點</span>
-               <span class="text-blue-500">${defaultStartLocName}</span>
-            </div>
-            <p class="text-[10px] font-bold opacity-40 uppercase">出發儀表板里程</p>
-            <input type="number" id="odo-input" inputmode="numeric" value="${lastOdo}" class="input-style w-full p-4 rounded-2xl text-2xl font-black focus:border-blue-500">
-            <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-95 transition-all">🚩 紀錄出發</button>
-          </div>
-        `;
-        document.getElementById('btn-odo-action').onclick = () => startTrip(defaultStartLocName);
-      } else {
-        // 產生泡泡按鈕 HTML
-        let bubblesHTML = userLocs.map(l => `<button type="button" onclick="selectDestBubble('${l.id}')" id="bubble-${l.id}" class="dest-bubble px-4 py-2 bg-gray-500/10 rounded-xl text-sm font-bold whitespace-nowrap transition-colors">${l.name}</button>`).join('');
-        bubblesHTML += `<button type="button" onclick="selectDestBubble('other')" id="bubble-other" class="dest-bubble px-4 py-2 bg-gray-500/10 rounded-xl text-sm font-bold whitespace-nowrap transition-colors">📦 其他</button>`;
+      if (!ongoingTrip) {
+        container.innerHTML = `
+          <div class="space-y-3">
+            <div class="p-3 bg-blue-500/10 rounded-2xl flex justify-between items-center text-sm font-bold">
+               <span class="opacity-60">自動帶入起點</span>
+               <span class="text-blue-500">${defaultStartLocName}</span>
+            </div>
+            <p class="text-[10px] font-bold opacity-40 uppercase">出發儀表板里程</p>
+            <input type="number" id="odo-input" inputmode="numeric" value="${lastOdo}" class="input-style w-full p-4 rounded-2xl text-2xl font-black focus:border-blue-500">
+            <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-95 transition-all">🚩 紀錄出發</button>
+          </div>
+        `;
+        document.getElementById('btn-odo-action').onclick = () => startTrip(defaultStartLocName);
+      } else {
+        // 產生泡泡按鈕 HTML
+        let bubblesHTML = userLocs.map(l => `<button type="button" onclick="selectDestBubble('${l.id}')" id="bubble-${l.id}" class="dest-bubble px-4 py-2 bg-gray-500/10 rounded-xl text-sm font-bold whitespace-nowrap transition-colors">${l.name}</button>`).join('');
+        bubblesHTML += `<button type="button" onclick="selectDestBubble('other')" id="bubble-other" class="dest-bubble px-4 py-2 bg-gray-500/10 rounded-xl text-sm font-bold whitespace-nowrap transition-colors">📦 其他</button>`;
 
-        container.innerHTML = `
-          <div class="space-y-3">
-            <div class="bg-blue-500/10 p-3 rounded-2xl flex justify-between items-center text-[11px] font-bold">
-               <span class="text-blue-500">● 紀錄中：從 ${ongoingTrip.startLocName || '未知'} 出發</span>
-               <span>起點里程: ${ongoingTrip.startOdo}</span>
-            </div>
-            
-            <p class="text-[10px] font-bold opacity-40 uppercase mt-2">點擊選擇抵達地點</p>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-              ${bubblesHTML}
-            </div>
+        container.innerHTML = `
+          <div class="space-y-3">
+            <div class="bg-blue-500/10 p-3 rounded-2xl flex justify-between items-center text-[11px] font-bold">
+               <span class="text-blue-500">● 紀錄中：從 ${ongoingTrip.startLocName || '未知'} 出發</span>
+               <span>起點里程: ${ongoingTrip.startOdo}</span>
+            </div>
+            
+            <p class="text-[10px] font-bold opacity-40 uppercase mt-2">點擊選擇抵達地點</p>
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              ${bubblesHTML}
+            </div>
 
-            <div id="other-loc-fields" class="hidden flex flex-col gap-2 p-3 bg-gray-500/5 rounded-2xl mt-1">
-              <input type="text" id="other-name" placeholder="地點名稱 (必填)" class="input-style w-full p-2.5 rounded-xl text-sm font-bold">
-              <div class="flex gap-2">
-                <input type="number" id="other-lat" step="any" placeholder="緯度 (Lat)" class="input-style w-full p-2.5 rounded-xl text-sm">
-                <input type="number" id="other-lng" step="any" placeholder="經度 (Lng)" class="input-style w-full p-2.5 rounded-xl text-sm">
-              </div>
-            </div>
+            <div id="other-loc-fields" class="hidden flex flex-col gap-2 p-3 bg-gray-500/5 rounded-2xl mt-1">
+              <input type="text" id="other-name" placeholder="地點名稱 (必填)" class="input-style w-full p-2.5 rounded-xl text-sm font-bold">
+              <div class="flex gap-2">
+                <input type="number" id="other-lat" step="any" placeholder="緯度 (Lat)" class="input-style w-full p-2.5 rounded-xl text-sm">
+                <input type="number" id="other-lng" step="any" placeholder="經度 (Lng)" class="input-style w-full p-2.5 rounded-xl text-sm">
+              </div>
+            </div>
 
-            <p class="text-[10px] font-bold opacity-40 uppercase mt-2">抵達儀表板里程</p>
-            <input type="number" id="odo-input" inputmode="numeric" placeholder="例如：15230" class="input-style w-full p-4 rounded-2xl text-2xl font-black focus:border-emerald-500">
-            <button id="btn-odo-action" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold active:scale-95 transition-all">🏁 紀錄抵達</button>
-          </div>
-        `;
-        document.getElementById('btn-odo-action').onclick = endTrip;
-        
-        // 預設選取第一個地點
-        setTimeout(() => window.selectDestBubble(userLocs[0].id), 0);
-      }
-    }
+                        <p class="text-[10px] font-bold opacity-40 uppercase mt-2">抵達儀表板里程 (上次里程：${ongoingTrip.startOdo})</p>
+            <input type="number" id="odo-input" inputmode="numeric" class="input-style w-full p-4 rounded-2xl text-2xl font-black focus:border-emerald-500">
+            <button id="btn-odo-action" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold active:scale-95 transition-all">🏁 紀錄抵達</button>
+          </div>
+        `;
+        document.getElementById('btn-odo-action').onclick = endTrip;
+        
+        // 預設選取第一個地點
+        setTimeout(() => window.selectDestBubble(userLocs[0].id), 0);
+      }
+    }
 
     async function startTrip(inferredStartName) {
       const odo = Number(document.getElementById('odo-input').value);
