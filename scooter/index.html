@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車輛管家 V2.11 (泡泡選單與全編輯版)</title>
+  <title>車輛管家 V2.11 (泡泡選單與全編輯緊湊版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
   <script>
@@ -27,125 +27,125 @@
 
   <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen p-6 relative">
     <button class="btn-theme-toggle absolute top-6 right-6 text-2xl opacity-60 hover:opacity-100 transition-opacity">🌓</button>
-    <div class="custom-card p-10 rounded-3xl shadow-2xl w-full max-w-sm text-center">
-      <div class="text-6xl mb-4">📍</div>
-      <h1 class="text-3xl font-black mb-2 text-blue-500">車輛管家</h1>
-      <p class="opacity-50 mb-8 text-sm">地圖路徑與完整編輯系統</p>
-      <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl flex items-center justify-center transition-all active:scale-95">
+    <div class="custom-card p-8 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+      <div class="text-6xl mb-3">📍</div>
+      <h1 class="text-3xl font-black mb-1 text-blue-500">車輛管家</h1>
+      <p class="opacity-50 mb-6 text-sm">地圖路徑與完整編輯系統</p>
+      <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl flex items-center justify-center transition-all active:scale-95">
         Google 快速登入
       </button>
     </div>
   </div>
 
-  <div id="app-screen" class="hidden min-h-screen flex flex-col pb-24">
-    <header class="custom-card border-b sticky top-0 z-30 p-3 shadow-sm flex flex-col gap-2">
+  <div id="app-screen" class="hidden min-h-screen flex flex-col pb-20">
+    <header class="custom-card border-b sticky top-0 z-30 p-2 shadow-sm flex flex-col gap-1">
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-1 flex-1 min-w-0">
-          <select id="vehicle-select" class="font-bold text-lg bg-gray-500/10 border-none rounded-xl px-2 py-1.5 focus:ring-1 focus:ring-blue-400 truncate flex-1"></select>
-          <button id="btn-edit-vehicle" class="p-2 opacity-40 hover:opacity-100">✏️</button>
+          <select id="vehicle-select" class="font-bold text-base bg-gray-500/10 border-none rounded-xl px-2 py-1 focus:ring-1 focus:ring-blue-400 truncate flex-1"></select>
+          <button id="btn-edit-vehicle" class="p-1 opacity-40 hover:opacity-100">✏️</button>
         </div>
         <div class="flex items-center gap-1 ml-1">
-          <button onclick="openLocSettings()" class="text-xl opacity-60 hover:opacity-100 p-1" title="設定地點">⚙️</button>
-          <button class="btn-theme-toggle text-xl opacity-60 hover:opacity-100 p-1">🌓</button>
-          <button id="btn-add-vehicle" class="bg-blue-500/10 text-blue-500 font-bold text-xs px-3 py-2 rounded-xl">新增</button>
-          <button id="btn-logout" class="text-xs opacity-30 p-2">登出</button>
+          <button onclick="openLocSettings()" class="text-lg opacity-60 hover:opacity-100 p-1" title="設定地點">⚙️</button>
+          <button class="btn-theme-toggle text-lg opacity-60 hover:opacity-100 p-1">🌓</button>
+          <button id="btn-add-vehicle" class="bg-blue-500/10 text-blue-500 font-bold text-xs px-2 py-1.5 rounded-xl">新增</button>
+          <button id="btn-logout" class="text-xs opacity-30 p-1">登出</button>
         </div>
       </div>
     </header>
 
-    <main class="p-4 space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="custom-card p-4 rounded-3xl shadow-sm">
+    <main class="p-3 space-y-3">
+      <div class="grid grid-cols-2 gap-2">
+        <div class="custom-card p-3 rounded-2xl shadow-sm">
           <div class="text-[10px] font-bold text-blue-500 uppercase">平均油耗</div>
-          <div class="text-xl font-black mt-1"><span id="avg-fuel">--</span> <small class="text-[10px] opacity-40">km/L</small></div>
+          <div class="text-lg font-black"><span id="avg-fuel">--</span> <small class="text-[10px] opacity-40">km/L</small></div>
         </div>
-        <div class="custom-card p-4 rounded-3xl shadow-sm">
+        <div class="custom-card p-3 rounded-2xl shadow-sm">
           <div class="text-[10px] font-bold text-emerald-500 uppercase">總里程</div>
-          <div class="text-xl font-black mt-1"><span id="total-dist">0</span> <small class="text-[10px] opacity-40">km</small></div>
+          <div class="text-lg font-black"><span id="total-dist">0</span> <small class="text-[10px] opacity-40">km</small></div>
         </div>
       </div>
 
-      <div id="tab-record" class="tab-content block space-y-4">
-        <div class="custom-card p-5 rounded-3xl shadow-sm">
-          <h3 class="font-bold opacity-80 flex justify-between items-center mb-4 text-sm">
+      <div id="tab-record" class="tab-content block space-y-3">
+        <div class="custom-card p-4 rounded-2xl shadow-sm">
+          <h3 class="font-bold opacity-80 flex justify-between items-center mb-3 text-sm">
             <span>📍 地點與里程</span>
             <button onclick="refreshData()" class="text-[10px] font-bold text-blue-500">刷新</button>
           </h3>
           <div id="mileage-ui-container"></div>
         </div>
 
-        <div class="custom-card p-5 rounded-3xl shadow-sm">
-          <h3 class="font-bold opacity-80 mb-4 text-sm">💰 紀錄花費</h3>
-          <div class="flex flex-col gap-3">
+        <div class="custom-card p-4 rounded-2xl shadow-sm">
+          <h3 class="font-bold opacity-80 mb-3 text-sm">💰 紀錄花費</h3>
+          <div class="flex flex-col gap-2">
             <div class="flex gap-2">
-              <select id="exp-type" class="flex-1 p-4 input-style rounded-2xl font-bold">
+              <select id="exp-type" class="flex-1 p-2.5 input-style rounded-xl font-bold text-sm">
                 <option value="gas">⛽ 加油</option>
                 <option value="maintain">🔧 保養</option>
                 <option value="wash">🧼 洗車</option>
                 <option value="repair">🛠️ 維修</option>
                 <option value="other">📦 其他</option>
               </select>
-              <input type="number" id="exp-amount" inputmode="numeric" placeholder="金額" class="w-1/3 p-4 input-style rounded-2xl font-bold">
+              <input type="number" id="exp-amount" inputmode="numeric" placeholder="金額" class="w-1/3 p-2.5 input-style rounded-xl font-bold text-sm">
             </div>
             <div id="gas-extra-input">
-              <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="公升數" class="w-full p-4 bg-blue-500/10 text-blue-500 rounded-2xl border-none outline-none font-bold">
+              <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="公升數" class="w-full p-2.5 bg-blue-500/10 text-blue-500 rounded-xl border-none outline-none font-bold text-sm">
             </div>
-            <button id="btn-save-exp" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-95 transition-all">儲存花費</button>
+            <button id="btn-save-exp" class="w-full py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm active:scale-95 transition-all">儲存花費</button>
           </div>
         </div>
       </div>
 
       <div id="tab-history" class="tab-content hidden">
-        <div class="custom-card rounded-3xl shadow-sm overflow-hidden">
-          <div class="p-3 border-b border-gray-500/10 flex flex-wrap gap-2">
-            <button onclick="setHistoryFilter('all', this)" class="filter-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white">全部</button>
-            <button onclick="setHistoryFilter('trips', this)" class="filter-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-500/10 opacity-60">🛣️ 里程</button>
-            <button onclick="setHistoryFilter('gas', this)" class="filter-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-gray-500/10 opacity-60">⛽ 加油</button>
+        <div class="custom-card rounded-2xl shadow-sm overflow-hidden">
+          <div class="p-2 border-b border-gray-500/10 flex flex-wrap gap-1.5">
+            <button onclick="setHistoryFilter('all', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white">全部</button>
+            <button onclick="setHistoryFilter('trips', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">🛣️ 里程</button>
+            <button onclick="setHistoryFilter('gas', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">⛽ 加油</button>
           </div>
-          <div id="history-list" class="divide-y divide-gray-500/10 overflow-y-auto max-h-[55vh] no-scrollbar"></div>
+          <div id="history-list" class="divide-y divide-gray-500/10 overflow-y-auto max-h-[60vh] no-scrollbar"></div>
         </div>
       </div>
     </main>
 
-    <nav class="custom-card fixed bottom-0 left-0 right-0 border-t flex justify-around p-3 pb-8 z-20">
-      <button onclick="showTab('record')" id="nav-btn-record" class="flex flex-col items-center gap-1 text-blue-600 flex-1">
-        <span class="text-xl">📝</span><span class="text-[10px] font-bold">紀錄</span>
+    <nav class="custom-card fixed bottom-0 left-0 right-0 border-t flex justify-around p-2 pb-6 z-20">
+      <button onclick="showTab('record')" id="nav-btn-record" class="flex flex-col items-center gap-0.5 text-blue-600 flex-1">
+        <span class="text-lg">📝</span><span class="text-[10px] font-bold">紀錄</span>
       </button>
-      <button onclick="showTab('history')" id="nav-btn-history" class="flex flex-col items-center gap-1 opacity-30 flex-1">
-        <span class="text-xl">📊</span><span class="text-[10px] font-bold">歷史</span>
+      <button onclick="showTab('history')" id="nav-btn-history" class="flex flex-col items-center gap-0.5 opacity-30 flex-1">
+        <span class="text-lg">📊</span><span class="text-[10px] font-bold">歷史</span>
       </button>
     </nav>
   </div>
 
-  <div id="modal-loc" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="custom-card w-full max-w-md rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <h2 class="text-xl font-bold mb-4">📍 設定常用地點</h2>
-      <div id="loc-settings-list" class="space-y-4"></div>
-      <div class="flex gap-2 mt-6">
-        <button onclick="closeLocSettings()" class="flex-1 p-3 rounded-xl bg-gray-500/20 font-bold">取消</button>
-        <button onclick="saveLocSettings()" class="flex-1 p-3 rounded-xl bg-blue-600 text-white font-bold">儲存設定</button>
+  <div id="modal-loc" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 backdrop-blur-sm">
+    <div class="custom-card w-full max-w-md rounded-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-lg font-bold mb-3">📍 設定常用地點</h2>
+      <div id="loc-settings-list" class="space-y-2"></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="closeLocSettings()" class="flex-1 p-2.5 rounded-xl bg-gray-500/20 font-bold text-sm">取消</button>
+        <button onclick="saveLocSettings()" class="flex-1 p-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm">儲存設定</button>
       </div>
     </div>
   </div>
 
-  <div id="modal-edit" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="custom-card w-full max-w-md rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <h2 class="text-xl font-bold mb-4">✏️ 編輯紀錄</h2>
-      <div class="space-y-3">
+  <div id="modal-edit" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 backdrop-blur-sm">
+    <div class="custom-card w-full max-w-md rounded-2xl p-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-lg font-bold mb-3">✏️ 編輯紀錄</h2>
+      <div class="space-y-2">
         <div class="grid grid-cols-2 gap-2">
-          <div><label class="text-[10px] opacity-60 font-bold">出發地點</label><input type="text" id="edit-start-loc" class="input-style w-full p-2.5 rounded-xl text-sm font-bold"></div>
-          <div><label class="text-[10px] opacity-60 font-bold">抵達地點</label><input type="text" id="edit-end-loc" class="input-style w-full p-2.5 rounded-xl text-sm font-bold"></div>
+          <div><label class="text-[10px] opacity-60 font-bold mb-0.5 block">出發地點</label><input type="text" id="edit-start-loc" class="input-style w-full p-2 rounded-lg text-sm font-bold"></div>
+          <div><label class="text-[10px] opacity-60 font-bold mb-0.5 block">抵達地點</label><input type="text" id="edit-end-loc" class="input-style w-full p-2 rounded-lg text-sm font-bold"></div>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <div><label class="text-[10px] opacity-60 font-bold">起點里程</label><input type="number" id="edit-start-odo" class="input-style w-full p-2.5 rounded-xl text-sm font-bold"></div>
-          <div><label class="text-[10px] opacity-60 font-bold">抵達里程</label><input type="number" id="edit-end-odo" class="input-style w-full p-2.5 rounded-xl text-sm font-bold"></div>
+          <div><label class="text-[10px] opacity-60 font-bold mb-0.5 block">起點里程</label><input type="number" id="edit-start-odo" class="input-style w-full p-2 rounded-lg text-sm font-bold"></div>
+          <div><label class="text-[10px] opacity-60 font-bold mb-0.5 block">抵達里程</label><input type="number" id="edit-end-odo" class="input-style w-full p-2 rounded-lg text-sm font-bold"></div>
         </div>
-        <div><label class="text-[10px] opacity-60 font-bold">出發時間</label><input type="datetime-local" id="edit-start-time" class="input-style w-full p-2.5 rounded-xl text-sm font-bold"></div>
-        <div><label class="text-[10px] opacity-60 font-bold">抵達時間</label><input type="datetime-local" id="edit-end-time" class="input-style w-full p-2.5 rounded-xl text-sm font-bold"></div>
+        <div><label class="text-[10px] opacity-60 font-bold mb-0.5 block">出發時間</label><input type="datetime-local" id="edit-start-time" class="input-style w-full p-2 rounded-lg text-sm font-bold"></div>
+        <div><label class="text-[10px] opacity-60 font-bold mb-0.5 block">抵達時間</label><input type="datetime-local" id="edit-end-time" class="input-style w-full p-2 rounded-lg text-sm font-bold"></div>
       </div>
-      <div class="flex gap-2 mt-6">
-        <button onclick="document.getElementById('modal-edit').classList.add('hidden')" class="flex-1 p-3 rounded-xl bg-gray-500/20 font-bold">取消</button>
-        <button id="btn-save-edit" class="flex-1 p-3 rounded-xl bg-emerald-600 text-white font-bold">更新資料</button>
+      <div class="flex gap-2 mt-4">
+        <button onclick="document.getElementById('modal-edit').classList.add('hidden')" class="flex-1 p-2.5 rounded-xl bg-gray-500/20 font-bold text-sm">取消</button>
+        <button id="btn-save-edit" class="flex-1 p-2.5 rounded-xl bg-emerald-600 text-white font-bold text-sm">更新資料</button>
       </div>
     </div>
   </div>
@@ -246,7 +246,7 @@
 
     window.refreshData = async () => {
       const container = document.getElementById('mileage-ui-container');
-      if (!vid) { container.innerHTML = '<p class="text-center opacity-40 py-6 text-sm">請先新增車輛</p>'; return; }
+      if (!vid) { container.innerHTML = '<p class="text-center opacity-40 py-4 text-sm">請先新增車輛</p>'; return; }
       
       const q = query(collection(db, "trips"), where("vid", "==", vid));
       const snap = await getDocs(q);
@@ -263,7 +263,6 @@
       calculateStats(trips);
     };
 
-    // --- 新增：泡泡按鈕選擇邏輯 ---
     window.selectedDest = null;
     window.selectDestBubble = (id) => {
       window.selectedDest = id;
@@ -279,60 +278,57 @@
       document.getElementById('other-loc-fields').style.display = id === 'other' ? 'flex' : 'none';
     };
 
-function renderMileageUI() {
-      const container = document.getElementById('mileage-ui-container');
-      let defaultStartLocName = lastTripData && lastTripData.endLocName ? lastTripData.endLocName : userLocs[0].name;
-      let lastOdo = lastTripData ? lastTripData.endOdo : '';
+    function renderMileageUI() {
+      const container = document.getElementById('mileage-ui-container');
+      let defaultStartLocName = lastTripData && lastTripData.endLocName ? lastTripData.endLocName : userLocs[0].name;
+      let lastOdo = lastTripData ? lastTripData.endOdo : '';
 
-      if (!ongoingTrip) {
-        container.innerHTML = `
-          <div class="space-y-3">
-            <div class="p-3 bg-blue-500/10 rounded-2xl flex justify-between items-center text-sm font-bold">
-               <span class="opacity-60">自動帶入起點</span>
-               <span class="text-blue-500">${defaultStartLocName}</span>
-            </div>
-            <p class="text-[10px] font-bold opacity-40 uppercase">出發儀表板里程</p>
-            <input type="number" id="odo-input" inputmode="numeric" value="${lastOdo}" class="input-style w-full p-4 rounded-2xl text-2xl font-black focus:border-blue-500">
-            <button id="btn-odo-action" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-95 transition-all">🚩 紀錄出發</button>
-          </div>
-        `;
-        document.getElementById('btn-odo-action').onclick = () => startTrip(defaultStartLocName);
-      } else {
-        // 產生泡泡按鈕 HTML
-        let bubblesHTML = userLocs.map(l => `<button type="button" onclick="selectDestBubble('${l.id}')" id="bubble-${l.id}" class="dest-bubble px-4 py-2 bg-gray-500/10 rounded-xl text-sm font-bold whitespace-nowrap transition-colors">${l.name}</button>`).join('');
-        bubblesHTML += `<button type="button" onclick="selectDestBubble('other')" id="bubble-other" class="dest-bubble px-4 py-2 bg-gray-500/10 rounded-xl text-sm font-bold whitespace-nowrap transition-colors">📦 其他</button>`;
+      if (!ongoingTrip) {
+        container.innerHTML = `
+          <div class="space-y-2">
+            <div class="p-2.5 bg-blue-500/10 rounded-xl flex justify-between items-center text-xs font-bold">
+               <span class="opacity-60">自動帶入起點</span>
+               <span class="text-blue-500">${defaultStartLocName}</span>
+            </div>
+            <p class="text-[10px] font-bold opacity-40 uppercase mt-1">出發儀表板里程</p>
+            <input type="number" id="odo-input" inputmode="numeric" value="${lastOdo}" class="input-style w-full p-3 rounded-xl text-xl font-black focus:border-blue-500">
+            <button id="btn-odo-action" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm active:scale-95 transition-all">🚩 紀錄出發</button>
+          </div>
+        `;
+        document.getElementById('btn-odo-action').onclick = () => startTrip(defaultStartLocName);
+      } else {
+        let bubblesHTML = userLocs.map(l => `<button type="button" onclick="selectDestBubble('${l.id}')" id="bubble-${l.id}" class="dest-bubble px-3 py-1.5 bg-gray-500/10 rounded-lg text-xs font-bold whitespace-nowrap transition-colors">${l.name}</button>`).join('');
+        bubblesHTML += `<button type="button" onclick="selectDestBubble('other')" id="bubble-other" class="dest-bubble px-3 py-1.5 bg-gray-500/10 rounded-lg text-xs font-bold whitespace-nowrap transition-colors">📦 其他</button>`;
 
-        container.innerHTML = `
-          <div class="space-y-3">
-            <div class="bg-blue-500/10 p-3 rounded-2xl flex justify-between items-center text-[11px] font-bold">
-               <span class="text-blue-500">● 紀錄中：從 ${ongoingTrip.startLocName || '未知'} 出發</span>
-               <span>起點里程: ${ongoingTrip.startOdo}</span>
-            </div>
-            
-            <p class="text-[10px] font-bold opacity-40 uppercase mt-2">點擊選擇抵達地點</p>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-              ${bubblesHTML}
-            </div>
+        container.innerHTML = `
+          <div class="space-y-2">
+            <div class="bg-blue-500/10 p-2.5 rounded-xl flex justify-between items-center text-[11px] font-bold">
+               <span class="text-blue-500">● 從 ${ongoingTrip.startLocName || '未知'} 出發</span>
+               <span>起點里程: ${ongoingTrip.startOdo}</span>
+            </div>
+            
+            <p class="text-[10px] font-bold opacity-40 uppercase mt-2">點擊選擇抵達地點</p>
+            <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+              ${bubblesHTML}
+            </div>
 
-            <div id="other-loc-fields" class="hidden flex flex-col gap-2 p-3 bg-gray-500/5 rounded-2xl mt-1">
-              <input type="text" id="other-name" placeholder="地點名稱 (必填)" class="input-style w-full p-2.5 rounded-xl text-sm font-bold">
-              <div class="flex gap-2">
-                <input type="number" id="other-lat" step="any" placeholder="緯度 (Lat)" class="input-style w-full p-2.5 rounded-xl text-sm">
-                <input type="number" id="other-lng" step="any" placeholder="經度 (Lng)" class="input-style w-full p-2.5 rounded-xl text-sm">
-              </div>
-            </div>
+            <div id="other-loc-fields" class="hidden flex flex-col gap-2 p-2.5 bg-gray-500/5 rounded-xl mt-1">
+              <input type="text" id="other-name" placeholder="地點名稱 (必填)" class="input-style w-full p-2 rounded-lg text-xs font-bold">
+              <div class="flex gap-2">
+                <input type="number" id="other-lat" step="any" placeholder="緯度 (Lat)" class="input-style w-full p-2 rounded-lg text-xs">
+                <input type="number" id="other-lng" step="any" placeholder="經度 (Lng)" class="input-style w-full p-2 rounded-lg text-xs">
+              </div>
+            </div>
 
-                        <p class="text-[10px] font-bold opacity-40 uppercase mt-2">抵達儀表板里程 (上次里程：${ongoingTrip.startOdo})</p>
-            <input type="number" id="odo-input" inputmode="numeric" class="input-style w-full p-4 rounded-2xl text-2xl font-black focus:border-emerald-500">
-            <button id="btn-odo-action" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold active:scale-95 transition-all">🏁 紀錄抵達</button>
-          </div>
-        `;
-        document.getElementById('btn-odo-action').onclick = endTrip;
-        
-        // 預設選取第一個地點
-        setTimeout(() => window.selectDestBubble(userLocs[0].id), 0);
-      }
-    }
+            <p class="text-[10px] font-bold opacity-40 uppercase mt-2">抵達儀表板里程 (上次里程：${ongoingTrip.startOdo})</p>
+            <input type="number" id="odo-input" inputmode="numeric" class="input-style w-full p-3 rounded-xl text-xl font-black focus:border-emerald-500">
+            <button id="btn-odo-action" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm active:scale-95 transition-all">🏁 紀錄抵達</button>
+          </div>
+        `;
+        document.getElementById('btn-odo-action').onclick = endTrip;
+        setTimeout(() => window.selectDestBubble(userLocs[0].id), 0);
+      }
+    }
 
     async function startTrip(inferredStartName) {
       const odo = Number(document.getElementById('odo-input').value);
@@ -388,12 +384,12 @@ function renderMileageUI() {
     window.openLocSettings = () => {
       const list = document.getElementById('loc-settings-list');
       list.innerHTML = userLocs.map((l, i) => `
-        <div class="p-3 bg-gray-500/5 rounded-xl">
-          <label class="text-xs opacity-60 font-bold mb-1 block">地點 ${i+1}</label>
-          <input type="text" id="set-name-${i}" value="${l.name}" class="input-style w-full p-2 rounded-lg mb-2 text-sm font-bold">
-          <div class="flex gap-2">
-            <input type="number" id="set-lat-${i}" step="any" value="${l.lat}" placeholder="緯度" class="input-style w-full p-2 rounded-lg text-sm">
-            <input type="number" id="set-lng-${i}" step="any" value="${l.lng}" placeholder="經度" class="input-style w-full p-2 rounded-lg text-sm">
+        <div class="p-2.5 bg-gray-500/5 rounded-xl">
+          <label class="text-[10px] opacity-60 font-bold mb-1 block">地點 ${i+1}</label>
+          <input type="text" id="set-name-${i}" value="${l.name}" class="input-style w-full p-2 rounded-lg mb-1.5 text-xs font-bold">
+          <div class="flex gap-1.5">
+            <input type="number" id="set-lat-${i}" step="any" value="${l.lat}" placeholder="緯度" class="input-style w-full p-2 rounded-lg text-xs">
+            <input type="number" id="set-lng-${i}" step="any" value="${l.lng}" placeholder="經度" class="input-style w-full p-2 rounded-lg text-xs">
           </div>
         </div>
       `).join('');
@@ -463,7 +459,7 @@ function renderMileageUI() {
       if (currentFilter === 'trips') filtered = allHistoryItems.filter(i => i.db === 'trips');
       else if (currentFilter === 'gas') filtered = allHistoryItems.filter(i => i.db === 'expenses' && i.type === 'gas');
       
-      if (filtered.length === 0) { list.innerHTML = `<p class="text-center py-10 opacity-30 text-sm">無資料</p>`; return; }
+      if (filtered.length === 0) { list.innerHTML = `<p class="text-center py-6 opacity-30 text-xs">無資料</p>`; return; }
 
       list.innerHTML = filtered.map(i => {
         const d = i.date;
@@ -472,34 +468,34 @@ function renderMileageUI() {
         if (i.db === 'trips') {
           let mapLink = '';
           if(i.startLat && i.startLng && i.endLat && i.endLng) {
-            mapLink = `<a href="https://www.google.com/maps/dir/?api=1&origin=${i.startLat},${i.startLng}&destination=${i.endLat},${i.endLng}" target="_blank" class="text-blue-500 hover:underline bg-blue-500/10 px-2 py-0.5 rounded text-[10px] ml-1">🗺️ 導航</a>`;
+            mapLink = `<a href="https://www.google.com/maps/dir/?api=1&origin=${i.startLat},${i.startLng}&destination=${i.endLat},${i.endLng}" target="_blank" class="text-blue-500 hover:underline bg-blue-500/10 px-1.5 py-0.5 rounded text-[10px] ml-1">🗺️ 導航</a>`;
           }
 
-          return `<div class="p-4 flex justify-between items-center bg-gray-500/5">
+          return `<div class="p-3 flex justify-between items-center bg-gray-500/5">
             <div class="flex-1 pr-2">
-              <div class="text-[10px] opacity-40 font-bold mb-1">${timeStr}</div>
+              <div class="text-[10px] opacity-40 font-bold mb-0.5">${timeStr}</div>
               <div class="text-sm font-black flex flex-wrap items-center gap-1">
                 ${i.startLocName || '?'} <span class="opacity-30">➜</span> ${i.endLocName || '?'} ${mapLink}
               </div>
-              <div class="text-[10px] opacity-60 font-bold mt-1">
+              <div class="text-[10px] opacity-60 font-bold mt-0.5">
                 里程: ${i.distance||0} km (${i.startOdo}➜${i.endOdo}) 
                 ${i.durationMs ? `<span class="ml-2 text-blue-500">⏱️ ${formatDur(i.durationMs)}</span>` : ''}
               </div>
             </div>
             <div class="flex flex-col gap-1">
-              <button onclick="openEditTrip('${i.id}')" class="text-[10px] bg-blue-500/10 text-blue-500 px-3 py-1.5 rounded-lg">編輯</button>
-              <button onclick="deleteItem('trips', '${i.id}')" class="text-[10px] bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg">刪除</button>
+              <button onclick="openEditTrip('${i.id}')" class="text-[10px] bg-blue-500/10 text-blue-500 px-2.5 py-1 rounded-lg">編輯</button>
+              <button onclick="deleteItem('trips', '${i.id}')" class="text-[10px] bg-red-500/10 text-red-500 px-2.5 py-1 rounded-lg">刪除</button>
             </div>
           </div>`;
         } else {
           const tMap = { gas: '⛽ 加油', maintain: '🔧 保養', wash: '🧼 洗車', repair: '🛠️ 維修', other: '📦 其他' };
-          return `<div class="p-4 flex justify-between items-center">
+          return `<div class="p-3 flex justify-between items-center">
             <div>
-              <div class="text-[10px] opacity-40 font-bold">${timeStr} · ${tMap[i.type]}</div>
-              <div class="text-lg font-black text-emerald-500">$${i.amount}</div>
-              <div class="text-[10px] opacity-60 font-bold">${i.volume ? i.volume + ' L' : ''}</div>
+              <div class="text-[10px] opacity-40 font-bold mb-0.5">${timeStr} · ${tMap[i.type]}</div>
+              <div class="text-base font-black text-emerald-500">$${i.amount}</div>
+              <div class="text-[10px] opacity-60 font-bold mt-0.5">${i.volume ? i.volume + ' L' : ''}</div>
             </div>
-            <button onclick="deleteItem('expenses', '${i.id}')" class="text-[10px] bg-red-500/10 text-red-500 px-3 py-2 rounded-xl">刪除</button>
+            <button onclick="deleteItem('expenses', '${i.id}')" class="text-[10px] bg-red-500/10 text-red-500 px-3 py-1.5 rounded-xl">刪除</button>
           </div>`;
         }
       }).join('');
@@ -519,7 +515,6 @@ function renderMileageUI() {
       if(!trip) return;
       editingTripId = id;
       
-      // 填入地點與里程資訊
       document.getElementById('edit-start-loc').value = trip.startLocName || '';
       document.getElementById('edit-end-loc').value = trip.endLocName || '';
       document.getElementById('edit-start-odo').value = trip.startOdo || '';
@@ -544,7 +539,6 @@ function renderMileageUI() {
       if(!sOdo || !eOdo || eOdo < sOdo) return alert("里程設定不合理");
       if(!sTime || !eTime || eTime < sTime) return alert("時間設定不合理");
 
-      // 嘗試為新地點綁定經緯度 (如果有在常用地點裡)
       let newStartLat = trip.startLat, newStartLng = trip.startLng;
       let matchedStart = userLocs.find(l => l.name === sLoc);
       if(matchedStart) { newStartLat = matchedStart.lat; newStartLng = matchedStart.lng; }
