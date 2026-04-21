@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車輛管家 V2.11 (泡泡選單與全編輯緊湊版)</title>
+  <title>車輛管家 V2.11 (優化快取版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
   <script>
@@ -156,7 +156,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    // 引入了 onSnapshot
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCQW1T46x6GtcfK4xtQ3Z_O3uHyfCKUpd4",
@@ -176,6 +177,12 @@
     let user = null, vid = null, ongoingTrip = null;
     let lastTripData = null; 
     let allHistoryItems = [], currentFilter = 'all';
+
+    // 快取變數與監聽取消器
+    let cachedTrips = [];
+    let cachedExpenses = [];
+    let unsubscribeTrips = null;
+    let unsubscribeExpenses = null;
 
     let userLocs = [
       { id: 'loc1', name: '住家', lat: 24.976576, lng: 121.458305 },
@@ -216,7 +223,7 @@
       document.getElementById(`tab-${tabId}`).classList.remove('hidden');
       document.getElementById('nav-btn-record').style.opacity = tabId === 'record' ? '1' : '0.3';
       document.getElementById('nav-btn-history').style.opacity = tabId === 'history' ? '1' : '0.3';
-      if (tabId === 'history') loadHistory();
+      if (tabId === 'history') loadHistoryFromCache();
     };
 
     const expType = document.getElementById('exp-type');
@@ -230,7 +237,7 @@
       select.innerHTML = snap.empty ? '<option value="">(無車輛)</option>' : '';
       snap.forEach(d => select.innerHTML += `<option value="${d.id}">${d.data().name}</option>`);
       vid = select.value || null;
-      refreshData();
+      listenToVehicleData();
     }
 
     document.getElementById('btn-add-vehicle').onclick = async () => {
@@ -245,26 +252,53 @@
       if (name?.trim()) { await updateDoc(doc(db, "vehicles", vid), { name: name.trim() }); loadVehicles(); }
     };
 
-    document.getElementById('vehicle-select').onchange = (e) => { vid = e.target.value; refreshData(); };
+    document.getElementById('vehicle-select').onchange = (e) => { 
+      vid = e.target.value; 
+      listenToVehicleData(); 
+    };
 
-    window.refreshData = async () => {
+    // --- 資料監聽核心邏輯 ---
+    function listenToVehicleData() {
       const container = document.getElementById('mileage-ui-container');
       if (!vid) { container.innerHTML = '<p class="text-center opacity-40 py-4 text-sm">請先新增車輛</p>'; return; }
-      
-      const q = query(collection(db, "trips"), where("vid", "==", vid));
-      const snap = await getDocs(q);
-      let trips = [];
-      snap.forEach(d => trips.push({ id: d.id, ...d.data() }));
-      
-      ongoingTrip = trips.find(t => t.status === 'ongoing') || null;
-      
-      let completed = trips.filter(t => t.status === 'completed');
+
+      if (unsubscribeTrips) unsubscribeTrips();
+      if (unsubscribeExpenses) unsubscribeExpenses();
+
+      // 監聽 Trips
+      const qTrips = query(collection(db, "trips"), where("vid", "==", vid));
+      unsubscribeTrips = onSnapshot(qTrips, (snap) => {
+        cachedTrips = [];
+        snap.forEach(d => cachedTrips.push({ id: d.id, ...d.data() }));
+        processCachedData();
+      });
+
+      // 監聽 Expenses
+      const qExp = query(collection(db, "expenses"), where("vid", "==", vid));
+      unsubscribeExpenses = onSnapshot(qExp, (snap) => {
+        cachedExpenses = [];
+        snap.forEach(d => cachedExpenses.push({ id: d.id, ...d.data() }));
+        processCachedData();
+      });
+    }
+
+    // 保留 refreshData 提供手動刷新按鈕使用 (對應到新的快取處理)
+    window.refreshData = () => { if(vid) processCachedData(); };
+
+    function processCachedData() {
+      if (!vid) return;
+      ongoingTrip = cachedTrips.find(t => t.status === 'ongoing') || null;
+      let completed = cachedTrips.filter(t => t.status === 'completed');
       completed.sort((a,b) => b.endTime?.toDate() - a.endTime?.toDate()); 
       lastTripData = completed.length > 0 ? completed[0] : null;
 
       renderMileageUI();
-      calculateStats(trips);
-    };
+      calculateStatsFromCache();
+
+      if(!document.getElementById('tab-history').classList.contains('hidden')){
+         loadHistoryFromCache();
+      }
+    }
 
     window.selectedDest = null;
     window.selectDestBubble = (id) => {
@@ -349,7 +383,7 @@
         status: "ongoing", 
         startTime: serverTimestamp() 
       });
-      refreshData();
+      // 移除手動 refreshData()，onSnapshot 會自動處理
     }
 
     async function endTrip() {
@@ -381,7 +415,7 @@
         status: "completed", 
         endTime: serverTimestamp() 
       });
-      refreshData();
+      // 移除手動 refreshData()
     }
 
     window.openLocSettings = () => {
@@ -413,7 +447,8 @@
       await setDoc(doc(db, "user_settings", user.uid), { locations: newLocs }, { merge: true });
       closeLocSettings();
       alert("地點已更新");
-      refreshData();
+      // settings 更新不影響 firebase trip/expense 監聽，保留手動重整介面
+      processCachedData();
     };
 
     document.getElementById('btn-save-exp').onclick = async () => {
@@ -423,23 +458,21 @@
       if (!vid || !amount) return alert("請輸入金額");
       await addDoc(collection(db, "expenses"), { vid, userId: user.uid, type, amount, volume, time: serverTimestamp() });
       document.getElementById('exp-amount').value = ''; document.getElementById('exp-volume').value = '';
-      refreshData();
+      // 移除手動 refreshData()
     };
 
-async function calculateStats(trips) {
+    function calculateStatsFromCache() {
       // 1. 計算所有紀錄的「總里程」（面板顯示用）
       let totalD = 0; 
-      const completedTrips = trips.filter(t => t.status === 'completed');
+      const completedTrips = cachedTrips.filter(t => t.status === 'completed');
       completedTrips.forEach(t => totalD += (t.distance || 0));
       document.getElementById('total-dist').innerText = totalD;
 
-      // 2. 取得所有加油紀錄，並按時間排序（舊到新）
-      const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid)));
+      // 2. 從快取取得所有加油紀錄，並按時間排序（舊到新）
       let gasRecords = [];
-      eSnap.forEach(d => { 
-        const data = d.data();
-        if(data.type === 'gas' && data.time) {
-          gasRecords.push({ volume: data.volume || 0, time: data.time.toDate() });
+      cachedExpenses.forEach(d => { 
+        if(d.type === 'gas' && d.time) {
+          gasRecords.push({ volume: d.volume || 0, time: d.time.toDate() });
         }
       });
       gasRecords.sort((a, b) => a.time - b.time);
@@ -448,13 +481,11 @@ async function calculateStats(trips) {
       if (gasRecords.length > 1) {
         const firstGasTime = gasRecords[0].time;
         
-        // 有效油量：排除第一次加油的油量，只加總後續所有的油量
         let validV = 0;
         for (let i = 1; i < gasRecords.length; i++) {
           validV += gasRecords[i].volume;
         }
 
-        // 有效里程：只加總發生在「第一次加油之後」的行程里程
         let validD = 0;
         completedTrips.forEach(t => {
           if (t.endTime && t.endTime.toDate() > firstGasTime) {
@@ -462,24 +493,25 @@ async function calculateStats(trips) {
           }
         });
 
-        // 算出平均油耗
         document.getElementById('avg-fuel').innerText = validV > 0 ? (validD / validV).toFixed(1) : "--";
       } else {
-        // 如果加油次數不到 2 次，無法形成區間，顯示 --
         document.getElementById('avg-fuel').innerText = "--";
       }
     }
 
-    window.loadHistory = async () => {
+    // 歷史紀錄改由快取讀取
+    window.loadHistory = () => { loadHistoryFromCache(); };
+
+    function loadHistoryFromCache() {
       if (!vid) return;
-      const tSnap = await getDocs(query(collection(db, "trips"), where("vid", "==", vid)));
-      const eSnap = await getDocs(query(collection(db, "expenses"), where("vid", "==", vid)));
       allHistoryItems = [];
-      tSnap.forEach(d => allHistoryItems.push({ id: d.id, db: 'trips', ...d.data(), date: d.data().endTime?.toDate() || d.data().startTime?.toDate() || new Date() }));
-      eSnap.forEach(d => allHistoryItems.push({ id: d.id, db: 'expenses', ...d.data(), date: d.data().time?.toDate() || new Date() }));
+      
+      cachedTrips.forEach(d => allHistoryItems.push({ db: 'trips', ...d, date: d.endTime?.toDate() || d.startTime?.toDate() || new Date() }));
+      cachedExpenses.forEach(d => allHistoryItems.push({ db: 'expenses', ...d, date: d.time?.toDate() || new Date() }));
+      
       allHistoryItems.sort((a, b) => b.date - a.date);
       renderHistoryList();
-    };
+    }
 
     window.setHistoryFilter = (f, btn) => {
       currentFilter = f;
@@ -540,7 +572,12 @@ async function calculateStats(trips) {
       }).join('');
     }
 
-    window.deleteItem = async (col, id) => { if (confirm("確定刪除？")) { await deleteDoc(doc(db, col, id)); loadHistory(); refreshData(); } };
+    window.deleteItem = async (col, id) => { 
+      if (confirm("確定刪除？")) { 
+        await deleteDoc(doc(db, col, id)); 
+        // 移除手動重整，onSnapshot 會自動更新畫面
+      } 
+    };
 
     const toDateTimeLocal = (dateObj) => {
       if(!dateObj) return '';
@@ -605,8 +642,7 @@ async function calculateStats(trips) {
 
       document.getElementById('modal-edit').classList.add('hidden');
       alert("更新成功");
-      loadHistory();
-      refreshData();
+      // 移除手動 loadHistory 與 refreshData，由 onSnapshot 接手
     };
 
   </script>
