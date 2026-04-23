@@ -58,7 +58,7 @@
         <div class="custom-card p-3 rounded-2xl shadow-sm">
           <div class="flex items-center gap-1 text-[10px] font-bold text-blue-500 uppercase">
             平均油耗
-            <button onclick="alert('【油耗計算說明】\n為求準確，系統會自動「排除第一次加油的油量與之前的里程」。\n\n※ 需要至少有兩次加油紀錄才會開始顯示平均油耗喔！')" class="opacity-50 hover:opacity-100 flex items-center justify-center w-3.5 h-3.5 rounded-full border border-blue-500 text-[9px] leading-none focus:outline-none">?</button>
+           <button onclick="alert('【油耗計算說明】\n為求準確，系統只會計算「第一次加油」到「最後一次加油」之間的里程與油量。\n\n※ 最新加油之後所跑的里程，將會在您「下一次加油」時才一併結算計算喔！\n\n(最少需要兩次加油紀錄才會顯示)')" class="opacity-50 hover:opacity-100 flex items-center justify-center w-3.5 h-3.5 rounded-full border border-blue-500 text-[9px] leading-none focus:outline-none">?</button>
           </div>
           <div class="text-lg font-black mt-0.5"><span id="avg-fuel">--</span> <small class="text-[10px] opacity-40">km/L</small></div>
         </div>
@@ -477,9 +477,10 @@
       });
       gasRecords.sort((a, b) => a.time - b.time);
 
-      // 3. 計算精準油耗（扣除第一次加油之前的數據）
+      // 3. 計算精準油耗（只計算第一次加油到最後一次加油之間的區間）
       if (gasRecords.length > 1) {
         const firstGasTime = gasRecords[0].time;
+        const latestGasTime = gasRecords[gasRecords.length - 1].time; // 取得最後一次加油的時間
         
         let validV = 0;
         for (let i = 1; i < gasRecords.length; i++) {
@@ -488,8 +489,12 @@
 
         let validD = 0;
         completedTrips.forEach(t => {
-          if (t.endTime && t.endTime.toDate() > firstGasTime) {
-            validD += (t.distance || 0);
+          // 核心修正：行程結束時間必須介於「第一次加油之後」與「最後一次加油之前(含)」
+          if (t.endTime) {
+            const tripTime = t.endTime.toDate();
+            if (tripTime > firstGasTime && tripTime <= latestGasTime) {
+              validD += (t.distance || 0);
+            }
           }
         });
 
