@@ -129,7 +129,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      max-height: 80px;
+      max-height: 90px;
       overflow-y: auto;
       padding: 6px;
       border: 1px solid #e2e8f0;
@@ -274,14 +274,17 @@
       <label for="slave">裝置位址 (Slave ID) <span class="tooltip" data-tooltip="slave">?</span></label>
       <input id="slave" type="number" min="1" max="247" value="1">
     </div>
-    <div>
-      <label>起始位址 <span class="tooltip" data-tooltip="reg">?</span></label>
-      <div id="reg" class="button-group"></div>
-    </div>
+    
     <div>
       <label>功能碼 (Function Code) <span class="tooltip" data-tooltip="fc">?</span></label>
       <div id="fc" class="button-group fc-group"></div>
     </div>
+
+    <div>
+      <label>起始位址 <span class="tooltip" data-tooltip="reg">?</span></label>
+      <div id="reg" class="button-group"></div>
+    </div>
+    
     <div id="valueBlock">
       <label for="value">寫入數值 <span class="tooltip" data-tooltip="value">?</span></label>
       <input id="value" type="text" placeholder="例如 0x01 或 1">
@@ -329,8 +332,8 @@
 <script>
 const tooltipDescriptions = {
   slave: '輸入 Modbus 從站地址，範圍為 1 到 247，用於識別目標設備。',
-  reg: '選擇要操作的寄存器起始位址。',
   fc: '選擇功能碼：03 讀取保持暫存器，06 寫入單暫存器，10 寫入複數暫存器。',
+  reg: '根據選擇的功能碼，顯示可用的寄存器起始位址。',
   value: '輸入要寫入的數值，可使用十進位（如 1）或十六進位（如 0x01）。',
   qty: '輸入連續讀取或寫入的寄存器數量。'
 };
@@ -391,6 +394,9 @@ const outHex = document.getElementById('output');
 const outMonitor = document.getElementById('monitorOutput');
 const toast = document.getElementById('toast');
 
+let selectedFc = '03'; // 預設功能碼
+let selectedReg = '0001';
+
 function crc16(buf) {
   let crc = 0xFFFF;
   for (const b of buf) {
@@ -405,73 +411,68 @@ function crc16(buf) {
 }
 const hex = (n, len = 2) => n.toString(16).toUpperCase().padStart(len, '0');
 
-let selectedReg = '0001';
-function populateRegButtons() {
-  regGroup.innerHTML = '';
-  for (const addr in registers) {
-    const btn = document.createElement('button');
-    btn.textContent = `0x${addr.toUpperCase()} ${registers[addr].name}`;
-    btn.dataset.value = addr;
-    btn.className = addr === selectedReg ? 'selected' : '';
-    btn.addEventListener('click', () => {
-      selectedReg = addr;
-      document.querySelectorAll('#reg button').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      populateFcButtons();
-      updateValueUI();
-    });
-    regGroup.appendChild(btn);
-  }
-}
-
-let selectedFc = '03';
-function populateFcButtons() {
-  const info = registers[selectedReg];
+/* ───── 初始化功能碼按鈕 ───── */
+function initFcButtons() {
+  const fcs = [
+    { code: '03', label: '03 讀取保持暫存器' },
+    { code: '06', label: '06 寫入單暫存器' },
+    { code: '10', label: '10 寫入複數暫存器' }
+  ];
   fcGroup.innerHTML = '';
-  
-  if (info.access.includes('R')) {
+  fcs.forEach(fc => {
     const btn = document.createElement('button');
-    btn.textContent = '03 讀取保持暫存器';
-    btn.dataset.value = '03';
-    btn.className = selectedFc === '03' ? 'selected' : '';
+    btn.textContent = fc.label;
+    btn.dataset.value = fc.code;
+    btn.className = fc.code === selectedFc ? 'selected' : '';
     btn.addEventListener('click', () => {
-      selectedFc = '03';
+      selectedFc = fc.code;
       document.querySelectorAll('#fc button').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+      // 當功能碼改變時，過濾並重繪可用的寄存器清單
+      populateRegButtons();
       updateValueUI();
     });
     fcGroup.appendChild(btn);
-  }
-  
-  if (info.access.includes('W')) {
-    const btn06 = document.createElement('button');
-    btn06.textContent = '06 寫入單暫存器';
-    btn06.dataset.value = '06';
-    btn06.className = selectedFc === '06' ? 'selected' : '';
-    btn06.addEventListener('click', () => {
-      selectedFc = '06';
-      document.querySelectorAll('#fc button').forEach(b => b.classList.remove('selected'));
-      btn06.classList.add('selected');
-      updateValueUI();
-    });
-    fcGroup.appendChild(btn06);
+  });
+}
 
-    const btn10 = document.createElement('button');
-    btn10.textContent = '10 寫入複數暫存器';
-    btn10.dataset.value = '10';
-    btn10.className = selectedFc === '10' ? 'selected' : '';
-    btn10.addEventListener('click', () => {
-      selectedFc = '10';
-      document.querySelectorAll('#fc button').forEach(b => b.classList.remove('selected'));
-      btn10.classList.add('selected');
-      updateValueUI();
-    });
-    fcGroup.appendChild(btn10);
+/* ───── 根據當前功能碼，過濾並產生寄存器按鈕 ───── */
+function populateRegButtons() {
+  regGroup.innerHTML = '';
+  let firstAvailableReg = null;
+  let isCurrentRegValid = false;
+
+  for (const addr in registers) {
+    const info = registers[addr];
+    const isReadMode = selectedFc === '03';
+    const isWriteMode = selectedFc === '06' || selectedFc === '10';
+
+    // 檢查寄存器權限是否符合當前功能碼
+    if ((isReadMode && info.access.includes('R')) || (isWriteMode && info.access.includes('W'))) {
+      if (!firstAvailableReg) firstAvailableReg = addr;
+      if (addr === selectedReg) isCurrentRegValid = true;
+
+      const btn = document.createElement('button');
+      btn.textContent = `0x${addr.toUpperCase()} ${info.name}`;
+      btn.dataset.value = addr;
+      btn.className = addr === selectedReg ? 'selected' : '';
+      btn.addEventListener('click', () => {
+        selectedReg = addr;
+        document.querySelectorAll('#reg button').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        updateValueUI();
+      });
+      regGroup.appendChild(btn);
+    }
   }
-  
-  if (!Array.from(fcGroup.children).some(b => b.dataset.value === selectedFc)) {
-    selectedFc = fcGroup.children[0].dataset.value;
-    fcGroup.children[0].classList.add('selected');
+
+  // 如果原本選中的寄存器在切換功能碼後不支援 (例如從 03 切換到 06，原本選的 000D 唯讀就不見了)
+  // 自動將選項移至第一個可用的寄存器
+  if (!isCurrentRegValid && firstAvailableReg) {
+    selectedReg = firstAvailableReg;
+    if(regGroup.children.length > 0) {
+      regGroup.children[0].classList.add('selected');
+    }
   }
 }
 
@@ -549,7 +550,7 @@ function updateValueUI() {
   quantityBlock.classList.add('hidden');
   multiValueBlock.classList.add('hidden');
 
-  if (info.sub) {
+  if (info && info.sub) {
     subBlock.classList.remove('hidden');
     enumBlock.classList.add('hidden');
     valueBlock.classList.add('hidden');
@@ -559,7 +560,7 @@ function updateValueUI() {
   }
   subBlock.classList.add('hidden');
 
-  if (info.enums) {
+  if (info && info.enums) {
     enumBlock.classList.remove('hidden');
     valueBlock.classList.add('hidden');
     buildEnumButtons(info.enums);
@@ -568,7 +569,7 @@ function updateValueUI() {
   }
   enumBlock.classList.add('hidden');
   valueBlock.classList.remove('hidden');
-  if (info.range) {
+  if (info && info.range) {
     valueInput.type = 'number';
     valueInput.min = info.range[0];
     valueInput.max = info.range[1];
@@ -659,7 +660,7 @@ function generate() {
       frame.push(v >> 8, v & 0xFF);
     });
   } else {
-    if (info.sub) {
+    if (info && info.sub) {
       let high = 0, low = 0;
       subBlock.querySelectorAll('input').forEach(inp => {
         let v = inp.value !== '' ? parseInt(inp.value) : NaN;
@@ -669,7 +670,7 @@ function generate() {
         else low = v;
       });
       val = (high << 8) | low;
-    } else if (info.enums) {
+    } else if (info && info.enums) {
       val = parseInt(selectedEnum);
     } else {
       let raw = valueInput.value.trim();
@@ -786,8 +787,9 @@ document.getElementById('qty').addEventListener('input', (e) => {
   }
 });
 
+// 啟動程序
+initFcButtons();
 populateRegButtons();
-populateFcButtons();
 updateValueUI();
 </script>
 </body>
