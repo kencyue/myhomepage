@@ -250,6 +250,44 @@
       gap: 0.25rem;
     }
 
+    /* ⚠️ 警告提示的 CSS */
+    .warning-box {
+      background-color: #fef2f2;
+      border: 1px solid #f87171;
+      color: #b91c1c;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .warning-box svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+    }
+
+    input.readonly-alert {
+      background-color: #fef2f2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    input.readonly-alert:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+      background-color: #ffffff;
+    }
+
+    .label-danger {
+      color: #b91c1c !important;
+    }
+
     @media (min-width: 640px) {
       h1 { font-size: 1.6rem; }
       .card { padding: 20px; }
@@ -297,6 +335,7 @@
     
     <div id="multiValueBlock" class="hidden">
       <label>連續寫入內容提示：</label>
+      <div id="warningMessage" class="warning-box hidden"></div>
       <div id="multiValueContainer" class="multi-value-container"></div>
     </div>
 
@@ -388,13 +427,14 @@ const quantityBlock = document.getElementById('quantityBlock');
 const qtyLabelText = document.getElementById('qtyLabelText');
 const multiValueBlock = document.getElementById('multiValueBlock');
 const multiValueContainer = document.getElementById('multiValueContainer');
+const warningMessage = document.getElementById('warningMessage');
 const valueInput = document.getElementById('value');
 const qtyInput = document.getElementById('qty');
 const outHex = document.getElementById('output');
 const outMonitor = document.getElementById('monitorOutput');
 const toast = document.getElementById('toast');
 
-let selectedFc = '03'; // 預設功能碼
+let selectedFc = '03';
 let selectedReg = '0001';
 
 function crc16(buf) {
@@ -411,7 +451,6 @@ function crc16(buf) {
 }
 const hex = (n, len = 2) => n.toString(16).toUpperCase().padStart(len, '0');
 
-/* ───── 初始化功能碼按鈕 ───── */
 function initFcButtons() {
   const fcs = [
     { code: '03', label: '03 讀取保持暫存器' },
@@ -428,7 +467,6 @@ function initFcButtons() {
       selectedFc = fc.code;
       document.querySelectorAll('#fc button').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-      // 當功能碼改變時，過濾並重繪可用的寄存器清單
       populateRegButtons();
       updateValueUI();
     });
@@ -436,7 +474,6 @@ function initFcButtons() {
   });
 }
 
-/* ───── 根據當前功能碼，過濾並產生寄存器按鈕 ───── */
 function populateRegButtons() {
   regGroup.innerHTML = '';
   let firstAvailableReg = null;
@@ -447,7 +484,6 @@ function populateRegButtons() {
     const isReadMode = selectedFc === '03';
     const isWriteMode = selectedFc === '06' || selectedFc === '10';
 
-    // 檢查寄存器權限是否符合當前功能碼
     if ((isReadMode && info.access.includes('R')) || (isWriteMode && info.access.includes('W'))) {
       if (!firstAvailableReg) firstAvailableReg = addr;
       if (addr === selectedReg) isCurrentRegValid = true;
@@ -466,8 +502,6 @@ function populateRegButtons() {
     }
   }
 
-  // 如果原本選中的寄存器在切換功能碼後不支援 (例如從 03 切換到 06，原本選的 000D 唯讀就不見了)
-  // 自動將選項移至第一個可用的寄存器
   if (!isCurrentRegValid && firstAvailableReg) {
     selectedReg = firstAvailableReg;
     if(regGroup.children.length > 0) {
@@ -482,6 +516,8 @@ function renderMultiValues() {
   multiValueContainer.innerHTML = '';
   
   const baseReg = parseInt(selectedReg, 16);
+  let readOnlyList = [];
+  let undefinedList = [];
   
   for (let i = 0; i < qty; i++) {
     const currentRegHex = hex(baseReg + i, 4);
@@ -489,13 +525,22 @@ function renderMultiValues() {
     
     const wrap = document.createElement('div');
     const label = document.createElement('label');
+    const inp = document.createElement('input');
     
     let labelText = `暫存器 0x${currentRegHex}`;
     let placeholderText = '例如 0x01 或 1';
     
     if (regInfo) {
       labelText += ` - ${regInfo.name}`;
-      if (regInfo.enums) {
+      
+      // 檢查是否為唯讀
+      if (regInfo.access === 'R') {
+        readOnlyList.push(`0x${currentRegHex}`);
+        labelText += ` ⚠️(唯讀)`;
+        label.classList.add('label-danger');
+        inp.classList.add('readonly-alert');
+        placeholderText = '唯讀，建議填 0';
+      } else if (regInfo.enums) {
         const enumHints = Object.keys(regInfo.enums)
           .map(k => `${k}=${regInfo.enums[k]}`)
           .join(', ');
@@ -504,12 +549,15 @@ function renderMultiValues() {
         placeholderText = `範圍: ${regInfo.range[0]} ~ ${regInfo.range[1]}`;
       }
     } else {
-      labelText += ` (未定義)`;
+      // 檢查是否為未定義
+      labelText += ` ⚠️(未定義)`;
+      undefinedList.push(`0x${currentRegHex}`);
+      label.classList.add('label-danger');
+      inp.classList.add('readonly-alert');
+      placeholderText = '未定義，建議填 0';
     }
     
     label.textContent = labelText;
-    
-    const inp = document.createElement('input');
     inp.type = 'text';
     inp.placeholder = placeholderText;
     inp.value = currentValues[i] || '';
@@ -517,6 +565,28 @@ function renderMultiValues() {
     
     wrap.append(label, inp);
     multiValueContainer.append(wrap);
+  }
+
+  // 渲染警告提示
+  let warnings = [];
+  if (readOnlyList.length > 0) warnings.push(`唯讀暫存器 (${readOnlyList.join(', ')})`);
+  if (undefinedList.length > 0) warnings.push(`未定義暫存器 (${undefinedList.join(', ')})`);
+
+  if (warnings.length > 0) {
+    warningMessage.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+      <div>
+        <strong>注意：</strong>連續寫入範圍內包含 ${warnings.join(' 及 ')}。<br>
+        寫入這些區段可能會被設備忽略或導致回傳錯誤 (02 寄存器地址不良)，建議將對應欄位填 0 進行測試。
+      </div>
+    `;
+    warningMessage.classList.remove('hidden');
+  } else {
+    warningMessage.classList.add('hidden');
   }
 }
 
