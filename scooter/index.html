@@ -91,7 +91,10 @@
               <input type="number" id="exp-amount" inputmode="numeric" placeholder="金額" class="w-1/3 p-2.5 input-style rounded-xl font-bold text-sm">
             </div>
             <div id="gas-extra-input">
-              <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="公升數" class="w-full p-2.5 bg-blue-500/10 text-blue-500 rounded-xl border-none outline-none font-bold text-sm">
+              <div class="flex gap-2">
+                <input type="number" id="exp-volume" step="0.01" inputmode="decimal" placeholder="公升數" class="w-1/2 p-2.5 bg-blue-500/10 text-blue-500 rounded-xl border-none outline-none font-bold text-sm">
+                <input type="number" id="exp-odo" inputmode="numeric" placeholder="當前里程 (必填)" class="w-1/2 p-2.5 bg-emerald-500/10 text-emerald-600 rounded-xl border-none outline-none font-bold text-sm">
+              </div>
             </div>
             <button id="btn-save-exp" class="w-full py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm active:scale-95 transition-all">儲存花費</button>
           </div>
@@ -453,12 +456,32 @@
 
     document.getElementById('btn-save-exp').onclick = async () => {
       const amount = Number(document.getElementById('exp-amount').value);
-      const volume = Number(document.getElementById('exp-volume').value || 0);
       const type = expType.value;
+      let volume = 0;
+      let odo = null;
+
+      // 若為加油，抓取並驗證新欄位
+      if (type === 'gas') {
+        volume = Number(document.getElementById('exp-volume').value || 0);
+        odo = Number(document.getElementById('exp-odo').value);
+        if (!odo) return alert("請輸入加油當下的儀表板里程數！");
+      }
+
       if (!vid || !amount) return alert("請輸入金額");
-      await addDoc(collection(db, "expenses"), { vid, userId: user.uid, type, amount, volume, time: serverTimestamp() });
-      document.getElementById('exp-amount').value = ''; document.getElementById('exp-volume').value = '';
-      // 移除手動 refreshData()
+
+      // 準備要送出的資料，分離一般花費與加油花費的結構
+      const expenseData = { vid, userId: user.uid, type, amount, time: serverTimestamp() };
+      if (type === 'gas') {
+        expenseData.volume = volume;
+        expenseData.odo = odo;
+      }
+
+      await addDoc(collection(db, "expenses"), expenseData);
+      
+      // 清空輸入框
+      document.getElementById('exp-amount').value = ''; 
+      document.getElementById('exp-volume').value = '';
+      if(type === 'gas') document.getElementById('exp-odo').value = '';
     };
 
     function calculateStatsFromCache() {
@@ -565,11 +588,16 @@
           </div>`;
         } else {
           const tMap = { gas: '⛽ 加油', maintain: '🔧 保養', wash: '🧼 洗車', repair: '🛠️ 維修', other: '📦 其他' };
+          // 判斷是否為加油且有紀錄里程（相容舊資料）
+          const odoText = (i.type === 'gas' && i.odo) ? `<span class="ml-2 text-emerald-500">里程: ${i.odo}</span>` : '';
+          
           return `<div class="p-3 flex justify-between items-center">
             <div>
               <div class="text-[10px] opacity-40 font-bold mb-0.5">${timeStr} · ${tMap[i.type]}</div>
               <div class="text-base font-black text-emerald-500">$${i.amount}</div>
-              <div class="text-[10px] opacity-60 font-bold mt-0.5">${i.volume ? i.volume + ' L' : ''}</div>
+              <div class="text-[10px] opacity-60 font-bold mt-0.5">
+                ${i.volume ? i.volume + ' L' : ''} ${odoText}
+              </div>
             </div>
             <button onclick="deleteItem('expenses', '${i.id}')" class="text-[10px] bg-red-500/10 text-red-500 px-3 py-1.5 rounded-xl">刪除</button>
           </div>`;
