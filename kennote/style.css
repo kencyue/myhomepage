@@ -34,13 +34,13 @@ header {  background: #faf8f6;  padding: 14px 20px;  font-size: 1.3rem;  font-we
 
 /* ===== 記事彈窗 ===== */#noteModal .modal-content {  background: #ffffff;  width: 90%;  max-width: 420px;  max-height: 80vh;  overflow-y: auto;  border-radius: 14px;  padding: 16px 16px 12px;  box-shadow: 0 15px 40px rgba(0,0,0,0.18);  box-sizing: border-box;}.modal-header {  font-size: 1.05rem;  font-weight: 600;  margin-bottom: 10px;}.modal-field-label {  font-size: 0.85rem;  margin-top: 6px;  margin-bottom: 4px;  color: #555;}.modal-input, .modal-textarea {  width: 100%;  box-sizing: border-box;  border-radius: 8px;  border: 1px solid #ccc;  padding: 7px 9px;  font-family: inherit;  font-size: 0.95rem;}.modal-textarea {  min-height: 120px;  resize: vertical;}.modal-footer {  display: flex;  justify-content: flex-end;  gap: 8px;  margin-top: 10px;}
 
-/* ===== 月曆彈窗 ===== */#calendarModal .modal-content {  background: #ffffff;  width: 96%;  max-width: 420px;  max-height: 85vh;  overflow: hidden;  border-radius: 14px;  padding: 12px 12px 10px;  box-shadow: 0 15px 40px rgba(0,0,0,0.18);  box-sizing: border-box;}
+/* ===== 月曆彈窗 =====（放大：加大寬度上限，並允許超出時捲動） */#calendarModal .modal-content {  background: #ffffff;  width: 96%;  max-width: 720px;  max-height: 90vh;  overflow-y: auto;  border-radius: 14px;  padding: 12px 12px 10px;  box-shadow: 0 15px 40px rgba(0,0,0,0.18);  box-sizing: border-box;}
 
 /* 月曆頭 */.calendar-header {  display: flex;  justify-content: space-between;  align-items: center;  margin-bottom: 6px;}.calendar-nav-btn {  border: none;  background: transparent;  cursor: pointer;  font-size: 18px;  padding: 4px 6px;}.calendar-title {  font-weight: 600;}
 
 /* 星期列 */.calendar-weekdays {  display: grid;  grid-template-columns: repeat(7, 1fr);  text-align: center;  font-size: 0.75rem;  color: #666;  margin-bottom: 4px;}
 
-/* 日期格 */.calendar-grid {  display: grid;  grid-template-columns: repeat(7, 1fr);  gap: 2px;}.calendar-cell {  height: 42px;  border-radius: 6px;  font-size: 0.85rem;  text-align: center;  padding-top: 4px;  box-sizing: border-box;  cursor: pointer;}.calendar-cell.other-month {  color: #bbb;}.calendar-cell.today {  border: 1px solid #007aff;}.calendar-cell.selected {  background: #007aff;  color: #ffffff;}.calendar-cell.has-note:not(.selected) {  background: #e5f0ff;}.calendar-cell-inner {  display: flex;  flex-direction: column;  align-items: center;}.calendar-dot {  width: 6px;  height: 6px;  border-radius: 50%;  background: #b22222;  margin-top: 2px;}    /* 🔹 備份選單 */.backup-select {  padding: 6px 10px;  font-size: 0.9rem;  border-radius: 6px;  border: 1px solid #ccc;  flex-grow: 1;  max-width: 220px;  margin: 0 20px;}
+/* 日期格（放大：改成 min-height 讓分類貼紙有空間往下疊） */.calendar-grid {  display: grid;  grid-template-columns: repeat(7, 1fr);  gap: 2px;}.calendar-cell {  min-height: 76px;  border-radius: 6px;  font-size: 0.85rem;  text-align: center;  padding-top: 4px;  box-sizing: border-box;  cursor: pointer;}.calendar-cell.other-month {  color: #bbb;}.calendar-cell.today {  border: 1px solid #007aff;}.calendar-cell.selected {  background: #007aff;  color: #ffffff;}.calendar-cell.has-note:not(.selected) {  background: #e5f0ff;}.calendar-cell-inner {  display: flex;  flex-direction: column;  align-items: center;}.calendar-dot {  width: 6px;  height: 6px;  border-radius: 50%;  background: #b22222;  margin-top: 2px;}    /* 🔹 備份選單 */.backup-select {  padding: 6px 10px;  font-size: 0.9rem;  border-radius: 6px;  border: 1px solid #ccc;  flex-grow: 1;  max-width: 220px;  margin: 0 20px;}
 
 /* 每個備份 option */.backup-item {  color: #007aff;  font-weight: 500;}
 
@@ -102,7 +102,11 @@ header {  background: #faf8f6;  padding: 14px 20px;  font-size: 1.3rem;  font-we
 
 /* 📱 手機版強制改成垂直排 */@media (max-width: 480px) {  .note-title {    display: flex !important;    flex-direction: column !important;    align-items: flex-start !important;  }
   .done-date {    display: block;    font-size: 0.7rem;    margin-top: 2px;    margin-left: 0;  }}
-/* 手機優化 */@media (max-width: 480px) {  #dateBar { padding: 8px 10px; }  .date-nav-btn { width: 40px; height: 40px; }  .date-nav-icon { width: 20px; height: 20px; }  #dateCenter { gap: 8px; }  #currentDateText { font-size: 0.95rem; }}
+/* 手機優化 */@media (max-width: 480px) {  #dateBar { padding: 8px 10px; }  .date-nav-btn { width: 40px; height: 40px; }  .date-nav-icon { width: 20px; height: 20px; }  #dateCenter { gap: 8px; }  #currentDateText { font-size: 0.95rem; }
+  /* 月曆放大後在手機上的微調 */
+  #calendarModal .modal-content { max-width: none; }
+  .calendar-cell { min-height: 56px; font-size: 0.75rem; }
+}
 .add-filter-row {  display: flex;  align-items: center;  gap: 5px;  margin-top: 12px;  padding-bottom: 6px;  border-bottom: 1px solid #eee;  }
 
 /* === Notion Tabs === */
