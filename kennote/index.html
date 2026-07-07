@@ -650,17 +650,19 @@ function reapplyMoveCopyHandlers() {
     });
 }
 
-// 🌟 新增：計算某日期各分類的「未完成」數量，回傳指示 HTML
+// 🌟 新增：計算某日期各分類的「未完成」項目，回傳指示 HTML
 // 沿用既有的 .note-category-tag（分類貼紙）與 .calendar-dot（小圓點）樣式，不額外新增 CSS class
 function buildTagBubblesHtml(dateStr) {
     const notesOfDay = allUserNotesCache.filter(n => n.date === dateStr && !n.done_date);
     if (notesOfDay.length === 0) return '';
 
-    const counts = {};
+    // 依分類把「未完成」的記事分組，才能在只有 1 件時取出它的內容
+    const grouped = {};
     let hasUncategorized = false;
     notesOfDay.forEach(n => {
         if (n.category) {
-            counts[n.category] = (counts[n.category] || 0) + 1;
+            if (!grouped[n.category]) grouped[n.category] = [];
+            grouped[n.category].push(n);
         } else {
             hasUncategorized = true;
         }
@@ -670,12 +672,22 @@ function buildTagBubblesHtml(dateStr) {
     let html = hasUncategorized ? '<div class="calendar-dot"></div>' : '';
 
     // 有分類的：沿用 .note-category-tag 貼紙樣式，覆寫 position 讓它以正常排列方式堆疊
-    // 只有 1 件時直接顯示分類名稱，超過 1 件才顯示「分類×數量」
-    Object.keys(counts).forEach(cat => {
+    // 只有 1 件時直接顯示該記事的內容（標題），超過 1 件才顯示「分類×數量」
+    // 另外用 max-width/overflow 限制寬度，避免文字撐爆格子
+    Object.keys(grouped).forEach(cat => {
+        const notesInCat = grouped[cat];
         const bg = getCategoryColor(cat);
         const color = getCategoryTextColor(cat);
-        const label = counts[cat] === 1 ? cat : `${cat}×${counts[cat]}`;
-        html += `<div class="note-category-tag" style="position:static;display:block;background:${bg};color:${color};margin-top:2px;">${label}</div>`;
+
+        let label;
+        if (notesInCat.length === 1) {
+            const rawTitle = notesInCat[0].title || cat;
+            label = rawTitle.length > 6 ? rawTitle.slice(0, 6) + "…" : rawTitle;
+        } else {
+            label = `${cat}×${notesInCat.length}`;
+        }
+
+        html += `<div class="note-category-tag" style="position:static;display:block;max-width:92%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;box-sizing:border-box;background:${bg};color:${color};margin-top:2px;">${label}</div>`;
     });
 
     return html;
