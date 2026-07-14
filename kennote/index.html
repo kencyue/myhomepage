@@ -153,11 +153,27 @@ async function syncToGoogleCalendar(noteData, gcalEventId = null) {
     const token = sessionStorage.getItem('gcal_token');
     if (!token) return null;
 
+    // 將 Kennote 的時間轉換為帶有具體時間的格式 (預設當天早上 9 點到 10 點)
+    const startDate = new Date(noteData.date);
+    startDate.setHours(9, 0, 0); 
+    
+    const endDate = new Date(noteData.date);
+    endDate.setHours(10, 0, 0); 
+
     const event = {
         summary: noteData.title || "(無標題)",
         description: noteData.content || "",
-        start: { date: noteData.date },
-        end: { date: noteData.date }
+        start: { 
+            dateTime: startDate.toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+        },
+        end: { 
+            dateTime: endDate.toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+        },
+        status: "confirmed",          // 標示行程已確認
+        transparency: "opaque",       // 設為「忙碌」
+        visibility: "default"
     };
 
     const baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
@@ -217,21 +233,18 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUserID = user.uid;
         
-        // 登入：隱藏 loginScreen，顯示 appContent (主畫面)
         loginScreen.style.display = "none";
         appContent.style.display = "flex"; 
 
         const today = formatDate(new Date());
         setCurrentDateStr(today);
 
-        // 啟動 Firestore 讀取
         await fetchAllNotesForCache(); 
         loadNotesForCurrentDate();
     } else {
         currentUserID = null;
-        sessionStorage.removeItem('gcal_token'); // 清除 token
+        sessionStorage.removeItem('gcal_token'); 
         
-        // 未登入：顯示 loginScreen，隱藏 appContent
         loginScreen.style.display = "flex";
         appContent.style.display = "none";
         
@@ -240,22 +253,31 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// 🔥 修改：加入 Calendar Scope 並儲存 Token
-document.getElementById("btnGoogleSignIn").onclick = async () => {
+// 加入防止連點機制與 Calendar Scope
+document.getElementById("btnGoogleSignIn").onclick = async function() {
+    this.disabled = true;
+    this.style.opacity = "0.5";
+    this.innerHTML = "登入中...";
+
     const provider = new firebase.auth.GoogleAuthProvider();
-    // 請求 Google Calendar 的讀寫權限
     provider.addScope('https://www.googleapis.com/auth/calendar.events');
     
     try {
         const result = await auth.signInWithPopup(provider);
         const credential = result.credential;
-        // 將 Token 存入 Session Storage，供同步 API 使用
         if (credential && credential.accessToken) {
             sessionStorage.setItem('gcal_token', credential.accessToken);
         }
     } catch (error) {
-        console.error("登入失敗", error);
-        alert("登入或取得日曆權限失敗：" + error.message);
+        // 排除使用者自行取消的錯誤提示
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+            console.error("登入失敗", error);
+            alert("登入或取得日曆權限失敗：" + error.message);
+        }
+    } finally {
+        this.disabled = false;
+        this.style.opacity = "1";
+        this.innerHTML = `<img src="icon/google.png" alt="Google 登入" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 8px;"> Google 登入`;
     }
 };
 
@@ -291,7 +313,6 @@ async function fetchAllNotesForCache() {
     }
 }
 
-// 🔥 修改：儲存時同步到 Google Calendar
 async function saveNoteToDB(note, docId = null) {
     if (!currentUserID) return;
     const noteRef = db.collection("users").doc(currentUserID).collection("notes");
@@ -304,14 +325,12 @@ async function saveNoteToDB(note, docId = null) {
     });
 
     try {
-        // 1. 同步到 Google Calendar 取得 Event ID
         let currentGcalId = newNoteData.gcal_event_id || null;
         const savedGcalId = await syncToGoogleCalendar(newNoteData, currentGcalId);
         if (savedGcalId) {
-            newNoteData.gcal_event_id = savedGcalId; // 將日曆 ID 存回資料中
+            newNoteData.gcal_event_id = savedGcalId; 
         }
 
-        // 2. 存入 Firestore
         if (docId) {
             await noteRef.doc(docId).update(newNoteData);
         } else {
@@ -325,12 +344,10 @@ async function saveNoteToDB(note, docId = null) {
     }
 }
 
-// 🔥 修改：刪除時同步從 Google Calendar 移除
 async function deleteNote(id) {
     if (!currentUserID) return;
     try {
         if (confirm("確定刪除這筆記事？")) {
-            // 先找出要刪除的記事，看有沒有對應的日曆 ID
             const noteToDelete = allUserNotesCache.find(n => n.id === id);
             if (noteToDelete && noteToDelete.gcal_event_id) {
                 await deleteFromGoogleCalendar(noteToDelete.gcal_event_id);
@@ -360,7 +377,6 @@ async function markNoteDone(id, done_date) {
     }
 }
 
-// 🔥 修改：搬移日期時同步更新 Google Calendar
 async function moveNoteToDate(noteId, newDate) {
     if (!currentUserID) return;
     try {
@@ -372,7 +388,6 @@ async function moveNoteToDate(noteId, newDate) {
             order_index: firebase.firestore.FieldValue.delete()
         };
 
-        // 更新 Google Calendar
         if (noteToMove) {
             const tempNote = { ...noteToMove, date: newDate };
             await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
@@ -388,7 +403,6 @@ async function moveNoteToDate(noteId, newDate) {
     }
 }
 
-// 🔥 修改：複製記事時也同步新增到 Google Calendar
 async function copyNoteToDate(originalNote, newDate) {
     if (!currentUserID) return;
     const newNote = {
@@ -400,7 +414,6 @@ async function copyNoteToDate(originalNote, newDate) {
     };
     
     try {
-        // 先建立日曆事件，取得 ID
         const savedGcalId = await syncToGoogleCalendar(newNote);
         if (savedGcalId) newNote.gcal_event_id = savedGcalId;
 
@@ -653,7 +666,7 @@ async function handleSaveNote() {
         if (oldNote) {
             noteData.done_date = oldNote.done_date || null; 
             noteData.order_index = oldNote.order_index;
-            noteData.gcal_event_id = oldNote.gcal_event_id; // 保留現有的日曆 ID 供更新用
+            noteData.gcal_event_id = oldNote.gcal_event_id; 
             await saveNoteToDB(noteData, editingId);
         }
     }
@@ -840,7 +853,6 @@ window.onload = () => {
         loadNotesForCurrentDate();      
     };
     
-    // 🔥 修改：延至今日的批次更新也要同步到 GCal
     document.getElementById("btnMoveUndoneToToday").onclick = async () => {
         if (!currentUserID) return alert("請先登入");
 
@@ -858,7 +870,6 @@ window.onload = () => {
             const id = el.dataset.id;
             const noteToMove = allUserNotesCache.find(n => n.id === id);
             
-            // GCal Sync
             if (noteToMove) {
                 const tempNote = { ...noteToMove, date: todayStr };
                 await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
