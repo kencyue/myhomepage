@@ -8,12 +8,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-<!-- 新增：Google Identity Services，用來獨立於 Firebase 之外管理 Calendar OAuth token 並支援靜默刷新 -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" type="text/css" href="style.css?ver=1">
 <link rel="icon" href="favicon.png" type="image/x-icon">
 <style>
-/* 確保標題輸入框佔滿寬度 */
 .modal-input-new {
     width: 100%;
     padding: 10px;
@@ -22,7 +19,6 @@
     font-size: 16px;
     margin-bottom: 15px; 
 }
-/* 標籤容器樣式 */
 .tag-selection-container {
     display: flex;
     gap: 10px;
@@ -30,7 +26,6 @@
     flex-wrap: wrap;
     justify-content: flex-start;
 }
-/* 標籤按鈕基礎樣式 */
 .tag-btn {
     padding: 6px 14px;
     border-radius: 6px;
@@ -39,22 +34,16 @@
     transition: background-color 0.2s, color 0.2s, border 0.2s, opacity 0.2s;
     white-space: nowrap; 
 }
-/* 確保舊的 modal-field-row 結構被完全隱藏 */
 .modal-field-row {
     display: none !important; 
 }
-/* 新增：時段輸入列 */
-.time-toggle-row input[type="time"] {
-    padding: 8px 10px;
-    border: 1px solid #E2E8F0;
-    border-radius: 6px;
-    font-size: 15px;
+.datetime-container {
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 15px;
 }
-.note-time {
-    font-size: 12px;
-    color: #718096;
-    margin-right: 6px;
-    white-space: nowrap;
+.datetime-container input {
+    margin-bottom: 0;
 }
 </style>
 </head>
@@ -76,9 +65,7 @@
     <button id="btnLogout" class="nt-btn nt-ghost">登出</button>
   </header>
 
-  <div class="toolbar" style="display:none">  
-    
-  </div>
+  <div class="toolbar" style="display:none"></div>
 
   <div id="main">
     <div id="dateBar">  
@@ -95,7 +82,6 @@
       <button class="nt-btn nt-primary icon-btn" id="btnSearch">    <img src="icon/search.png" alt="搜尋"> 搜尋  </button>
       <button class="nt-btn nt-primary icon-btn" id="btnAdd">    <img src="icon/edit.png" alt="新增"> 新增記事  </button>
       <button class="nt-btn nt-primary icon-btn" id="btnMoveUndoneToToday">    <img src="icon/move.png" alt="延至今日"> 延至今日  </button>
-      <button class="nt-btn nt-ghost icon-btn" id="btnSyncNow" title="立即從 Google 日曆拉取變更">🔄 同步</button>
       <div id="filterBar">    
         <button class="nt-btn nt-ghost active" data-filter="">全部</button>    
         <button class="nt-btn nt-ghost" data-filter="私人">私人</button>    
@@ -115,21 +101,15 @@
         <div class="modal-field-row-new" style="display: flex;">  
             <input type="text" id="noteTitleInput" class="modal-input-new">
         </div>
+
+        <div class="modal-field-label">日期與時間</div>
+        <div class="datetime-container">
+            <input type="date" id="noteDateInput" class="modal-input-new">
+            <input type="time" id="noteTimeInput" class="modal-input-new">
+        </div>
         
         <div class="modal-field-label">分類標籤</div>
-        <div id="noteCategoryTags" class="tag-selection-container" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-            </div>
-
-        <div class="modal-field-label">時間</div>
-        <div class="time-toggle-row" style="display:flex; align-items:center; gap:10px; margin-bottom:15px; flex-wrap: wrap;">
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                <input type="checkbox" id="noteAllDayInput" checked>
-                全天
-            </label>
-            <input type="time" id="noteStartTimeInput" style="display:none;">
-            <span id="noteTimeSeparator" style="display:none;">–</span>
-            <input type="time" id="noteEndTimeInput" style="display:none;">
-        </div>
+        <div id="noteCategoryTags" class="tag-selection-container"></div>
 
         <div class="modal-field-label">內容</div>    
         <textarea id="noteContentInput" class="modal-textarea"></textarea>    
@@ -145,10 +125,8 @@
 <div id="calendarModal" class="modal-overlay">  <div class="modal-content">    <div class="calendar-header">      <button class="calendar-nav-btn" id="calPrev">&lt;</button>      <div class="calendar-title" id="calTitle"></div>      <button class="calendar-nav-btn" id="calNext">&gt;</button>    </div>    <div class="calendar-weekdays">      <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>    </div>    <div class="calendar-grid" id="calendarGrid"></div>  </div></div>
 <script>
 /* ============================================================
-===== Firebase/Firestore/Auth 配置及資料庫替換邏輯 (V9 Compat) =====
-============================================================
-*/
-// 🔥 您的 Firebase 專案配置 
+===== Firebase/Firestore/Auth 配置 =====
+============================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyD17BCkojSaGiuGzubNGMg-HKGJn5il79o",
     authDomain: "kennote-58073.firebaseapp.com",
@@ -156,19 +134,6 @@ const firebaseConfig = {
     appId: "1:1000941899656:web:5c2f62f428b9609520743d",
 };
 
-// ⚠️ 請填入你的 Google OAuth 2.0 用戶端 ID（見本檔案結尾說明如何取得）
-// 這個 ID 用於 Google Identity Services 的 Calendar 授權/刷新，與 Firebase 登入是分開的機制。
-const GCAL_CLIENT_ID = "1000941899656-oflihbktud17k23hj4ds9q482pnt5t0e.apps.googleusercontent.com";
-
-// 是否只匯入「由 Kennote 建立」的 Google 日曆行程（預設 true，避免把使用者主要日曆裡
-// 所有既有的會議、行程都灌進 Kennote）。如果你希望「直接在 Google 日曆新增的行程」
-// 也自動出現在 Kennote，把這個改成 false —— 但請注意這會把過去 90 天~未來 365 天內
-// 主要日曆的所有行程都當成筆記匯入。
-const ONLY_IMPORT_KENNOTE_EVENTS = true;
-
-const SYNC_INTERVAL_MS = 3 * 60 * 1000; // 背景輪詢間隔：3 分鐘
-
-// 全域變數
 let auth = null;
 let db = null;
 let currentUserID = null;
@@ -179,152 +144,29 @@ calendarMonth.setDate(1);
 let noteDateSet = new Set();
 let allUserNotesCache = []; 
 
-// GCal 同步相關全域變數
-let tokenClient = null;
-let gisReady = false;
-let isSyncing = false;
-let syncIntervalId = null;
-
-// 初始化 Firebase
 const app = firebase.initializeApp(firebaseConfig);
 auth = firebase.auth();
 db = firebase.firestore();
 
 /* =============================
-    Google 日曆授權（Google Identity Services）
-    取代原本「登入當下拿一次 access token，之後永不刷新」的作法。
-============================= */
-function initGisTokenClient() {
-    if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
-        console.warn("Google Identity Services 尚未載入，稍後會再嘗試。");
-        setTimeout(initGisTokenClient, 500);
-        return;
-    }
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GCAL_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/calendar.events',
-        callback: () => {} // 實際 callback 由 ensureGcalToken() 動態覆寫
-    });
-    gisReady = true;
-}
-
-// 取得可用的 access token：
-// - 若 sessionStorage 內的 token 還沒過期（保留 1 分鐘緩衝），直接回傳。
-// - 否則嘗試用 GIS 取得新 token：interactive=false 時是「靜默」嘗試（不保證成功，
-//   常見失敗原因是瀏覽器封鎖第三方 cookie／iframe）；interactive=true 會跳出 Google 同意視窗。
-function ensureGcalToken(interactive) {
-    return new Promise((resolve) => {
-        const expiry = Number(sessionStorage.getItem('gcal_token_expiry') || 0);
-        const token = sessionStorage.getItem('gcal_token');
-        if (token && Date.now() < expiry - 60000) {
-            resolve(token);
-            return;
-        }
-        if (!gisReady || !tokenClient) {
-            resolve(null);
-            return;
-        }
-
-        let settled = false;
-        const timeoutId = setTimeout(() => {
-            if (!settled) { settled = true; resolve(null); }
-        }, 8000);
-
-        tokenClient.callback = (resp) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timeoutId);
-            if (resp && resp.access_token) {
-                sessionStorage.setItem('gcal_token', resp.access_token);
-                const exp = Date.now() + (Number(resp.expires_in || 3600) * 1000);
-                sessionStorage.setItem('gcal_token_expiry', String(exp));
-                hideSyncBanner();
-                resolve(resp.access_token);
-            } else {
-                resolve(null);
-            }
-        };
-        tokenClient.error_callback = () => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timeoutId);
-            resolve(null);
-        };
-
-        try {
-            tokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
-        } catch (e) {
-            settled = true;
-            clearTimeout(timeoutId);
-            resolve(null);
-        }
-    });
-}
-
-// 明顯的同步狀態提示（取代原本只印在 console 的靜默失敗）
-function showSyncBanner(message, actionLabel, actionFn) {
-    let banner = document.getElementById("syncBanner");
-    if (!banner) {
-        banner = document.createElement("div");
-        banner.id = "syncBanner";
-        banner.style.cssText = "position:fixed;top:0;left:0;right:0;background:#C05621;color:#fff;padding:10px 16px;text-align:center;font-size:14px;z-index:10000;display:flex;justify-content:center;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);";
-        document.body.prepend(banner);
-    }
-    banner.innerHTML = "";
-    const text = document.createElement("span");
-    text.textContent = message;
-    banner.appendChild(text);
-    if (actionLabel && actionFn) {
-        const btn = document.createElement("button");
-        btn.textContent = actionLabel;
-        btn.style.cssText = "background:#fff;color:#C05621;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:bold;";
-        btn.onclick = actionFn;
-        banner.appendChild(btn);
-    }
-}
-function hideSyncBanner() {
-    const banner = document.getElementById("syncBanner");
-    if (banner) banner.remove();
-}
-
-function startPeriodicSync() {
-    stopPeriodicSync();
-    syncIntervalId = setInterval(() => pullFromGoogleCalendar(false), SYNC_INTERVAL_MS);
-}
-function stopPeriodicSync() {
-    if (syncIntervalId) { clearInterval(syncIntervalId); syncIntervalId = null; }
-}
-
-/* =============================
-    寫入 Google Calendar（含全天／時段兩種事件）
+    Google Calendar API 工具 (雙向同步版)
 ============================= */
 async function syncToGoogleCalendar(noteData, gcalEventId = null) {
-    const token = await ensureGcalToken(false);
-    if (!token) {
-        showSyncBanner("Google 日曆尚未連接或授權已過期，這筆記事暫時不會同步", "重新連接", () => ensureGcalToken(true));
-        return null;
-    }
+    const token = sessionStorage.getItem('gcal_token');
+    if (!token) return null;
+
+    const fullDateTime = `${noteData.date}T${noteData.time || '09:00'}:00`;
+    const start = new Date(fullDateTime);
+    const end = new Date(start.getTime() + 60 * 60 * 1000); 
 
     const event = {
         summary: noteData.title || "(無標題)",
         description: noteData.content || "",
-        status: "confirmed",          // 標示行程已確認
-        transparency: "transparent",  // 設為「有空」(不忙碌)
-        extendedProperties: { private: { kennote: "1" } } // 標記為 Kennote 建立，供拉取時辨識
+        start: { dateTime: start.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        end: { dateTime: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        status: "confirmed",
+        transparency: "opaque" 
     };
-
-    if (noteData.allDay === false && noteData.startTime) {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        event.start = { dateTime: `${noteData.date}T${noteData.startTime}:00`, timeZone: tz };
-        event.end = { dateTime: `${noteData.date}T${noteData.endTime || noteData.startTime}:00`, timeZone: tz };
-    } else {
-        // Google Calendar 官方定義「全天行程」的結束日期是隔天
-        const d = new Date(noteData.date);
-        d.setDate(d.getDate() + 1);
-        const endDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        event.start = { date: noteData.date };
-        event.end = { date: endDateStr };
-    }
 
     const baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
     let url = baseUrl;
@@ -344,32 +186,25 @@ async function syncToGoogleCalendar(noteData, gcalEventId = null) {
             },
             body: JSON.stringify(event)
         });
-
+        
         if (!response.ok) {
             if (response.status === 401) {
                 sessionStorage.removeItem('gcal_token');
-                sessionStorage.removeItem('gcal_token_expiry');
-                showSyncBanner("Google 日曆授權已過期，這筆記事尚未同步", "重新連接", () => ensureGcalToken(true));
-            } else if (response.status === 404 && gcalEventId) {
-                // 對應的 Google 事件已在日曆端被刪除，改為新建一筆，避免卡死
-                return syncToGoogleCalendar(noteData, null);
-            } else {
-                showSyncBanner("同步至 Google 日曆失敗，稍後會自動重試", null, null);
+                alert("Google 日曆同步失敗：登入憑證已過期 (通常效期為 1 小時)。\n\n請點擊「登出」並重新登入！");
             }
             return null;
         }
 
         const data = await response.json();
-        return { id: data.id, updated: data.updated }; // updated 用於雙向同步時判斷「回音」
+        return data.id; 
     } catch (e) {
         console.error("同步至 Google Calendar 失敗:", e);
-        showSyncBanner("同步至 Google 日曆時發生網路錯誤", null, null);
         return null;
     }
 }
 
 async function deleteFromGoogleCalendar(gcalEventId) {
-    const token = await ensureGcalToken(false);
+    const token = sessionStorage.getItem('gcal_token');
     if (!token || !gcalEventId) return;
 
     try {
@@ -382,181 +217,68 @@ async function deleteFromGoogleCalendar(gcalEventId) {
     }
 }
 
-/* =============================
-    從 Google Calendar 拉取變更（雙向同步的「讀」半邊）
-    用 syncToken 做增量同步；沒有 token（第一次）或 token 失效(410) 時做全量同步。
-============================= */
-async function getStoredSyncToken() {
-    if (!currentUserID) return null;
-    try {
-        const doc = await db.collection("users").doc(currentUserID).get();
-        return doc.exists ? (doc.data().gcalSyncToken || null) : null;
-    } catch (e) {
-        console.error("讀取同步權杖失敗:", e);
-        return null;
-    }
-}
-
-async function storeSyncToken(token) {
+// 🔥 新增：從 Google Calendar 拉取當日行程並寫入 Kennote
+async function pullFromGoogleCalendar(dateStr) {
     if (!currentUserID) return;
+    const token = sessionStorage.getItem('gcal_token');
+    if (!token) return;
+
+    const startOfDay = new Date(dateStr + "T00:00:00").toISOString();
+    const endOfDay = new Date(dateStr + "T23:59:59").toISOString();
+
     try {
-        if (token) {
-            await db.collection("users").doc(currentUserID).set({ gcalSyncToken: token }, { merge: true });
-        } else {
-            await db.collection("users").doc(currentUserID).set({ gcalSyncToken: firebase.firestore.FieldValue.delete() }, { merge: true });
-        }
-    } catch (e) {
-        console.error("儲存同步權杖失敗:", e);
-    }
-}
+        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfDay}&timeMax=${endOfDay}&singleEvents=true`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) return;
 
-function mapGcalEventToNote(ev) {
-    if (!ev.start) return null;
-    if (ev.start.date) {
-        return {
-            date: ev.start.date,
-            title: ev.summary || "",
-            content: ev.description || "",
-            allDay: true,
-            startTime: null,
-            endTime: null
-        };
-    }
-    if (ev.start.dateTime) {
-        const startD = new Date(ev.start.dateTime);
-        const endD = ev.end && ev.end.dateTime ? new Date(ev.end.dateTime) : null;
-        return {
-            date: formatDate(startD),
-            title: ev.summary || "",
-            content: ev.description || "",
-            allDay: false,
-            startTime: formatHM(startD),
-            endTime: endD ? formatHM(endD) : formatHM(startD)
-        };
-    }
-    return null;
-}
+        const data = await response.json();
+        const gcalEvents = data.items || [];
+        const localNotes = allUserNotesCache.filter(n => n.date === dateStr);
+        let hasChanges = false;
 
-async function applyPulledEvents(events) {
-    if (!events || events.length === 0 || !currentUserID) return;
+        for (const event of gcalEvents) {
+            if (event.status === 'cancelled') continue; 
 
-    const notesRef = db.collection("users").doc(currentUserID).collection("notes");
-    const ops = [];
+            const existingNote = localNotes.find(n => n.gcal_event_id === event.id);
+            const eventTitle = event.summary || "(無標題)";
+            const eventContent = event.description || "";
 
-    for (const ev of events) {
-        const existing = allUserNotesCache.find(n => n.gcal_event_id === ev.id);
-
-        if (ev.status === 'cancelled') {
-            // 行程在 Google 日曆端被刪除 → 同步刪除對應筆記
-            if (existing) ops.push(notesRef.doc(existing.id).delete());
-            continue;
-        }
-
-        const isKennoteEvent = !!(ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.kennote === "1");
-        if (!existing && ONLY_IMPORT_KENNOTE_EVENTS && !isKennoteEvent) continue; // 略過非 Kennote 建立的全新行程
-
-        const mapped = mapGcalEventToNote(ev);
-        if (!mapped) continue;
-
-        if (existing) {
-            // event.updated 若與我們最後一次記錄的一致，代表這是自己推送造成的回音，略過避免無限循環
-            if (existing.gcal_updated === ev.updated) continue;
-            ops.push(notesRef.doc(existing.id).update({
-                title: mapped.title,
-                content: mapped.content,
-                date: mapped.date,
-                allDay: mapped.allDay,
-                startTime: mapped.startTime,
-                endTime: mapped.endTime,
-                gcal_updated: ev.updated
-            }));
-        } else {
-            ops.push(notesRef.add({
-                date: mapped.date,
-                title: mapped.title,
-                content: mapped.content,
-                category: "",
-                allDay: mapped.allDay,
-                startTime: mapped.startTime,
-                endTime: mapped.endTime,
-                done_date: null,
-                gcal_event_id: ev.id,
-                gcal_updated: ev.updated
-            }));
-        }
-    }
-
-    if (ops.length > 0) {
-        await Promise.all(ops);
-        await fetchAllNotesForCache();
-        loadNotesForCurrentDate();
-    }
-}
-
-async function pullFromGoogleCalendar(showBanner) {
-    if (!currentUserID || isSyncing) return;
-    isSyncing = true;
-    try {
-        const token = await ensureGcalToken(false);
-        if (!token) {
-            if (showBanner) showSyncBanner("尚未連接 Google 日曆", "連接", () => ensureGcalToken(true));
-            isSyncing = false;
-            return;
-        }
-
-        let syncToken = await getStoredSyncToken();
-        let pageToken = null;
-        let allEvents = [];
-        let newSyncToken = null;
-
-        while (true) {
-            const params = new URLSearchParams();
-            params.set('singleEvents', 'true');
-            params.set('maxResults', '250');
-            if (pageToken) params.set('pageToken', pageToken);
-            if (ONLY_IMPORT_KENNOTE_EVENTS) params.set('privateExtendedProperty', 'kennote=1');
-            if (syncToken) {
-                params.set('syncToken', syncToken);
-            } else {
-                const timeMin = new Date(); timeMin.setDate(timeMin.getDate() - 90);
-                const timeMax = new Date(); timeMax.setDate(timeMax.getDate() + 365);
-                params.set('timeMin', timeMin.toISOString());
-                params.set('timeMax', timeMax.toISOString());
-            }
-
-            const resp = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (resp.status === 410) {
-                // syncToken 失效（例如太久沒同步），清空後改用全量同步重新開始
-                await storeSyncToken(null);
-                syncToken = null;
-                pageToken = null;
-                allEvents = [];
-                continue;
-            }
-            if (!resp.ok) {
-                if (resp.status === 401 && showBanner) {
-                    showSyncBanner("Google 日曆連線已中斷，請重新連接", "重新連接", () => ensureGcalToken(true));
+            if (existingNote) {
+                if (existingNote.title !== eventTitle || existingNote.content !== eventContent) {
+                    await db.collection("users").doc(currentUserID).collection("notes").doc(existingNote.id).update({
+                        title: eventTitle,
+                        content: eventContent
+                    });
+                    hasChanges = true;
                 }
-                isSyncing = false;
-                return;
-            }
+            } else {
+                let newTime = "00:00";
+                if (event.start && event.start.dateTime) {
+                    const d = new Date(event.start.dateTime);
+                    newTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                }
 
-            const data = await resp.json();
-            allEvents = allEvents.concat(data.items || []);
-            pageToken = data.nextPageToken || null;
-            if (!pageToken) { newSyncToken = data.nextSyncToken || null; break; }
+                await db.collection("users").doc(currentUserID).collection("notes").add({
+                    title: eventTitle,
+                    content: eventContent,
+                    date: dateStr,
+                    time: newTime,
+                    category: "", 
+                    done_date: null,
+                    gcal_event_id: event.id
+                });
+                hasChanges = true;
+            }
         }
 
-        await applyPulledEvents(allEvents);
-        if (newSyncToken) await storeSyncToken(newSyncToken);
-        hideSyncBanner();
+        if (hasChanges) {
+            await fetchAllNotesForCache();
+            const updatedNotes = allUserNotesCache.filter(n => n.date === dateStr);
+            renderNotes(updatedNotes);
+        }
     } catch (e) {
-        console.error("從 Google Calendar 拉取失敗:", e);
-    } finally {
-        isSyncing = false;
+        console.error("同步拉取失敗:", e);
     }
 }
 
@@ -569,28 +291,17 @@ auth.onAuthStateChanged(async (user) => {
 
     if (user) {
         currentUserID = user.uid;
-        
         loginScreen.style.display = "none";
         appContent.style.display = "flex"; 
 
         const today = formatDate(new Date());
         setCurrentDateStr(today);
 
-        initGisTokenClient();
-        await ensureGcalToken(false); // 若之前已授權過，嘗試靜默取得 token
-
         await fetchAllNotesForCache(); 
         loadNotesForCurrentDate();
-
-        pullFromGoogleCalendar(false);
-        startPeriodicSync();
     } else {
         currentUserID = null;
-        sessionStorage.removeItem('gcal_token');
-        sessionStorage.removeItem('gcal_token_expiry');
-        stopPeriodicSync();
-        hideSyncBanner();
-        
+        sessionStorage.removeItem('gcal_token'); 
         loginScreen.style.display = "flex";
         appContent.style.display = "none";
         
@@ -599,28 +310,24 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// Firebase 登入（不再要求 Calendar scope；Calendar 授權改由 GIS 獨立處理，可靜默刷新）
 document.getElementById("btnGoogleSignIn").onclick = async function() {
     this.disabled = true;
     this.style.opacity = "0.5";
     this.innerHTML = "登入中...";
 
     const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.events');
     
     try {
-        await auth.signInWithPopup(provider);
-        // 登入成功後 onAuthStateChanged 會嘗試靜默授權；若是第一次使用，靜默會失敗，
-        // 這裡跳出明顯的橫幅讓使用者手動點擊完成 Calendar 授權（避免瀏覽器封鎖自動彈窗）。
-        setTimeout(async () => {
-            const token = await ensureGcalToken(false);
-            if (!token) {
-                showSyncBanner("尚未授權 Google 日曆同步", "授權連接", () => ensureGcalToken(true));
-            }
-        }, 1000);
+        const result = await auth.signInWithPopup(provider);
+        const credential = result.credential;
+        if (credential && credential.accessToken) {
+            sessionStorage.setItem('gcal_token', credential.accessToken);
+        }
     } catch (error) {
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
             console.error("登入失敗", error);
-            alert("登入失敗：" + error.message);
+            alert("登入或取得日曆權限失敗：" + error.message);
         }
     } finally {
         this.disabled = false;
@@ -634,13 +341,18 @@ document.getElementById("btnLogout").onclick = () => {
 };
 
 /* =============================
-    Firestore CRUD 
+    Firestore CRUD
 ============================= */
 function loadNotesForCurrentDate() {
     if (!currentUserID) return;
     const targetDate = getCurrentDateStr();
+    
+    // 先渲染本地資料
     const notesToday = allUserNotesCache.filter(n => n.date === targetDate);
     renderNotes(notesToday);
+
+    // 背景拉取 Google 雙向同步
+    pullFromGoogleCalendar(targetDate);
 }
 
 async function fetchAllNotesForCache() {
@@ -673,14 +385,6 @@ async function saveNoteToDB(note, docId = null) {
     });
 
     try {
-        let currentGcalId = newNoteData.gcal_event_id || null;
-        const syncResult = await syncToGoogleCalendar(newNoteData, currentGcalId);
-        if (syncResult) {
-            newNoteData.gcal_event_id = syncResult.id;
-            newNoteData.gcal_updated = syncResult.updated;
-        }
-        newNoteData.updated_at = formatDateTime(new Date());
-
         if (docId) {
             await noteRef.doc(docId).update(newNoteData);
         } else {
@@ -690,7 +394,7 @@ async function saveNoteToDB(note, docId = null) {
         loadNotesForCurrentDate();
     } catch (e) {
         console.error("Error saving document: ", e);
-        alert("儲存失敗：" + e.message);
+        alert("資料庫儲存失敗：" + e.message);
     }
 }
 
@@ -702,7 +406,6 @@ async function deleteNote(id) {
             if (noteToDelete && noteToDelete.gcal_event_id) {
                 await deleteFromGoogleCalendar(noteToDelete.gcal_event_id);
             }
-
             await db.collection("users").doc(currentUserID).collection("notes").doc(id).delete();
             await fetchAllNotesForCache(); 
             loadNotesForCurrentDate();
@@ -740,11 +443,7 @@ async function moveNoteToDate(noteId, newDate) {
 
         if (noteToMove) {
             const tempNote = { ...noteToMove, date: newDate };
-            const syncResult = await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
-            if (syncResult) {
-                updateData.gcal_event_id = syncResult.id;
-                updateData.gcal_updated = syncResult.updated;
-            }
+            await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
         }
 
         await db.collection("users").doc(currentUserID).collection("notes").doc(noteId).update(updateData);
@@ -761,22 +460,16 @@ async function copyNoteToDate(originalNote, newDate) {
     if (!currentUserID) return;
     const newNote = {
         date: newDate,
+        time: originalNote.time || "09:00",
         title: originalNote.title,
         content: originalNote.content,
         category: originalNote.category,
-        allDay: originalNote.allDay !== false,
-        startTime: originalNote.startTime || null,
-        endTime: originalNote.endTime || null,
         done_date: null,
     };
     
     try {
-        const syncResult = await syncToGoogleCalendar(newNote);
-        if (syncResult) {
-            newNote.gcal_event_id = syncResult.id;
-            newNote.gcal_updated = syncResult.updated;
-        }
-        newNote.updated_at = formatDateTime(new Date());
+        const savedGcalId = await syncToGoogleCalendar(newNote);
+        if (savedGcalId) newNote.gcal_event_id = savedGcalId;
 
         await db.collection("users").doc(currentUserID).collection("notes").add(newNote);
         await fetchAllNotesForCache();
@@ -791,22 +484,19 @@ async function copyNoteToDate(originalNote, newDate) {
 async function saveNoteOrder(id, index) {
     if (!currentUserID) return;
     try {
-        await db.collection("users").doc(currentUserID).collection("notes").doc(id).update({
-            order_index: index
-        });
+        await db.collection("users").doc(currentUserID).collection("notes").doc(id).update({ order_index: index });
     } catch(e) {
         console.error("Error saving order: ", e);
     }
 }
 
 /* ================================================================= 
-    優化後的 JS 邏輯 (工具函數、渲染、事件) 
+    工具函數、渲染、事件
 =================================================================*/
 function truncateTitle(title) {  return title.length > 10 ? title.slice(0, 10) + "…" : title;}     
 function formatDate(date) {  const y = date.getFullYear();  const m = String(date.getMonth() + 1).padStart(2, "0");  const d = String(date.getDate()).padStart(2, "0");  return `${y}-${m}-${d}`;}   
 function formatTime(date) {  const h = String(date.getHours()).padStart(2, "0");  const m = String(date.getMinutes()).padStart(2, "0");  const s = String(date.getSeconds()).padStart(2, "0");  return `${h}:${m}:${s}`;}    
 function formatDateTime(date) {  return `${formatDate(date)} ${formatTime(date)}`;}
-function formatHM(date) {  const h = String(date.getHours()).padStart(2, "0");  const m = String(date.getMinutes()).padStart(2, "0");  return `${h}:${m}`;}
 
 function getCurrentDateStr() {  return document.getElementById("currentDate").value;}
 function setCurrentDateStr(str) {  document.getElementById("currentDate").value = str;  document.getElementById("currentDateText").textContent = str;}
@@ -814,12 +504,7 @@ function setCurrentDateStr(str) {  document.getElementById("currentDate").value 
 const CATEGORIES = ["", "私人", "工作"];
 
 function getCategoryColor(category) {
-    const colors = {
-        "": "#ffffff",      
-        "私人": "#8B5E34",   
-        "工作": "#4A5568",   
-        "學習": "#9C27B0"  
-    };
+    const colors = { "": "#ffffff", "私人": "#8B5E34", "工作": "#4A5568", "學習": "#9C27B0" };
     return colors[category] || "#1b1b1b"; 
 }
 
@@ -878,14 +563,8 @@ function renderCategoryTags(currentCategory) {
             applyActiveStyle(btn);
         } 
         
-        btn.onmouseenter = () => {
-            if (!btn.classList.contains('active')) applyHoverStyle(btn, category);
-        };
-
-        btn.onmouseleave = () => {
-            if (!btn.classList.contains('active')) applyDefaultStyle(btn);
-            else applyActiveStyle(btn);
-        };
+        btn.onmouseenter = () => { if (!btn.classList.contains('active')) applyHoverStyle(btn, category); };
+        btn.onmouseleave = () => { if (!btn.classList.contains('active')) applyDefaultStyle(btn); else applyActiveStyle(btn); };
 
         btn.onclick = (e) => {
             e.preventDefault(); 
@@ -920,9 +599,7 @@ function renderNotes(notesArr) {
         item.dataset.id = note.id; 
 
         const isDone = !!note.done_date;
-        const doneTagHtml = isDone 
-            ? `<span class="done-date">✔ ${note.done_date}</span>` 
-            : '';
+        const doneTagHtml = isDone ? `<span class="done-date">✔ ${note.done_date}</span>` : '';
             
         const bgColor = getCategoryColor(note.category);
         const textColor = getCategoryTextColor(note.category);
@@ -930,18 +607,14 @@ function renderNotes(notesArr) {
         const categoryTagHtml = note.category 
             ? `<div class="note-category-tag" style="background:${bgColor}; color: ${textColor};">${note.category}</div>` 
             : '';
-
-        const timeHtml = (note.allDay === false && note.startTime)
-            ? `<span class="note-time">${note.startTime}${note.endTime ? '–' + note.endTime : ''}</span>`
-            : '';
         
         const noteForCopy = JSON.stringify(note).replace(/"/g, '&quot;');
         
         item.innerHTML = `
             <input type="checkbox" class="note-checkbox" data-note-id="${note.id}" ${isDone ? 'checked' : ''}>
             <div class="note-title">
-                ${timeHtml}
                 <span class="title-text ${isDone ? 'done' : ''}">${truncateTitle(note.title || "(無標題)")}</span>
+                <span style="font-size: 0.8em; color: #888; margin-left: 5px;">${note.time || ''}</span>
                 ${doneTagHtml}
             </div>
             ${categoryTagHtml}
@@ -985,24 +658,18 @@ function openNoteModal(note) {
     document.getElementById("noteTitleInput").value = note?.title || "";
     document.getElementById("noteContentInput").value = note?.content || "";
     
+    document.getElementById("noteDateInput").value = note?.date || getCurrentDateStr();
+    document.getElementById("noteTimeInput").value = note?.time || "09:00";
+    
     renderCategoryTags(note?.category || "");
-
-    const isAllDay = note ? (note.allDay !== false) : true;
-    document.getElementById("noteAllDayInput").checked = isAllDay;
-    document.getElementById("noteStartTimeInput").value = note?.startTime || "09:00";
-    document.getElementById("noteEndTimeInput").value = note?.endTime || "10:00";
-    document.getElementById("noteStartTimeInput").style.display = isAllDay ? "none" : "inline-block";
-    document.getElementById("noteTimeSeparator").style.display = isAllDay ? "none" : "inline";
-    document.getElementById("noteEndTimeInput").style.display = isAllDay ? "none" : "inline-block";
 
     document.querySelectorAll(".modal-field-label").forEach(el => el.style.display = "");
     document.getElementById("noteTitleInput").style.display = "";
     document.getElementById("noteContentInput").style.display = "";
+    document.querySelector(".datetime-container").style.display = "flex";
     document.getElementById("noteModalSave").style.display = "";
-    
     document.querySelector(".modal-field-row-new").style.display = "flex"; 
     document.getElementById("noteCategoryTags").style.display = "flex";
-    document.querySelector(".time-toggle-row").style.display = "flex";
 
     const oldRow = document.querySelector(".modal-field-row");
     if (oldRow) oldRow.style.display = "none";
@@ -1017,52 +684,56 @@ function closeNoteModal() {
     document.getElementById("noteModal").style.display = "none";
 }
 
+// 🔥 新增/編輯防呆同步邏輯
 async function handleSaveNote() {
     const title = document.getElementById("noteTitleInput").value.trim();
     const content = document.getElementById("noteContentInput").value.trim();
+    const dateStr = document.getElementById("noteDateInput").value;
+    const timeStr = document.getElementById("noteTimeInput").value;
     
     const activeTag = document.querySelector("#noteCategoryTags .active");
     const category = activeTag ? activeTag.dataset.category : "";
-    const dateStr = getCurrentDateStr();
 
-    const allDay = document.getElementById("noteAllDayInput").checked;
-    let startTime = null, endTime = null;
-    if (!allDay) {
-        startTime = document.getElementById("noteStartTimeInput").value || "09:00";
-        endTime = document.getElementById("noteEndTimeInput").value || startTime;
-        if (endTime <= startTime) {
-            const [h, m] = startTime.split(":").map(Number);
-            const endD = new Date();
-            endD.setHours(h + 1, m, 0, 0);
-            endTime = formatHM(endD);
-        }
+    if (!title || !dateStr) {
+        alert("請至少填寫標題與日期！");
+        return;
     }
-
-    if (!title && !content) return closeNoteModal();
 
     const noteData = { 
         date: dateStr, 
+        time: timeStr,
         title, 
         content, 
         category,
-        allDay,
-        startTime,
-        endTime,
         done_date: null 
     };
 
-    if (!editingId) {
-        await saveNoteToDB(noteData);
-    } else {
+    let oldGcalId = null;
+    if (editingId) {
         const oldNote = allUserNotesCache.find(n => n.id === editingId);
         if (oldNote) {
             noteData.done_date = oldNote.done_date || null; 
             noteData.order_index = oldNote.order_index;
-            noteData.gcal_event_id = oldNote.gcal_event_id; 
-            await saveNoteToDB(noteData, editingId);
+            oldGcalId = oldNote.gcal_event_id || null;
         }
     }
+
+    const savedGcalId = await syncToGoogleCalendar(noteData, oldGcalId);
+    
+    if (!savedGcalId && tokenExists()) {
+        if (!confirm("⚠️ 無法同步至 Google 日曆！\n可能是 Token 已過期，建議先按「取消」並重新登入。\n確定要強制儲存在資料庫嗎？")) {
+            return;
+        }
+    } else if (savedGcalId) {
+        noteData.gcal_event_id = savedGcalId; 
+    }
+
+    await saveNoteToDB(noteData, editingId);
     closeNoteModal();
+}
+
+function tokenExists() {
+    return !!sessionStorage.getItem('gcal_token');
 }
 
 /* =============================   月曆相關與跨月事件綁定 ============================= */
@@ -1113,18 +784,9 @@ function buildTagBubblesHtml(dateStr) {
         const notesInCat = grouped[cat];
         const bg = getCategoryColor(cat);
         const color = getCategoryTextColor(cat);
-
-        let label;
-        if (notesInCat.length === 1) {
-            const n0 = notesInCat[0];
-            const rawTitle = n0.title || cat;
-            const timePrefix = (n0.allDay === false && n0.startTime) ? `${n0.startTime} ` : '';
-            const trimmedTitle = rawTitle.length > 6 ? rawTitle.slice(0, 6) + "…" : rawTitle;
-            label = timePrefix + trimmedTitle;
-        } else {
-            label = `${cat}×${notesInCat.length}`;
-        }
-
+        let label = notesInCat.length === 1 ? (notesInCat[0].title || cat) : `${cat}×${notesInCat.length}`;
+        if (label.length > 6 && notesInCat.length === 1) label = label.slice(0, 6) + "…";
+        
         html += `<div class="note-category-tag" style="position:static;display:block;max-width:92%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;box-sizing:border-box;background:${bg};color:${color};margin-top:2px;">${label}</div>`;
     });
 
@@ -1173,11 +835,9 @@ function renderCalendar() {
 
         inner.innerHTML = `<div class="calendar-cell-num">${dateNum}</div>`;
         if (cellDateStr === todayStr) cell.classList.add("today");
-        
         if (noteDateSet.has(cellDateStr)) cell.classList.add("has-note");
 
         inner.innerHTML += buildTagBubblesHtml(cellDateStr);
-        
         if (cellDateStr === selectedDateStr) cell.classList.add("selected");
 
         cell.dataset.date = cellDateStr;
@@ -1224,14 +884,6 @@ window.onload = () => {
     document.getElementById("btnAdd").onclick = () => openNoteModal(null);
     document.getElementById("noteModalCancel").onclick = closeNoteModal;
     document.getElementById("noteModalSave").onclick = handleSaveNote;
-    document.getElementById("btnSyncNow").onclick = () => pullFromGoogleCalendar(true);
-
-    document.getElementById("noteAllDayInput").addEventListener("change", (e) => {
-        const showTime = !e.target.checked;
-        document.getElementById("noteStartTimeInput").style.display = showTime ? "inline-block" : "none";
-        document.getElementById("noteTimeSeparator").style.display = showTime ? "inline" : "none";
-        document.getElementById("noteEndTimeInput").style.display = showTime ? "inline-block" : "none";
-    });
     
     document.getElementById("btnPrevDay").onclick = (e) => {
         e.stopPropagation();
@@ -1272,22 +924,16 @@ window.onload = () => {
         const movePromises = Array.from(undoneElements).map(async (el) => {
             const id = el.dataset.id;
             const noteToMove = allUserNotesCache.find(n => n.id === id);
-
-            let extra = {
-                date: todayStr,
-                order_index: firebase.firestore.FieldValue.delete()
-            };
-
+            
             if (noteToMove) {
                 const tempNote = { ...noteToMove, date: todayStr };
-                const syncResult = await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
-                if (syncResult) {
-                    extra.gcal_event_id = syncResult.id;
-                    extra.gcal_updated = syncResult.updated;
-                }
+                await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
             }
 
-            return db.collection("users").doc(currentUserID).collection("notes").doc(id).update(extra);
+            return db.collection("users").doc(currentUserID).collection("notes").doc(id).update({
+                date: todayStr,
+                order_index: firebase.firestore.FieldValue.delete() 
+            });
         });
 
         try {
@@ -1312,9 +958,9 @@ window.onload = () => {
                     document.querySelector(".modal-field-row-new").style.display = "flex";
                     document.getElementById("noteTitleInput").style.display = "";
                     document.getElementById("noteContentInput").style.display = "";
+                    document.querySelector(".datetime-container").style.display = "flex";
                     document.getElementById("noteModalSave").style.display = "";
                     document.getElementById("noteCategoryTags").style.display = "flex";
-                    document.querySelector(".time-toggle-row").style.display = "flex";
                     
                     const oldRow = document.querySelector(".modal-field-row");
                     if (oldRow) oldRow.style.display = "none";
@@ -1343,13 +989,8 @@ document.getElementById("btnSearch").onclick = async () => {
     if (searchResults.length === 0) return alert("查無資料！");
 
     const rows = searchResults.map(n => [
-        n.id, 
-        n.date, 
-        n.title, 
-        n.content, 
-        n.done_date 
+        n.id, n.date, n.title, n.content, n.done_date 
     ]);
-
     showSearchResults(rows);
 };
 
@@ -1365,11 +1006,10 @@ function showSearchResults(rows) {
     document.querySelectorAll(".modal-field-label").forEach(el => el.style.display = "none");
     document.getElementById("noteTitleInput").style.display = "none";
     document.getElementById("noteContentInput").style.display = "none";
+    document.querySelector(".datetime-container").style.display = "none";
     document.getElementById("noteModalSave").style.display = "none";
-    
     document.querySelector(".modal-field-row-new").style.display = "none"; 
     document.getElementById("noteCategoryTags").style.display = "none";
-    document.querySelector(".time-toggle-row").style.display = "none";
 
     const tempArea = document.createElement("div");
     tempArea.id = "searchResultArea";
@@ -1430,9 +1070,9 @@ function openEditFromSearch(id) {
         document.querySelector(".modal-field-row-new").style.display = "flex";
         document.getElementById("noteTitleInput").style.display = "";
         document.getElementById("noteContentInput").style.display = "";
+        document.querySelector(".datetime-container").style.display = "flex";
         document.getElementById("noteModalSave").style.display = "";
         document.getElementById("noteCategoryTags").style.display = "flex";
-        document.querySelector(".time-toggle-row").style.display = "flex";
 
         openNoteModal(note);    
     }
