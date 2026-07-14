@@ -217,7 +217,7 @@ async function deleteFromGoogleCalendar(gcalEventId) {
     }
 }
 
-// 🔥 新增：從 Google Calendar 拉取當日行程並寫入 Kennote
+// 🔥 更新版：從 Google Calendar 拉取當日行程並寫入 Kennote (支援同步刪除)
 async function pullFromGoogleCalendar(dateStr) {
     if (!currentUserID) return;
     const token = sessionStorage.getItem('gcal_token');
@@ -236,9 +236,15 @@ async function pullFromGoogleCalendar(dateStr) {
         const gcalEvents = data.items || [];
         const localNotes = allUserNotesCache.filter(n => n.date === dateStr);
         let hasChanges = false;
+        
+        // 建立一個 Set，用來記錄這次從 Google 成功抓下來的有效 ID
+        const validGcalIds = new Set();
 
+        // 1. 處理 Google 上的新增與更新
         for (const event of gcalEvents) {
             if (event.status === 'cancelled') continue; 
+            
+            validGcalIds.add(event.id); // 記錄這是一個存活的行程
 
             const existingNote = localNotes.find(n => n.gcal_event_id === event.id);
             const eventTitle = event.summary || "(無標題)";
@@ -272,6 +278,17 @@ async function pullFromGoogleCalendar(dateStr) {
             }
         }
 
+        // 🔥 2. 處理同步刪除 (反向比對)
+        for (const localNote of localNotes) {
+            // 如果本地端這筆記事有綁定 gcal_event_id，但這次 Google 傳回的有效清單裡卻沒有它
+            if (localNote.gcal_event_id && !validGcalIds.has(localNote.gcal_event_id)) {
+                // 代表它在 Google 日曆上被刪除了，同步從 Firestore 刪除
+                await db.collection("users").doc(currentUserID).collection("notes").doc(localNote.id).delete();
+                hasChanges = true;
+            }
+        }
+
+        // 如果資料庫有任何變動 (新增/修改/刪除)，重新抓取並更新畫面
         if (hasChanges) {
             await fetchAllNotesForCache();
             const updatedNotes = allUserNotesCache.filter(n => n.date === dateStr);
