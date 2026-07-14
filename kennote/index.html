@@ -153,26 +153,17 @@ async function syncToGoogleCalendar(noteData, gcalEventId = null) {
     const token = sessionStorage.getItem('gcal_token');
     if (!token) return null;
 
-    // 將 Kennote 的時間轉換為帶有具體時間的格式 (預設當天早上 9 點到 10 點)
-    const startDate = new Date(noteData.date);
-    startDate.setHours(9, 0, 0); 
-    
-    const endDate = new Date(noteData.date);
-    endDate.setHours(10, 0, 0); 
-
-    const event = {
+const event = {
         summary: noteData.title || "(無標題)",
         description: noteData.content || "",
-        start: { 
-            dateTime: startDate.toISOString(),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
-        },
-        end: { 
-            dateTime: endDate.toISOString(),
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
-        },
-        status: "confirmed",          // 標示行程已確認
-        transparency: "opaque",       // 設為「忙碌」
+        
+        // 恢復成全天事件格式
+        start: { date: noteData.date },
+        end: { date: noteData.date },
+        
+        // 保留這三個屬性，這是 Meta AI 抓取行程的關鍵
+        status: "confirmed",
+        transparency: "opaque", 
         visibility: "default"
     };
 
