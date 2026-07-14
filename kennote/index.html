@@ -153,18 +153,18 @@ async function syncToGoogleCalendar(noteData, gcalEventId = null) {
     const token = sessionStorage.getItem('gcal_token');
     if (!token) return null;
 
-const event = {
+    // Google Calendar 官方定義「全天行程」的結束日期是隔天
+    const d = new Date(noteData.date);
+    d.setDate(d.getDate() + 1);
+    const endDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const event = {
         summary: noteData.title || "(無標題)",
         description: noteData.content || "",
-        
-        // 恢復成全天事件格式
         start: { date: noteData.date },
-        end: { date: noteData.date },
-        
-        // 保留這三個屬性，這是 Meta AI 抓取行程的關鍵
-        status: "confirmed",
-        transparency: "opaque", 
-        visibility: "default"
+        end: { date: endDateStr },
+        status: "confirmed",          // 標示行程已確認
+        transparency: "transparent"   // 設為「有空」(不忙碌)
     };
 
     const baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
