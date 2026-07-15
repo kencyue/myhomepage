@@ -59,7 +59,7 @@
 
 <div id="appContent" style="display: none;">
   <header class="header-flex">  
-    <div class="logo-box">    
+    <div class="logo-box" title="點擊強制同步 Google 日曆">    
       <img src="icon/logo.png" alt="keṅote" class="logo">  
     </div>
     <button id="btnLogout" class="nt-btn nt-ghost">登出</button>
@@ -217,7 +217,6 @@ async function deleteFromGoogleCalendar(gcalEventId) {
     }
 }
 
-// 🔥 更新版：從 Google Calendar 拉取當日行程並寫入 Kennote (支援同步刪除)
 async function pullFromGoogleCalendar(dateStr) {
     if (!currentUserID) return;
     const token = sessionStorage.getItem('gcal_token');
@@ -237,14 +236,12 @@ async function pullFromGoogleCalendar(dateStr) {
         const localNotes = allUserNotesCache.filter(n => n.date === dateStr);
         let hasChanges = false;
         
-        // 建立一個 Set，用來記錄這次從 Google 成功抓下來的有效 ID
         const validGcalIds = new Set();
 
-        // 1. 處理 Google 上的新增與更新
         for (const event of gcalEvents) {
             if (event.status === 'cancelled') continue; 
             
-            validGcalIds.add(event.id); // 記錄這是一個存活的行程
+            validGcalIds.add(event.id);
 
             const existingNote = localNotes.find(n => n.gcal_event_id === event.id);
             const eventTitle = event.summary || "(無標題)";
@@ -278,17 +275,13 @@ async function pullFromGoogleCalendar(dateStr) {
             }
         }
 
-        // 🔥 2. 處理同步刪除 (反向比對)
         for (const localNote of localNotes) {
-            // 如果本地端這筆記事有綁定 gcal_event_id，但這次 Google 傳回的有效清單裡卻沒有它
             if (localNote.gcal_event_id && !validGcalIds.has(localNote.gcal_event_id)) {
-                // 代表它在 Google 日曆上被刪除了，同步從 Firestore 刪除
                 await db.collection("users").doc(currentUserID).collection("notes").doc(localNote.id).delete();
                 hasChanges = true;
             }
         }
 
-        // 如果資料庫有任何變動 (新增/修改/刪除)，重新抓取並更新畫面
         if (hasChanges) {
             await fetchAllNotesForCache();
             const updatedNotes = allUserNotesCache.filter(n => n.date === dateStr);
@@ -364,11 +357,9 @@ function loadNotesForCurrentDate() {
     if (!currentUserID) return;
     const targetDate = getCurrentDateStr();
     
-    // 先渲染本地資料
     const notesToday = allUserNotesCache.filter(n => n.date === targetDate);
     renderNotes(notesToday);
 
-    // 背景拉取 Google 雙向同步
     pullFromGoogleCalendar(targetDate);
 }
 
@@ -701,7 +692,6 @@ function closeNoteModal() {
     document.getElementById("noteModal").style.display = "none";
 }
 
-// 🔥 新增/編輯防呆同步邏輯
 async function handleSaveNote() {
     const title = document.getElementById("noteTitleInput").value.trim();
     const content = document.getElementById("noteContentInput").value.trim();
@@ -886,6 +876,19 @@ function shiftCalendarMonth(offset) {
 }
 
 window.onload = () => {
+    // 🔥 新增：點擊 Logo 強制同步
+    const logoBox = document.querySelector('.logo-box');
+    if (logoBox) {
+        logoBox.style.cursor = 'pointer';
+        logoBox.onclick = async () => {
+            if (!currentUserID) return;
+            logoBox.style.opacity = '0.3';
+            const targetDate = getCurrentDateStr();
+            await pullFromGoogleCalendar(targetDate);
+            setTimeout(() => { logoBox.style.opacity = '1'; }, 300);
+        };
+    }
+
     document.querySelectorAll("#filterBar button").forEach(btn => {
         btn.onclick = () => {
             currentFilter = btn.dataset.filter; 
