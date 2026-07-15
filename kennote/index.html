@@ -149,7 +149,37 @@ auth = firebase.auth();
 db = firebase.firestore();
 
 /* =============================
-    Google Calendar API 工具 (雙向同步版)
+    Token 管理工具
+============================= */
+function tokenExists() {
+    return !!sessionStorage.getItem('gcal_token');
+}
+
+function isTokenStale() {
+    const t = sessionStorage.getItem('gcal_token_time');
+    if (!t) return true;
+    return (Date.now() - parseInt(t)) > 50 * 60 * 1000;
+}
+
+async function refreshGcalToken() {
+    if (!auth.currentUser) return false;
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/calendar.events');
+    try {
+        const result = await auth.currentUser.reauthenticateWithPopup(provider);
+        if (result.credential && result.credential.accessToken) {
+            sessionStorage.setItem('gcal_token', result.credential.accessToken);
+            sessionStorage.setItem('gcal_token_time', Date.now().toString());
+            return true;
+        }
+    } catch (e) {
+        console.error("Token 刷新失敗:", e);
+    }
+    return false;
+}
+
+/* =============================
+    Google Calendar API 工具
 ============================= */
 async function syncToGoogleCalendar(noteData, gcalEventId = null) {
     const token = sessionStorage.getItem('gcal_token');
@@ -190,7 +220,7 @@ async function syncToGoogleCalendar(noteData, gcalEventId = null) {
         if (!response.ok) {
             if (response.status === 401) {
                 sessionStorage.removeItem('gcal_token');
-                alert("Google 日曆同步失敗：登入憑證已過期 (通常效期為 1 小時)。\n\n請點擊「登出」並重新登入！");
+                console.warn("Google 日曆同步失敗：登入憑證已過期");
             }
             return null;
         }
@@ -247,21 +277,22 @@ async function pullFromGoogleCalendar(dateStr) {
             const eventTitle = event.summary || "(無標題)";
             const eventContent = event.description || "";
 
+            let newTime = "00:00";
+            if (event.start && event.start.dateTime) {
+                const d = new Date(event.start.dateTime);
+                newTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            }
+
             if (existingNote) {
-                if (existingNote.title !== eventTitle || existingNote.content !== eventContent) {
+                if (existingNote.title !== eventTitle || existingNote.content !== eventContent || existingNote.time !== newTime) {
                     await db.collection("users").doc(currentUserID).collection("notes").doc(existingNote.id).update({
                         title: eventTitle,
-                        content: eventContent
+                        content: eventContent,
+                        time: newTime
                     });
                     hasChanges = true;
                 }
             } else {
-                let newTime = "00:00";
-                if (event.start && event.start.dateTime) {
-                    const d = new Date(event.start.dateTime);
-                    newTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-                }
-
                 await db.collection("users").doc(currentUserID).collection("notes").add({
                     title: eventTitle,
                     content: eventContent,
@@ -312,6 +343,7 @@ auth.onAuthStateChanged(async (user) => {
     } else {
         currentUserID = null;
         sessionStorage.removeItem('gcal_token'); 
+        sessionStorage.removeItem('gcal_token_time');
         loginScreen.style.display = "flex";
         appContent.style.display = "none";
         
@@ -333,6 +365,7 @@ document.getElementById("btnGoogleSignIn").onclick = async function() {
         const credential = result.credential;
         if (credential && credential.accessToken) {
             sessionStorage.setItem('gcal_token', credential.accessToken);
+            sessionStorage.setItem('gcal_token_time', Date.now().toString());
         }
     } catch (error) {
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
@@ -412,6 +445,7 @@ async function deleteNote(id) {
         if (confirm("確定刪除這筆記事？")) {
             const noteToDelete = allUserNotesCache.find(n => n.id === id);
             if (noteToDelete && noteToDelete.gcal_event_id) {
+                if (!tokenExists() || isTokenStale()) await refreshGcalToken();
                 await deleteFromGoogleCalendar(noteToDelete.gcal_event_id);
             }
             await db.collection("users").doc(currentUserID).collection("notes").doc(id).delete();
@@ -451,6 +485,7 @@ async function moveNoteToDate(noteId, newDate) {
 
         if (noteToMove) {
             const tempNote = { ...noteToMove, date: newDate };
+            if (!tokenExists() || isTokenStale()) await refreshGcalToken();
             await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
         }
 
@@ -476,6 +511,7 @@ async function copyNoteToDate(originalNote, newDate) {
     };
     
     try {
+        if (!tokenExists() || isTokenStale()) await refreshGcalToken();
         const savedGcalId = await syncToGoogleCalendar(newNote);
         if (savedGcalId) newNote.gcal_event_id = savedGcalId;
 
@@ -725,22 +761,20 @@ async function handleSaveNote() {
         }
     }
 
-    const savedGcalId = await syncToGoogleCalendar(noteData, oldGcalId);
-    
-    if (!savedGcalId && tokenExists()) {
-        if (!confirm("⚠️ 無法同步至 Google 日曆！\n可能是 Token 已過期，建議先按「取消」並重新登入。\n確定要強制儲存在資料庫嗎？")) {
-            return;
+    if (!tokenExists() || isTokenStale()) {
+        const refreshed = await refreshGcalToken();
+        if (!refreshed) {
+            if (!confirm("⚠️ 無法重新獲取 Google 日曆授權！\n確定要強制只儲存在本地資料庫嗎？")) return;
         }
-    } else if (savedGcalId) {
+    }
+
+    const savedGcalId = await syncToGoogleCalendar(noteData, oldGcalId);
+    if (savedGcalId) {
         noteData.gcal_event_id = savedGcalId; 
     }
 
     await saveNoteToDB(noteData, editingId);
     closeNoteModal();
-}
-
-function tokenExists() {
-    return !!sessionStorage.getItem('gcal_token');
 }
 
 /* =============================   月曆相關與跨月事件綁定 ============================= */
@@ -876,15 +910,20 @@ function shiftCalendarMonth(offset) {
 }
 
 window.onload = () => {
-    // 🔥 新增：點擊 Logo 強制同步
     const logoBox = document.querySelector('.logo-box');
     if (logoBox) {
         logoBox.style.cursor = 'pointer';
         logoBox.onclick = async () => {
             if (!currentUserID) return;
             logoBox.style.opacity = '0.3';
+            
+            if (!tokenExists() || isTokenStale()) {
+                await refreshGcalToken();
+            }
+
             const targetDate = getCurrentDateStr();
             await pullFromGoogleCalendar(targetDate);
+            
             setTimeout(() => { logoBox.style.opacity = '1'; }, 300);
         };
     }
@@ -947,6 +986,7 @@ window.onload = () => {
             
             if (noteToMove) {
                 const tempNote = { ...noteToMove, date: todayStr };
+                if (!tokenExists() || isTokenStale()) await refreshGcalToken();
                 await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
             }
 
