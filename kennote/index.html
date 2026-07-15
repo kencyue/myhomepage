@@ -247,79 +247,117 @@ async function deleteFromGoogleCalendar(gcalEventId) {
     }
 }
 
-async function pullFromGoogleCalendar(dateStr) {
+// 🔥 終極版：從 Google Calendar 拉取行程 (擴大範圍至 3 個月，確保月曆紅點即時更新)
+async function pullFromGoogleCalendar(dateStr, isManual = false) {
     if (!currentUserID) return;
     const token = sessionStorage.getItem('gcal_token');
-    if (!token) return;
+    
+    if (!token) {
+        if (isManual) alert("即將重新獲取 Google 日曆授權...");
+        return false; 
+    }
 
-    const startOfDay = new Date(dateStr + "T00:00:00").toISOString();
-    const endOfDay = new Date(dateStr + "T23:59:59").toISOString();
+    // 建立 3 個月的查詢區間 (上個月、當月、下個月)
+    const baseDate = new Date(dateStr);
+    const y = baseDate.getFullYear();
+    const m = baseDate.getMonth();
+    const startDate = new Date(y, m - 1, 1);
+    const endDate = new Date(y, m + 2, 0, 23, 59, 59);
+
+    const timeMin = startDate.toISOString();
+    const timeMax = endDate.toISOString();
 
     try {
-        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfDay}&timeMax=${endOfDay}&singleEvents=true`, {
+        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&maxResults=2500`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) return;
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                sessionStorage.removeItem('gcal_token');
+                if (isManual) alert("Google 授權已過期！請再次點擊 Logo 以重新登入授權。");
+            }
+            return false;
+        }
 
         const data = await response.json();
         const gcalEvents = data.items || [];
-        const localNotes = allUserNotesCache.filter(n => n.date === dateStr);
-        let hasChanges = false;
         
+        // 抓出這三個月內的本地記事，用來反向比對
+        const startStr = formatDate(startDate);
+        const endStr = formatDate(endDate);
+        const localNotes = allUserNotesCache.filter(n => n.date >= startStr && n.date <= endStr);
+        
+        let hasChanges = false;
         const validGcalIds = new Set();
+        const batchPromises = []; // 批次更新陣列
 
         for (const event of gcalEvents) {
             if (event.status === 'cancelled') continue; 
-            
             validGcalIds.add(event.id);
 
             const existingNote = localNotes.find(n => n.gcal_event_id === event.id);
             const eventTitle = event.summary || "(無標題)";
             const eventContent = event.description || "";
-
+            
+            // 解析 Google 傳回的時間與日期
+            let eventDateStr = dateStr;
             let newTime = "00:00";
-            if (event.start && event.start.dateTime) {
-                const d = new Date(event.start.dateTime);
-                newTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            
+            if (event.start) {
+                if (event.start.dateTime) {
+                    const d = new Date(event.start.dateTime);
+                    eventDateStr = formatDate(d);
+                    newTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                } else if (event.start.date) {
+                    eventDateStr = event.start.date;
+                }
             }
 
             if (existingNote) {
-                if (existingNote.title !== eventTitle || existingNote.content !== eventContent || existingNote.time !== newTime) {
-                    await db.collection("users").doc(currentUserID).collection("notes").doc(existingNote.id).update({
+                // 如果標題、內容、時間或日期有任何變動
+                if (existingNote.title !== eventTitle || existingNote.content !== eventContent || existingNote.time !== newTime || existingNote.date !== eventDateStr) {
+                    batchPromises.push(db.collection("users").doc(currentUserID).collection("notes").doc(existingNote.id).update({
                         title: eventTitle,
                         content: eventContent,
-                        time: newTime
-                    });
+                        time: newTime,
+                        date: eventDateStr
+                    }));
                     hasChanges = true;
                 }
             } else {
-                await db.collection("users").doc(currentUserID).collection("notes").add({
+                // Kennote 裡沒有的外部新行程
+                batchPromises.push(db.collection("users").doc(currentUserID).collection("notes").add({
                     title: eventTitle,
                     content: eventContent,
-                    date: dateStr,
+                    date: eventDateStr,
                     time: newTime,
                     category: "", 
                     done_date: null,
                     gcal_event_id: event.id
-                });
+                }));
                 hasChanges = true;
             }
         }
 
+        // 處理刪除的行程
         for (const localNote of localNotes) {
             if (localNote.gcal_event_id && !validGcalIds.has(localNote.gcal_event_id)) {
-                await db.collection("users").doc(currentUserID).collection("notes").doc(localNote.id).delete();
+                batchPromises.push(db.collection("users").doc(currentUserID).collection("notes").doc(localNote.id).delete());
                 hasChanges = true;
             }
         }
 
         if (hasChanges) {
-            await fetchAllNotesForCache();
+            if (batchPromises.length > 0) await Promise.all(batchPromises);
+            await fetchAllNotesForCache(); // 重新拉取資料並重繪月曆紅點
             const updatedNotes = allUserNotesCache.filter(n => n.date === dateStr);
-            renderNotes(updatedNotes);
+            renderNotes(updatedNotes); // 更新列表
         }
+        return true;
     } catch (e) {
         console.error("同步拉取失敗:", e);
+        return false;
     }
 }
 
@@ -922,7 +960,7 @@ window.onload = () => {
             }
 
             const targetDate = getCurrentDateStr();
-            await pullFromGoogleCalendar(targetDate);
+            await pullFromGoogleCalendar(targetDate, true);
             
             setTimeout(() => { logoBox.style.opacity = '1'; }, 300);
         };
