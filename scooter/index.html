@@ -491,37 +491,26 @@
       completedTrips.forEach(t => totalD += (t.distance || 0));
       document.getElementById('total-dist').innerText = totalD;
 
-      // 2. 從快取取得所有加油紀錄，並按時間排序（舊到新）
-      let gasRecords = [];
-      cachedExpenses.forEach(d => { 
-        if(d.type === 'gas' && d.time) {
-          gasRecords.push({ volume: d.volume || 0, time: d.time.toDate() });
-        }
-      });
-      gasRecords.sort((a, b) => a.time - b.time);
+      // 2. 油耗改用「加油紀錄自己的里程(odo)」直接計算，不再依賴行程(trip)資料比對時間。
+      //    只挑選有填寫 odo 的加油紀錄；沒有 odo 的舊資料會被自動忽略，
+      //    不需要、也不會去更動資料庫裡既有的文件。
+      let gasRecords = cachedExpenses
+        .filter(d => d.type === 'gas' && d.time && typeof d.odo === 'number')
+        .map(d => ({ volume: d.volume || 0, odo: d.odo, time: d.time.toDate() }))
+        .sort((a, b) => a.odo - b.odo); // 用里程排序，才是真正反映油耗區間的依據
 
-      // 3. 計算精準油耗（只計算第一次加油到最後一次加油之間的區間）
+      // 3. 精準油耗 = (最後一次加油里程 - 第一次加油里程) / (第二次起每次的加油量總和)
+      //    第一筆只是「起算基準」，代表當下油箱是滿的，本身不計入耗油量。
       if (gasRecords.length > 1) {
-        const firstGasTime = gasRecords[0].time;
-        const latestGasTime = gasRecords[gasRecords.length - 1].time; // 取得最後一次加油的時間
-        
-        let validV = 0;
+        const totalDist = gasRecords[gasRecords.length - 1].odo - gasRecords[0].odo;
+
+        let totalVolume = 0;
         for (let i = 1; i < gasRecords.length; i++) {
-          validV += gasRecords[i].volume;
+          totalVolume += gasRecords[i].volume;
         }
 
-        let validD = 0;
-        completedTrips.forEach(t => {
-          // 核心修正：行程結束時間必須介於「第一次加油之後」與「最後一次加油之前(含)」
-          if (t.endTime) {
-            const tripTime = t.endTime.toDate();
-            if (tripTime > firstGasTime && tripTime <= latestGasTime) {
-              validD += (t.distance || 0);
-            }
-          }
-        });
-
-        document.getElementById('avg-fuel').innerText = validV > 0 ? (validD / validV).toFixed(1) : "--";
+        document.getElementById('avg-fuel').innerText =
+          (totalVolume > 0 && totalDist > 0) ? (totalDist / totalVolume).toFixed(1) : "--";
       } else {
         document.getElementById('avg-fuel').innerText = "--";
       }
