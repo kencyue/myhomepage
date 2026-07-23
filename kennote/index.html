@@ -134,6 +134,9 @@ const firebaseConfig = {
     appId: "1:1000941899656:web:5c2f62f428b9609520743d",
 };
 
+/* ★★★ 換成你部署 Apps Script 後拿到的網址（.../exec 結尾）★★★ */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwq5slnsJWqOpx0HeUoSNmKoPYK8Rrp0Z8_9SU8Ikmtg5BlaRH0V3zKZqCVbmEQYjC1A/exec";
+
 let auth = null;
 let db = null;
 let currentUserID = null;
@@ -148,91 +151,42 @@ const app = firebase.initializeApp(firebaseConfig);
 auth = firebase.auth();
 db = firebase.firestore();
 
-/* =============================
-    Token 管理工具
-============================= */
-function tokenExists() {
-    return !!sessionStorage.getItem('gcal_token');
-}
-
-function isTokenStale() {
-    const t = sessionStorage.getItem('gcal_token_time');
-    if (!t) return true;
-    return (Date.now() - parseInt(t)) > 50 * 60 * 1000;
-}
-
-// 🔥 改用 signInWithPopup 確保範圍能被正確授予，並加上防阻擋提示
-async function refreshGcalToken() {
-    if (!auth.currentUser) return false;
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.events');
-    try {
-        const result = await auth.signInWithPopup(provider);
-        if (result.credential && result.credential.accessToken) {
-            sessionStorage.setItem('gcal_token', result.credential.accessToken);
-            sessionStorage.setItem('gcal_token_time', Date.now().toString());
-            return true;
-        }
-    } catch (e) {
-        console.error("Token 刷新失敗:", e);
-        if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
-            alert("⚠️ 無法取得 Google 日曆權限！\n請檢查瀏覽器右上角是否阻擋了「彈出式視窗」。");
-        }
-    }
-    return false;
+function isAppsScriptConfigured() {
+    return !!APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes("YOUR_");
 }
 
 /* =============================
-    Google Calendar API 工具
+    Google Calendar 橋接（透過 Apps Script，不再需要前端 OAuth popup）
 ============================= */
 async function syncToGoogleCalendar(noteData, gcalEventId = null) {
-    const token = sessionStorage.getItem('gcal_token');
-    if (!token) return null;
+    if (!isAppsScriptConfigured()) return null;
 
     const fullDateTime = `${noteData.date}T${noteData.time || '09:00'}:00`;
     const start = new Date(fullDateTime);
-    const end = new Date(start.getTime() + 60 * 60 * 1000); 
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-    const event = {
-        summary: noteData.title || "(無標題)",
-        description: noteData.content || "",
-        start: { dateTime: start.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-        end: { dateTime: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-        status: "confirmed",
-        transparency: "opaque" 
+    const payload = {
+        action: 'upsert',
+        id: gcalEventId || null,
+        title: noteData.title || "(無標題)",
+        content: noteData.content || "",
+        start: start.toISOString(),
+        end: end.toISOString()
     };
 
-    const baseUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-    let url = baseUrl;
-    let method = 'POST';
-
-    if (gcalEventId) {
-        url = `${baseUrl}/${gcalEventId}`;
-        method = 'PUT';
-    }
-
     try {
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(event)
+        // 用 text/plain 送出，避免瀏覽器對 Apps Script 發出 CORS preflight（OPTIONS）
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
         });
-        
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error("GCal API 錯誤:", response.status, errText);
-            if (response.status === 401) {
-                sessionStorage.removeItem('gcal_token');
-                console.warn("Google 日曆同步失敗：登入憑證已過期");
-            }
+        const data = await response.json();
+        if (data.error) {
+            console.error("Apps Script 同步錯誤:", data.error);
             return null;
         }
-
-        const data = await response.json();
-        return data.id; 
+        return data.id || null;
     } catch (e) {
         console.error("同步至 Google Calendar 失敗:", e);
         return null;
@@ -240,16 +194,17 @@ async function syncToGoogleCalendar(noteData, gcalEventId = null) {
 }
 
 async function deleteFromGoogleCalendar(gcalEventId) {
-    const token = sessionStorage.getItem('gcal_token');
-    if (!token || !gcalEventId) return;
+    if (!isAppsScriptConfigured() || !gcalEventId) return;
 
     try {
-        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${gcalEventId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'delete', id: gcalEventId })
         });
-        if (!response.ok) {
-            console.error("從 Google Calendar 刪除失敗:", await response.text());
+        const data = await response.json();
+        if (data.error) {
+            console.error("從 Google Calendar 刪除失敗:", data.error);
         }
     } catch (e) {
         console.error("從 Google Calendar 刪除例外錯誤:", e);
@@ -258,11 +213,10 @@ async function deleteFromGoogleCalendar(gcalEventId) {
 
 async function pullFromGoogleCalendar(dateStr, isManual = false) {
     if (!currentUserID) return;
-    const token = sessionStorage.getItem('gcal_token');
-    
-    if (!token) {
-        if (isManual) alert("即將重新獲取 Google 日曆授權...");
-        return false; 
+
+    if (!isAppsScriptConfigured()) {
+        if (isManual) alert("尚未設定 Apps Script 網址，請先在程式碼中填入 APPS_SCRIPT_URL。");
+        return false;
     }
 
     const baseDate = new Date(dateStr);
@@ -275,21 +229,18 @@ async function pullFromGoogleCalendar(dateStr, isManual = false) {
     const timeMax = endDate.toISOString();
 
     try {
-        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&maxResults=2500`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                sessionStorage.removeItem('gcal_token');
-                if (isManual) alert("Google 授權已過期！請再次點擊 Logo 以重新登入授權。");
-            }
+        const url = `${APPS_SCRIPT_URL}?action=list&timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error) {
+            console.error("同步拉取失敗:", data.error);
+            if (isManual) alert("同步失敗：" + data.error);
             return false;
         }
 
-        const data = await response.json();
         const gcalEvents = data.items || [];
-        
+
         const startStr = formatDate(startDate);
         const endStr = formatDate(endDate);
         const localNotes = allUserNotesCache.filter(n => n.date >= startStr && n.date <= endStr);
@@ -359,6 +310,7 @@ async function pullFromGoogleCalendar(dateStr, isManual = false) {
         return true;
     } catch (e) {
         console.error("同步拉取失敗:", e);
+        if (isManual) alert("同步失敗：" + e.message);
         return false;
     }
 }
@@ -382,8 +334,6 @@ auth.onAuthStateChanged(async (user) => {
         loadNotesForCurrentDate();
     } else {
         currentUserID = null;
-        sessionStorage.removeItem('gcal_token'); 
-        sessionStorage.removeItem('gcal_token_time');
         loginScreen.style.display = "flex";
         appContent.style.display = "none";
         
@@ -397,20 +347,16 @@ document.getElementById("btnGoogleSignIn").onclick = async function() {
     this.style.opacity = "0.5";
     this.innerHTML = "登入中...";
 
+    // 只需要一般登入權限；日曆存取改由 Apps Script（你自己帳號）代為執行，
+    // 前端不再需要 calendar.events 這個額外 scope，也就不會再跳日曆授權窗。
     const provider = new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/calendar.events');
     
     try {
-        const result = await auth.signInWithPopup(provider);
-        const credential = result.credential;
-        if (credential && credential.accessToken) {
-            sessionStorage.setItem('gcal_token', credential.accessToken);
-            sessionStorage.setItem('gcal_token_time', Date.now().toString());
-        }
+        await auth.signInWithPopup(provider);
     } catch (error) {
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
             console.error("登入失敗", error);
-            alert("登入或取得日曆權限失敗：" + error.message);
+            alert("登入失敗：" + error.message);
         }
     } finally {
         this.disabled = false;
@@ -484,10 +430,6 @@ async function deleteNote(id) {
         if (confirm("確定刪除這筆記事？")) {
             const noteToDelete = allUserNotesCache.find(n => n.id === id);
             if (noteToDelete && noteToDelete.gcal_event_id) {
-                if (!tokenExists() || isTokenStale()) {
-                    await refreshGcalToken();
-                }
-                // 即使重新授權失敗，也嘗試呼叫（因為如果是過期，一定會被擋下）
                 await deleteFromGoogleCalendar(noteToDelete.gcal_event_id);
             }
             await db.collection("users").doc(currentUserID).collection("notes").doc(id).delete();
@@ -527,9 +469,6 @@ async function moveNoteToDate(noteId, newDate) {
 
         if (noteToMove) {
             const tempNote = { ...noteToMove, date: newDate };
-            if (!tokenExists() || isTokenStale()) {
-                await refreshGcalToken();
-            }
             await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
         }
 
@@ -555,9 +494,6 @@ async function copyNoteToDate(originalNote, newDate) {
     };
     
     try {
-        if (!tokenExists() || isTokenStale()) {
-            await refreshGcalToken();
-        }
         const savedGcalId = await syncToGoogleCalendar(newNote);
         if (savedGcalId) newNote.gcal_event_id = savedGcalId;
 
@@ -807,15 +743,7 @@ async function handleSaveNote() {
         }
     }
 
-    if (!tokenExists() || isTokenStale()) {
-        const refreshed = await refreshGcalToken();
-        if (!refreshed) {
-            if (!confirm("⚠️ 無法取得 Google 日曆授權！\n這筆記事將只會儲存在 Kennote，確定要儲存嗎？")) {
-                return;
-            }
-        }
-    }
-
+    // 日曆同步交給 Apps Script，失敗也不擋住儲存（純粹本地記事仍然可用）
     const savedGcalId = await syncToGoogleCalendar(noteData, oldGcalId);
     if (savedGcalId) {
         noteData.gcal_event_id = savedGcalId; 
@@ -964,10 +892,6 @@ window.onload = () => {
         logoBox.onclick = async () => {
             if (!currentUserID) return;
             logoBox.style.opacity = '0.3';
-            
-            if (!tokenExists() || isTokenStale()) {
-                await refreshGcalToken();
-            }
 
             const targetDate = getCurrentDateStr();
             await pullFromGoogleCalendar(targetDate, true);
@@ -1028,13 +952,14 @@ window.onload = () => {
 
         if (!confirm(`確定要將畫面上 ${undoneElements.length} 個未完成項目延至今日 (${todayStr}) 嗎？`)) return;
 
+        // ✅ 不再需要在迴圈裡逐一取得 OAuth token，Apps Script 用自己的授權處理，
+        //    所以這裡可以安心平行送出，不會再跳出多個登入視窗。
         const movePromises = Array.from(undoneElements).map(async (el) => {
             const id = el.dataset.id;
             const noteToMove = allUserNotesCache.find(n => n.id === id);
             
             if (noteToMove) {
                 const tempNote = { ...noteToMove, date: todayStr };
-                if (!tokenExists() || isTokenStale()) await refreshGcalToken();
                 await syncToGoogleCalendar(tempNote, noteToMove.gcal_event_id);
             }
 
