@@ -137,6 +137,9 @@ const firebaseConfig = {
 /* ★★★ 換成你部署 Apps Script 後拿到的網址（.../exec 結尾）★★★ */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwq5slnsJWqOpx0HeUoSNmKoPYK8Rrp0Z8_9SU8Ikmtg5BlaRH0V3zKZqCVbmEQYjC1A/exec";
 
+/* ★★★ 只允許這個 Google 帳號使用 Kennote，其他帳號登入後會被立刻登出 ★★★ */
+const ALLOWED_EMAIL = "jingsyuan@gmail.com";
+
 let auth = null;
 let db = null;
 let currentUserID = null;
@@ -157,6 +160,8 @@ function isAppsScriptConfigured() {
 
 /* =============================
     Google Calendar 橋接（透過 Apps Script，不再需要前端 OAuth popup）
+    ※ 帳號存取控管交給 Firebase 白名單（見下方 onAuthStateChanged），
+      這裡不再需要額外驗證 idToken。
 ============================= */
 async function syncToGoogleCalendar(noteData, gcalEventId = null) {
     if (!isAppsScriptConfigured()) return null;
@@ -323,6 +328,18 @@ auth.onAuthStateChanged(async (user) => {
     const appContent = document.getElementById("appContent");
 
     if (user) {
+        // ★ 白名單檢查：不是允許的帳號，立刻登出，不做任何 Firestore 讀寫、
+        //   也就不會走到 syncToGoogleCalendar，別人的操作不會同步進你的日曆。
+        const email = (user.email || "").toLowerCase();
+        if (email !== ALLOWED_EMAIL.toLowerCase()) {
+            console.warn("拒絕存取：", email);
+            await auth.signOut();
+            alert("此帳號沒有使用 Kennote 的權限。");
+            loginScreen.style.display = "flex";
+            appContent.style.display = "none";
+            return;
+        }
+
         currentUserID = user.uid;
         loginScreen.style.display = "none";
         appContent.style.display = "flex"; 
