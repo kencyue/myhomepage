@@ -633,6 +633,16 @@
 
   function genId() { return 'i' + Math.random().toString(36).slice(2, 9); }
 
+function switchEditorTab(idx) {
+    currentEditorTab = idx;
+    document.querySelectorAll('.editor-tab').forEach(t => {
+        t.classList.toggle('active', parseInt(t.dataset.index) === idx);
+    });
+    document.querySelectorAll('.editor-panel').forEach(p => {
+        p.classList.toggle('active', parseInt(p.dataset.index) === idx);
+    });
+}
+  
   window.openEditor = function() {
       const modal = document.getElementById("modal");
       const overlay = document.getElementById("overlay");
