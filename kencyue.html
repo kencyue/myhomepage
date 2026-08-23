@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Ken的首頁 (手機排版修正版)</title>
+  <title>Ken的首頁 (Icon編輯版)</title>
   <link rel="shortcut icon" href="images/tool-box.png" type="image/x-icon">
   <style>
     /* --- 基礎設定 --- */
@@ -36,14 +36,14 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 12px; /* 手機版邊距縮小 */
+        padding: 0 12px;
         font-size: 14px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         z-index: 100;
         flex-shrink: 0;
-        overflow: hidden; /* 防止 Toolbar 被撐開 */
+        overflow: hidden;
     }
-    
+
     .traffic-lights { display: flex; gap: 8px; cursor: pointer; flex-shrink: 0; }
     .circle { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.2); transition: transform 0.2s; }
     .circle:hover { transform: scale(1.2); }
@@ -62,6 +62,30 @@
         white-space: nowrap;
     }
     .btn-auth:hover { background: rgba(255,255,255,0.4); }
+
+    /* --- 載入逾時提示條 --- */
+    #loadErrorBanner {
+        display: none;
+        background: #fff3cd;
+        color: #7a5b00;
+        font-size: 12px;
+        padding: 6px 16px;
+        text-align: center;
+        flex-shrink: 0;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+    }
+    #loadErrorBanner button {
+        background: #7a5b00;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 3px 10px;
+        font-size: 11px;
+        cursor: pointer;
+        margin-left: 8px;
+    }
 
     /* --- 毛玻璃面板 --- */
     .glass-panel {
@@ -83,11 +107,7 @@
     }
     .tab-container-wrapper::-webkit-scrollbar { display: none; }
 
-    .tabs {
-        display: flex;
-        gap: 6px;
-        width: 100%;
-    }
+    .tabs { display: flex; gap: 6px; width: 100%; }
 
     .tab {
         padding: 10px 20px;
@@ -101,14 +121,12 @@
         border: 1px solid transparent;
         position: relative;
         bottom: -1px;
-        
-        /* 限制最大寬度與省略號 */
-        max-width: 150px; 
+        max-width: 150px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
-        flex-shrink: 0; /* 防止被壓縮 */
+        flex-shrink: 0;
     }
     .tab:hover { background: rgba(255, 255, 255, 0.6); }
     .tab.active {
@@ -137,7 +155,7 @@
 
     .bookmark-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* PC 預設 */
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         gap: 16px;
         justify-items: center;
     }
@@ -148,13 +166,11 @@
         align-items: center;
         text-decoration: none;
         color: #444;
-        width: 80px; 
+        width: 80px;
         padding: 10px;
         border-radius: 12px;
         transition: transform 0.2s, background 0.2s;
-        
-        /* ★ 關鍵：防止寬度被文字撐開 */
-        min-width: 0; 
+        min-width: 0;
         overflow: hidden;
     }
     .bookmark-item:hover {
@@ -169,15 +185,12 @@
         margin-bottom: 8px;
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
-    
     .bookmark-item span {
         font-size: 13px;
         text-align: center;
         width: 100%;
         display: block;
         font-weight: 500;
-        
-        /* 強制單行與省略號 */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -207,95 +220,105 @@
         display: flex; justify-content: space-between; align-items: center;
         flex-shrink: 0;
     }
-    
+
     .editor-tabs-scroll {
         overflow-x: auto;
         background: #f1f3f5;
         border-bottom: 1px solid #ddd;
         flex-shrink: 0;
     }
-    .editor-tabs {
-        display: flex;
-        padding: 0 10px;
-        min-width: max-content; 
-    }
-    
+    .editor-tabs { display: flex; padding: 0 10px; min-width: max-content; }
+
     .editor-tab {
         padding: 12px 24px;
         font-weight: 600;
-        cursor: pointer; 
+        cursor: pointer;
         color: #666;
         border-right: 1px solid rgba(0,0,0,0.05);
         background: #e9ecef;
         user-select: none;
         transition: background 0.2s;
-        
         max-width: 120px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     .editor-tab.active { background: #fff; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
-    
+
     .modal-body { flex: 1; overflow-y: auto; padding: 20px; background: #fafafa; }
-    
+
     .editor-panel { display: none; }
     .editor-panel.active { display: block; }
 
-    /* 編輯卡片 */
-    .bookmark-card {
+    .group-header-bar {
+        display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;
+        background:#fff; padding:10px; border-radius:8px; border:1px solid #eee;
+    }
+    .group-header-bar input {
+        border:none; font-size:16px; font-weight:bold; width:100%; outline:none;
+    }
+
+    /* --- ★ 編輯用 Icon 格狀排序區 --- */
+    .editor-icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+        gap: 10px;
+        min-height: 60px;
+        padding: 6px;
+        background: #f1f3f5;
+        border-radius: 10px;
+    }
+    .egrid-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 2px solid #e5e5e5;
+        border-radius: 10px;
+        padding: 8px 4px 6px;
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        min-width: 0;
+        touch-action: manipulation;
+    }
+    .egrid-item:hover { border-color: #b9d6f5; }
+    .egrid-item.selected { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(74,144,226,0.25); }
+    .egrid-item img { width: 32px; height: 32px; object-fit: contain; margin-bottom: 4px; pointer-events: none; }
+    .egrid-item span {
+        font-size: 11px; width: 100%; text-align: center;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        pointer-events: none;
+    }
+    .egrid-delete {
+        position: absolute; top: -6px; right: -6px;
+        width: 18px; height: 18px; border-radius: 50%;
+        background: #ff5f56; color: #fff; border: 2px solid #fff;
+        font-size: 11px; line-height: 1; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 2;
+    }
+    .egrid-add {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        border: 2px dashed #bbb; border-radius: 10px; color: #999;
+        cursor: pointer; font-size: 22px; min-height: 68px;
+        background: transparent;
+    }
+    .egrid-add:hover { border-color: var(--primary-color); color: var(--primary-color); }
+    .egrid-add small { font-size: 10px; margin-top: 2px; }
+
+    /* --- 選中項目的編輯面板 --- */
+    .item-edit-panel {
+        margin-top: 14px;
         background: #fff;
         border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        transition: box-shadow 0.2s;
+        border-radius: 10px;
+        padding: 14px;
+        display: none;
     }
-    .bookmark-card.active { box-shadow: 0 8px 16px rgba(0,0,0,0.1); border-color: var(--primary-color); }
-    
-    .card-header {
-        padding: 12px 16px;
-        display: flex; align-items: center;
-        cursor: pointer;
-        background: #fff;
-        border-radius: 8px;
-        user-select: none;
-        overflow: hidden; 
-    }
-    
-    .drag-handle {
-        margin-right: 12px;
-        font-size: 20px;
-        color: #bbb;
-        cursor: grab;
-        padding: 4px 8px;
-        touch-action: none !important; 
-        flex-shrink: 0;
-    }
-    .drag-handle:active { cursor: grabbing; color: #666; }
-
-    .card-title { 
-        flex: 1; 
-        font-weight: 600; 
-        font-size: 14px; 
-        min-width: 0; /* ★ 關鍵：讓 flex item 能夠被截斷 */
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
-        margin-right: 10px;
-    }
-    
-    .card-content {
-        max-height: 0; overflow: hidden;
-        transition: max-height 0.3s ease-out, padding 0.3s ease;
-        background: #f8f9fa;
-        border-top: 1px solid transparent;
-    }
-    .bookmark-card.active .card-content {
-        max-height: 600px;
-        padding: 16px;
-        border-top-color: #eee;
-    }
+    .item-edit-panel.show { display: block; }
+    .item-edit-panel-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; flex-wrap: wrap; }
 
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; font-weight: bold; }
@@ -313,56 +336,31 @@
         display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
         flex-shrink: 0;
     }
-    
+
     .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; }
     .btn-primary { background: var(--primary-color); color: #fff; }
     .btn-danger { background: #ff5f56; color: #fff; }
     .btn-outline { background: transparent; border: 1px solid #ddd; color: #666; }
 
-    .sortable-ghost { opacity: 0.4; background: #e3f2fd; border: 2px dashed #90caf9; z-index: 10000 !important; }
+    .sortable-ghost { opacity: 0.4; background: #e3f2fd; border: 2px dashed #90caf9 !important; z-index: 10000 !important; }
     .sortable-fallback { z-index: 10000 !important; opacity: 0.9; }
+    .sortable-chosen { border-color: var(--primary-color) !important; }
 
-    /* --- ★ 手機版專用修正 CSS --- */
+    /* --- 手機版專用修正 CSS --- */
     @media (max-width: 600px) {
         .toolbar { padding: 0 8px; }
-        
         .tab-container-wrapper { margin: 10px 10px 0; }
         #groupsContainer { margin: 0 10px 10px; padding: 15px; }
-        
         .modal { width: 100%; height: 100%; max-height: 100%; border-radius: 0; top:0; left:0; transform:none; }
-        
-        .bookmark-grid { 
-            grid-template-columns: repeat(4, 1fr); /* 強制四欄 */
-            gap: 8px; 
-        }
-        
-        .bookmark-item { 
-            width: 100%; /* ★ 強制跟隨格子寬度 */
-            min-width: 0; /* ★ 解決文字撐開問題的關鍵 */
-            padding: 6px; 
-            box-sizing: border-box;
-        }
-        
+        .bookmark-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .bookmark-item { width: 100%; min-width: 0; padding: 6px; box-sizing: border-box; }
         .bookmark-item img { width: 40px; height: 40px; }
         .bookmark-item span { font-size: 11px; }
-
+        .editor-icon-grid { grid-template-columns: repeat(4, 1fr); }
         .modal-footer { justify-content: center; }
         .modal-footer .btn { flex: 1 1 40%; text-align: center; }
-        
-        #userDisplay { 
-            max-width: 70px; /* 手機上限制名稱寬度 */
-            overflow: hidden; 
-            white-space: nowrap; 
-            text-overflow: ellipsis; 
-            display:inline-block; 
-            vertical-align:middle; 
-        }
-        
-        #pageTitle {
-            font-size: 14px; /* 手機上標題小一點 */
-            flex: 1; /* 佔據剩餘空間 */
-            min-width: 0; /* 允許被壓縮 */
-        }
+        #userDisplay { max-width: 70px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display:inline-block; vertical-align:middle; }
+        #pageTitle { font-size: 14px; flex: 1; min-width: 0; }
     }
   </style>
 </head>
@@ -376,7 +374,7 @@
         <div id="pageTitle" style="font-weight:600; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="window.openEditor()">Ken的首頁</div>
         <div id="loadingState" style="display:none; color: #ffeb3b; font-size:12px; white-space:nowrap;">● 同步中</div>
     </div>
-    
+
     <div id="authContainer">
         <span id="userDisplay" style="font-size:12px; opacity:0.9;">訪客</span>
         <button id="loginBtn" class="btn-auth">登入</button>
@@ -385,10 +383,15 @@
     </div>
   </div>
 
+  <div id="loadErrorBanner">
+    ⚠️ 讀取逾時，目前顯示的是快取/預設內容
+    <button id="retryLoadBtn">重新載入</button>
+  </div>
+
   <div class="tab-container-wrapper glass-panel">
     <div id="mainTabs" class="tabs"></div>
   </div>
-  
+
   <div id="groupsContainer"></div>
 
   <div class="overlay" id="overlay"></div>
@@ -397,7 +400,7 @@
       <h3 style="margin:0; color:#333; font-size:18px;">管理書籤</h3>
       <button id="closeBtn" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer;">&times;</button>
     </div>
-    
+
     <div style="padding: 10px 24px; background: #fff;">
         <div class="form-group" style="margin:0;">
             <label>網站標題</label>
@@ -410,7 +413,7 @@
     </div>
 
     <div class="modal-body" id="editorPanels"></div>
-    
+
     <div class="modal-footer">
       <button onclick="window.addGroup()" class="btn btn-outline" style="border-style:dashed;">+ 分頁</button>
       <div style="flex:1;"></div>
@@ -425,9 +428,9 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc } 
+  import { getFirestore, doc, getDoc, setDoc, enableIndexedDbPersistence }
     from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -445,10 +448,16 @@
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
+  // ★ 效能修正 1：開啟離線快取，斷線或訊號差時仍可秒開舊資料
+  enableIndexedDbPersistence(db).catch((err) => {
+      console.warn("離線持久化未啟用:", err.code);
+  });
+
   let data = { title: "Ken的首頁", groups: [] };
   let currentUser = null;
   let currentMainTab = null;
   let currentEditorTab = 0;
+  let selectedItemKey = null; // `${groupIdx}:${itemId}`
 
   const defaultData = {
     title: "我的首頁",
@@ -468,9 +477,12 @@
   const logoutBtn = document.getElementById("logoutBtn");
   const userDisplay = document.getElementById("userDisplay");
   const loadingState = document.getElementById("loadingState");
+  const loadErrorBanner = document.getElementById("loadErrorBanner");
+  const retryLoadBtn = document.getElementById("retryLoadBtn");
 
   loginBtn.onclick = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
   logoutBtn.onclick = () => signOut(auth).then(() => location.reload());
+  retryLoadBtn.onclick = () => { if (currentUser) loadDataFromFirestore(currentUser.uid); };
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -489,40 +501,59 @@
     }
   });
 
+  // ★ 效能修正 2：加上逾時保護，避免 getDoc 卡住讓畫面永遠停在「同步中」
+  function withTimeout(promise, ms = 8000) {
+      return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))
+      ]);
+  }
+
   async function loadDataFromFirestore(uid) {
       showLoading(true);
+      showLoadError(false);
       try {
-          const docSnap = await getDoc(doc(db, "users", uid));
+          const docSnap = await withTimeout(getDoc(doc(db, "users", uid)));
           if (docSnap.exists() && docSnap.data().bookmarksData) {
               data = docSnap.data().bookmarksData;
           } else {
               data.title = `${currentUser.displayName}的首頁`;
           }
-      } catch (e) { console.error(e); }
-      showLoading(false);
-      renderMain();
+      } catch (e) {
+          console.error("讀取失敗或逾時:", e);
+          // 逾時/失敗時不要卡住空白畫面，先用預設資料墊著，並提示可重試
+          if (!data.groups || data.groups.length === 0) {
+              data = JSON.parse(JSON.stringify(defaultData));
+              data.title = currentUser ? `${currentUser.displayName}的首頁` : data.title;
+          }
+          showLoadError(true);
+      } finally {
+          showLoading(false);
+          renderMain();
+      }
   }
 
   async function saveDataToFirestore() {
       if (!currentUser) return;
       showLoading(true);
       try {
-          await setDoc(doc(db, "users", currentUser.uid), {
+          await withTimeout(setDoc(doc(db, "users", currentUser.uid), {
               bookmarksData: data,
               updatedAt: new Date()
-          });
-      } catch (e) { alert("儲存失敗: " + e.message); }
+          }), 10000);
+      } catch (e) { alert("儲存失敗，請檢查網路後再試一次: " + e.message); }
       showLoading(false);
   }
 
   function showLoading(show) { loadingState.style.display = show ? "block" : "none"; }
+  function showLoadError(show) { loadErrorBanner.style.display = show ? "flex" : "none"; }
 
   function renderMain() {
     document.getElementById("pageTitle").textContent = data.title || "Ken的首頁";
     document.title = data.title || "Ken的首頁";
     const tabsContainer = document.getElementById("mainTabs");
     const groupsContainer = document.getElementById("groupsContainer");
-    
+
     tabsContainer.innerHTML = "";
     groupsContainer.innerHTML = "";
 
@@ -535,6 +566,8 @@
     if (!currentMainTab || !groupNames.includes(currentMainTab)) {
         currentMainTab = data.groups[0].group;
     }
+
+    const frag = document.createDocumentFragment();
 
     data.groups.forEach(g => {
         const tab = document.createElement("div");
@@ -562,15 +595,25 @@
                 a.className = "bookmark-item";
                 a.href = item.url;
                 a.target = "_blank";
-                a.innerHTML = `<img src="${item.img}" onerror="this.src='images/tool-box.png'"><span>${item.text}</span>`;
+                a.rel = "noopener";
+                const img = document.createElement("img");
+                img.src = item.img;
+                img.loading = "lazy";
+                img.onerror = function () { this.onerror = null; this.src = 'images/tool-box.png'; };
+                const span = document.createElement("span");
+                span.textContent = item.text;
+                a.appendChild(img);
+                a.appendChild(span);
                 grid.appendChild(a);
             });
             wrapper.appendChild(grid);
         } else {
             wrapper.innerHTML = "<div style='text-align:center; padding:40px; opacity:0.5;'>暫無書籤</div>";
         }
-        groupsContainer.appendChild(wrapper);
+        frag.appendChild(wrapper);
     });
+
+    groupsContainer.appendChild(frag);
   }
 
   // --- Sortable Config ---
@@ -579,13 +622,16 @@
   const getSortableConfig = () => ({
       animation: 200,
       ghostClass: "sortable-ghost",
-      forceFallback: isTouch, 
-      fallbackOnBody: true, 
+      chosenClass: "sortable-chosen",
+      forceFallback: isTouch,
+      fallbackOnBody: true,
       swapThreshold: 0.65,
-      delay: isTouch ? 200 : 0, 
+      delay: isTouch ? 150 : 0,
       delayOnTouchOnly: true,
       touchStartThreshold: 5
   });
+
+  function genId() { return 'i' + Math.random().toString(36).slice(2, 9); }
 
   window.openEditor = function() {
       const modal = document.getElementById("modal");
@@ -594,13 +640,18 @@
       const editorTabs = document.getElementById("editorTabs");
       const editorPanels = document.getElementById("editorPanels");
 
+      // 確保每個項目都有穩定的 _id，方便格狀拖曳排序與選取編輯
+      data.groups.forEach(g => {
+          (g.items || []).forEach(item => { if (!item._id) item._id = genId(); });
+      });
+
       titleInput.value = data.title || "";
       editorTabs.innerHTML = "";
       editorPanels.innerHTML = "";
-      
+
       modal.style.display = "flex";
       overlay.style.display = "block";
-      
+
       if (currentEditorTab >= data.groups.length) currentEditorTab = 0;
 
       data.groups.forEach((g, idx) => {
@@ -614,78 +665,167 @@
           const panel = document.createElement("div");
           panel.className = `editor-panel ${idx === currentEditorTab ? 'active' : ''}`;
           panel.dataset.index = idx;
-          
+
           panel.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:#fff; padding:10px; border-radius:8px; border:1px solid #eee;">
-                <input type="text" class="group-name-edit" value="${g.group}" 
-                    style="border:none; font-size:16px; font-weight:bold; width:100%; outline:none;" 
+            <div class="group-header-bar">
+                <input type="text" class="group-name-edit" value="${escapeAttr(g.group)}"
                     oninput="window.updateGroupName(this, ${idx})">
-                <button onclick="window.deleteGroup(${idx})" class="btn-danger" style="font-size:12px; padding:4px 8px; margin-left:10px; white-space:nowrap;">刪除</button>
+                <button onclick="window.deleteGroup(${idx})" class="btn-danger" style="font-size:12px; padding:4px 8px; margin-left:10px; white-space:nowrap;">刪除分頁</button>
             </div>
-            <div class="card-list" id="cardList-${idx}"></div>
-            <button onclick="window.addCard(${idx})" class="btn btn-outline" style="width:100%; margin-top:15px; border-style:dashed;">+ 新增書籤</button>
+            <div class="editor-icon-grid" id="cardGrid-${idx}"></div>
+            <div class="item-edit-panel" id="editPanel-${idx}">
+                <div class="form-group"><label>名稱</label><input type="text" id="ef-text-${idx}"></div>
+                <div class="form-group"><label>網址</label><input type="text" id="ef-url-${idx}"></div>
+                <div class="form-group"><label>圖示 (URL，留空自動抓 favicon)</label><input type="text" id="ef-img-${idx}"></div>
+                <div class="item-edit-panel-footer">
+                    <button class="btn-danger" onclick="window.deleteSelectedItem(${idx})">刪除此項</button>
+                    <button class="btn-outline" onclick="window.closeItemEdit(${idx})">收合</button>
+                </div>
+            </div>
           `;
           editorPanels.appendChild(panel);
-          
-          const cardList = panel.querySelector(".card-list");
-          if(g.items) {
-              g.items.forEach(item => {
-                  cardList.insertAdjacentHTML('beforeend', createCardHTML(item));
-              });
-          }
 
-          new Sortable(cardList, {
-              ...getSortableConfig(),
-              handle: ".drag-handle",
-              group: "cards"
-          });
+          renderCardGrid(idx);
       });
 
       new Sortable(editorTabs, {
           ...getSortableConfig(),
           direction: 'horizontal',
-          handle: '.editor-tab', 
-          onEnd: () => console.log("Tabs Reordered")
+          handle: '.editor-tab',
+          onEnd: (evt) => {
+              const moved = data.groups.splice(evt.oldIndex, 1)[0];
+              data.groups.splice(evt.newIndex, 0, moved);
+              window.openEditor();
+          }
       });
   };
 
-  function switchEditorTab(idx) {
-      currentEditorTab = idx;
-      document.querySelectorAll(".editor-tab").forEach(t => t.classList.toggle("active", parseInt(t.dataset.index) === idx));
-      document.querySelectorAll(".editor-panel").forEach(p => p.classList.toggle("active", parseInt(p.dataset.index) === idx));
+  function escapeAttr(str) {
+      return String(str ?? "").replace(/"/g, "&quot;");
+  }
+  function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
 
-  function createCardHTML(item = {}) {
-      const { url='', text='', img='', order=0 } = item;
-      return `
-        <div class="bookmark-card">
-            <div class="card-header" onclick="this.parentElement.classList.toggle('active')">
-                <div class="drag-handle">☰</div>
-                <div class="card-title">${text || '(未命名)'}</div>
-                <div style="font-size:12px; color:#aaa;">▼</div>
-            </div>
-            <div class="card-content">
-                <div class="form-group"><label>名稱</label><input type="text" data-key="text" value="${text}" oninput="this.closest('.bookmark-card').querySelector('.card-title').textContent = this.value"></div>
-                <div class="form-group"><label>網址</label><input type="text" data-key="url" value="${url}"></div>
-                <div class="form-group"><label>圖示 (URL)</label><input type="text" data-key="img" value="${img}"></div>
-                <div style="text-align:right; margin-top:10px;">
-                    <button class="btn-danger" style="font-size:12px;" onclick="this.closest('.bookmark-card').remove()">刪除</button>
-                </div>
-            </div>
-        </div>
-      `;
+  // ★ 編輯區改為 icon 格狀顯示，項目多時也能一眼看到全部並直接拖曳排序
+  function renderCardGrid(idx) {
+      const grid = document.getElementById(`cardGrid-${idx}`);
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      (data.groups[idx].items || []).forEach(item => {
+          const tile = document.createElement("div");
+          tile.className = "egrid-item";
+          tile.dataset.id = item._id;
+          if (selectedItemKey === `${idx}:${item._id}`) tile.classList.add("selected");
+
+          const del = document.createElement("div");
+          del.className = "egrid-delete";
+          del.textContent = "×";
+          del.onclick = (e) => { e.stopPropagation(); window.deleteItemById(idx, item._id); };
+
+          const img = document.createElement("img");
+          img.src = item.img || 'images/tool-box.png';
+          img.onerror = function () { this.onerror = null; this.src = 'images/tool-box.png'; };
+
+          const span = document.createElement("span");
+          span.textContent = item.text || "(未命名)";
+
+          tile.appendChild(del);
+          tile.appendChild(img);
+          tile.appendChild(span);
+          tile.onclick = () => window.selectItem(idx, item._id);
+
+          grid.appendChild(tile);
+      });
+
+      const addTile = document.createElement("div");
+      addTile.className = "egrid-add";
+      addTile.innerHTML = "＋<small>新增</small>";
+      addTile.onclick = () => window.addCard(idx);
+      grid.appendChild(addTile);
+
+      new Sortable(grid, {
+          ...getSortableConfig(),
+          filter: ".egrid-add",
+          onMove: (evt) => !evt.related.classList.contains("egrid-add"),
+          onEnd: (evt) => {
+              if (evt.newIndex === evt.oldIndex) return;
+              const items = data.groups[idx].items;
+              // 扣掉最後那顆「新增」tile 對 index 的影響
+              const oldI = Math.min(evt.oldIndex, items.length - 1);
+              const newI = Math.min(evt.newIndex, items.length - 1);
+              const moved = items.splice(oldI, 1)[0];
+              items.splice(newI, 0, moved);
+              renderCardGrid(idx);
+          }
+      });
   }
+
+  window.selectItem = function(idx, itemId) {
+      selectedItemKey = `${idx}:${itemId}`;
+      const item = data.groups[idx].items.find(i => i._id === itemId);
+      if (!item) return;
+      document.getElementById(`ef-text-${idx}`).value = item.text || "";
+      document.getElementById(`ef-url-${idx}`).value = item.url || "";
+      document.getElementById(`ef-img-${idx}`).value = item.img || "";
+
+      // 即時同步：輸入時直接寫回資料並更新格子顯示
+      const bind = (field, elId) => {
+          const el = document.getElementById(elId);
+          el.oninput = () => {
+              item[field] = el.value;
+              renderCardGrid(idx);
+              // 保持選取狀態與焦點
+              selectedItemKey = `${idx}:${itemId}`;
+              document.getElementById(elId).focus();
+          };
+      };
+      bind("text", `ef-text-${idx}`);
+      bind("url", `ef-url-${idx}`);
+      bind("img", `ef-img-${idx}`);
+
+      document.getElementById(`editPanel-${idx}`).classList.add("show");
+      renderCardGrid(idx);
+  };
+
+  window.closeItemEdit = function(idx) {
+      selectedItemKey = null;
+      document.getElementById(`editPanel-${idx}`).classList.remove("show");
+      renderCardGrid(idx);
+  };
+
+  window.deleteSelectedItem = function(idx) {
+      if (!selectedItemKey) return;
+      const [, itemId] = selectedItemKey.split(":");
+      window.deleteItemById(idx, itemId);
+  };
+
+  window.deleteItemById = function(idx, itemId) {
+      const items = data.groups[idx].items;
+      const i = items.findIndex(it => it._id === itemId);
+      if (i === -1) return;
+      items.splice(i, 1);
+      if (selectedItemKey === `${idx}:${itemId}`) {
+          selectedItemKey = null;
+          document.getElementById(`editPanel-${idx}`).classList.remove("show");
+      }
+      renderCardGrid(idx);
+  };
 
   window.updateGroupName = (input, idx) => {
+      data.groups[idx].group = input.value;
       const tab = document.querySelector(`.editor-tab[data-index="${idx}"]`);
-      if(tab) tab.textContent = input.value || "(未命名)";
+      if (tab) tab.textContent = input.value || "(未命名)";
   };
 
   window.addCard = (idx) => {
-      const list = document.querySelector(`#cardList-${idx}`);
-      list.insertAdjacentHTML('beforeend', createCardHTML({text:'新書籤', url:'https://'}));
-      const newCard = list.lastElementChild;
-      setTimeout(() => newCard.classList.add('active'), 50);
+      const newItem = { _id: genId(), text: '新書籤', url: 'https://', img: '' };
+      if (!data.groups[idx].items) data.groups[idx].items = [];
+      data.groups[idx].items.push(newItem);
+      renderCardGrid(idx);
+      window.selectItem(idx, newItem._id);
+      setTimeout(() => document.getElementById(`ef-text-${idx}`)?.focus(), 50);
   };
 
   window.addGroup = () => {
@@ -695,45 +835,33 @@
   };
 
   window.deleteGroup = (idx) => {
-      if(confirm("確定刪除此分頁？")) {
+      if (confirm("確定刪除此分頁？")) {
           data.groups.splice(idx, 1);
+          selectedItemKey = null;
           window.openEditor();
       }
   };
 
   window.saveAll = async () => {
-      const newGroups = [];
-      const tabs = document.querySelectorAll(".editor-tab");
-      
-      tabs.forEach(tab => {
-          const originalIndex = tab.dataset.index;
-          const panel = document.querySelector(`.editor-panel[data-index="${originalIndex}"]`);
-          
-          if(panel) {
-              const groupName = panel.querySelector(".group-name-edit").value.trim();
-              const items = [];
-              panel.querySelectorAll(".bookmark-card").forEach((card, i) => {
-                  const inputs = card.querySelectorAll("input");
-                  const item = { order: i + 1 };
-                  inputs.forEach(inp => item[inp.dataset.key] = inp.value.trim());
-                  if(item.url && !item.url.startsWith("http")) item.url = "http://" + item.url;
-                  if(item.url && !item.img) {
-                      try { item.img = new URL(item.url).origin + "/favicon.ico"; } catch(e){}
-                  }
-                  items.push(item);
-              });
-              newGroups.push({ group: groupName, items });
-          }
+      // 補齊 favicon、修正網址，並清掉暫時用的 _id
+      data.groups.forEach(g => {
+          (g.items || []).forEach((item, i) => {
+              item.order = i + 1;
+              if (item.url && !/^https?:\/\//i.test(item.url)) item.url = "http://" + item.url;
+              if (item.url && !item.img) {
+                  try { item.img = new URL(item.url).origin + "/favicon.ico"; } catch (e) {}
+              }
+              delete item._id;
+          });
       });
 
       data.title = document.getElementById("titleInput").value.trim();
-      data.groups = newGroups;
 
       document.getElementById("modal").style.display = "none";
       document.getElementById("overlay").style.display = "none";
-      
+
       renderMain();
-      if(currentUser) await saveDataToFirestore();
+      if (currentUser) await saveDataToFirestore();
   };
 
   window.backupData = () => {
@@ -744,17 +872,17 @@
   };
 
   window.triggerRestore = () => document.getElementById("restoreFile").click();
-  
+
   document.getElementById("restoreFile").onchange = (e) => {
       const r = new FileReader();
       r.onload = (evt) => {
           try {
               data = JSON.parse(evt.target.result);
-              alert("匯入成功，請點擊「儲存變更」以生效");
+              alert("匯入成功，請點擊「儲存」以生效");
               window.openEditor();
           } catch(err) { alert("格式錯誤"); }
       };
-      if(e.target.files[0]) r.readAsText(e.target.files[0]);
+      if (e.target.files[0]) r.readAsText(e.target.files[0]);
       e.target.value = "";
   };
 
@@ -762,7 +890,7 @@
       document.getElementById("modal").style.display = "none";
       document.getElementById("overlay").style.display = "none";
   };
-  
+
   document.getElementById("overlay").onclick = document.getElementById("closeBtn").onclick;
 
   setInterval(() => {
