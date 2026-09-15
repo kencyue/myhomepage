@@ -316,7 +316,8 @@ function getInitialGameState(initialMoney = DEFAULT_INITIAL_MONEY) {
             hotSwapMode: false, 
             suburbSummaries: {}, 
             // ** NEW: DEBUG 模式開關 (預設隱藏) **
-            debugMode: false
+            debugMode: false,
+            casinoWinRate: 0.35
         },
         // **NEW: 新增 pendingAction 狀態來處理購買/陷害卡重開彈窗的需求**
         pendingAction: {
@@ -485,7 +486,7 @@ nextTurnLog = `回合結束，輪到 ${nextPlayer.name} (監獄服刑中) 開始
     await updateGameState(nextState, nextTurnLog);
     
     // 【修正】延遲解鎖，給 UI 更新和玩家反應的時間，防止誤觸下一回合
-    setTimeout(() => { isProcessingAction = false; }, 1000);
+    isProcessingAction = false;
 }
 
 /**
@@ -614,8 +615,7 @@ steps = dice1 + dice2;
     
     await animateMove(currentPlayerIndex, steps);
     
-    // 【修正】移動動畫結束後解鎖
-    setTimeout(() => { isProcessingAction = false; }, 500);
+    // animateMove 會在落地操作顯示前解除鎖定。
 } 
 async function savePlayerSettings(players, newPlayerCount, currentTurn) {
     const currentPlayingCount = players.filter(p => p.isPlaying).length;
@@ -821,59 +821,69 @@ saveCurrentPlayerState(currentPlayer);
  * NEW: 骰子滾動動畫
  */
 function runDiceAnimation(finalDice1, finalDice2) {
-     return new Promise(resolve => {
-         const dice1El = document.getElementById('dice-display-1');
-         const dice2El = document.getElementById('dice-display-2');
-         let animationCount = 0;
-         const maxRolls = 15; // 模擬滾動的次數
-         const diceValues = [1, 2, 3, 4, 5, 6];
+    const dice1El = document.getElementById('dice-display-1');
+    const dice2El = document.getElementById('dice-display-2');
+    const values = [1, 2, 3, 4, 5, 6];
+    const duration = 950;
+    const frameInterval = 65;
 
-         dice1El.classList.add('dice-spinning');
-         dice2El.classList.add('dice-spinning');
+    Object.values(DICE_IMAGES).forEach(src => {
+        const image = new Image();
+        image.src = src;
+    });
 
-         const rollInterval = setInterval(() => {
-                      animationCount++;
-                      
-                      // 隨機切換圖片
-                      const rand1 = diceValues[Math.floor(Math.random() * diceValues.length)];
-                      const rand2 = diceValues[Math.floor(Math.random() * diceValues.length)];
-                      
-                      dice1El.src = DICE_IMAGES[rand1];
-                      dice2El.src = DICE_IMAGES[rand2];
+    const animations = [
+        dice1El.animate([
+            { transform: 'rotate(0deg) scale(1)' },
+            { transform: 'rotate(180deg) scale(1.16)' },
+            { transform: 'rotate(360deg) scale(1)' }
+        ], { duration, easing: 'cubic-bezier(.22,.8,.25,1)' }),
+        dice2El.animate([
+            { transform: 'rotate(0deg) scale(1)' },
+            { transform: 'rotate(-180deg) scale(1.16)' },
+            { transform: 'rotate(-360deg) scale(1)' }
+        ], { duration, easing: 'cubic-bezier(.22,.8,.25,1)' })
+    ];
 
-                      if (animationCount >= maxRolls) {
-                              clearInterval(rollInterval);
-                              
-                              // 停止動畫並顯示最終結果
-                              dice1El.classList.remove('dice-spinning');
-                              dice2El.classList.remove('dice-spinning');
-                              dice1El.src = DICE_IMAGES[finalDice1];
-                              dice2El.src = DICE_IMAGES[finalDice2];
-                              
-                              resolve();
-                          }
-         }, 100); // 每 100 毫秒切換一次圖片
-     });
+    return new Promise(resolve => {
+        const startedAt = performance.now();
+        let lastFrameAt = 0;
+        const renderFrame = now => {
+            const elapsed = now - startedAt;
+            if (elapsed - lastFrameAt >= frameInterval) {
+                lastFrameAt = elapsed;
+                dice1El.src = DICE_IMAGES[values[Math.floor(Math.random() * values.length)]];
+                dice2El.src = DICE_IMAGES[values[Math.floor(Math.random() * values.length)]];
+            }
+            if (elapsed < duration) {
+                requestAnimationFrame(renderFrame);
+                return;
+            }
+            animations.forEach(animation => animation.cancel());
+            dice1El.src = DICE_IMAGES[finalDice1];
+            dice2El.src = DICE_IMAGES[finalDice2];
+            resolve();
+        };
+        requestAnimationFrame(renderFrame);
+    });
 }
-
 
 async function animateMove(playerIndex, steps) {
     const initialPlayer = gameState.players[playerIndex];
     if (!initialPlayer) return;
-
     const playerId = initialPlayer.id;
     const startPosition = initialPlayer.position;
 
     for (let stepsTaken = 1; stepsTaken <= steps; stepsTaken++) {
-        await new Promise(resolve => setTimeout(resolve, MOVE_DELAY));
-
-        // onSnapshot 可能在動畫途中替換 gameState，因此每一步都重新取得最新玩家物件。
+        const previousToken = document.querySelector(
+            `.player-token-inner[data-player-id="${CSS.escape(playerId)}"]`
+        );
+        const previousRect = previousToken?.getBoundingClientRect();
         const livePlayerIndex = gameState.players.findIndex(player => player.id === playerId);
         const livePlayer = gameState.players[livePlayerIndex];
         if (!livePlayer) return;
 
         livePlayer.position = (startPosition + stepsTaken) % totalSquares;
-
         if (livePlayer.position === 0 && stepsTaken < steps) {
             livePlayer.money += BOARD[0].action;
             addLog(`${livePlayer.name} 經過起點 (GO)，獲得 $${BOARD[0].action.toLocaleString()}。`);
@@ -882,21 +892,32 @@ async function animateMove(playerIndex, steps) {
         renderPlayerStats();
         renderBoardDisplay();
 
-        // 讓新棋子節點先完成繪製，再把目前格移入可視區域。
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        const nextToken = document.querySelector(
+            `.player-token-inner[data-player-id="${CSS.escape(playerId)}"]`
+        );
+        const nextRect = nextToken?.getBoundingClientRect();
+        if (previousRect && nextRect && nextToken) {
+            const animation = nextToken.animate([
+                { transform: `translate(${previousRect.left - nextRect.left}px, ${previousRect.top - nextRect.top}px) scale(.92)` },
+                { transform: 'translate(0, 0) scale(1.08)', offset: 0.72 },
+                { transform: 'translate(0, 0) scale(1)' }
+            ], { duration: MOVE_DELAY, easing: 'cubic-bezier(.22,.8,.25,1)', fill: 'both' });
+            await animation.finished.catch(() => {});
+        } else {
+            await new Promise(resolve => setTimeout(resolve, MOVE_DELAY));
+        }
+
         document.getElementById(`square-${livePlayer.position}`)?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
+            behavior: 'smooth', block: 'nearest', inline: 'center'
         });
     }
 
     const finalPlayerIndex = gameState.players.findIndex(player => player.id === playerId);
     const finalPlayer = gameState.players[finalPlayerIndex];
     if (!finalPlayer) return;
-
     saveCurrentPlayerState(finalPlayer);
     await updateGameState(gameState);
+    isProcessingAction = false;
     await handleLandingAction(finalPlayerIndex);
 }
 
@@ -3664,6 +3685,7 @@ function renderBoardDisplay() {
 
             return `<div class="player-token-container"> 
                              <div class="player-token-inner ${tokenClass} ${highlightClass}" 
+                                  data-player-id="${escapeHtml(p.id)}"
                                   style="${tokenStyle}">
                                   ${tokenContent}
                              </div>
