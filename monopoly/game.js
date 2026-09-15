@@ -1865,51 +1865,71 @@ function showCardModal(player, message, type, isNonBlocking) {
 
 function handleCasinoLogic(currentPlayer, betAmount) {
     const symbols = ['🍒', '🍋', '🔔', 'BAR', '7️⃣'];
-    // 修正：確保結果是 5 個
-    const results = Array(5).fill().map(() => symbols[Math.floor(Math.random() * symbols.length)]);
+    const configuredRate = Number(gameState.settings?.casinoWinRate);
+    const winRate = Number.isFinite(configuredRate)
+        ? Math.min(0.9, Math.max(0.05, configuredRate))
+        : 0.35;
+    let results;
+
+    if (Math.random() < winRate) {
+        const prizeRoll = Math.random();
+        if (prizeRoll < 0.05) {
+            results = Array(5).fill(Math.random() < 0.5 ? '7️⃣' : 'BAR');
+        } else if (prizeRoll < 0.25) {
+            const nonBar = symbols.filter(symbol => symbol !== 'BAR');
+            results = ['BAR', 'BAR',
+                nonBar[Math.floor(Math.random() * nonBar.length)],
+                nonBar[Math.floor(Math.random() * nonBar.length)],
+                nonBar[Math.floor(Math.random() * nonBar.length)]
+            ];
+        } else {
+            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+            const others = symbols.filter(item => item !== symbol);
+            results = [symbol, symbol, symbol,
+                others[Math.floor(Math.random() * others.length)],
+                others[Math.floor(Math.random() * others.length)]
+            ];
+        }
+        results.sort(() => Math.random() - 0.5);
+    } else {
+        do {
+            results = Array.from({ length: 5 }, () => symbols[Math.floor(Math.random() * symbols.length)]);
+            const sampleCounts = results.reduce((map, symbol) => {
+                map[symbol] = (map[symbol] || 0) + 1;
+                return map;
+            }, {});
+            if (!Object.values(sampleCounts).some(count => count >= 3) && (sampleCounts.BAR || 0) < 2) break;
+        } while (true);
+    }
 
     currentPlayer.money -= betAmount;
-    let winnings = 0;
-    let netGain = -betAmount;
-    let message = '';
-    let multiplier = 0;
-
     const resStr = results.join(' ');
-    // 檢查是否所有結果都相同
-    const allSame = results.every(val => val === results[0]);
-    // 檢查是否有三個相同
-    const counts = results.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {});
+    const counts = results.reduce((map, symbol) => {
+        map[symbol] = (map[symbol] || 0) + 1;
+        return map;
+    }, {});
+    const allSame = results.every(symbol => symbol === results[0]);
     const hasThreeSame = Object.values(counts).some(count => count >= 3);
-    // 檢查是否有兩個 BAR
-    const barCount = counts['BAR'] || 0;
-    
-    
+    const barCount = counts.BAR || 0;
+    let multiplier = 0;
+    let message;
+
     if (allSame) {
-        // 修正: 5個相同獎勵更高 (因為現在是 5 個輪盤)
-        if (results[0] === '7️⃣') {
-            multiplier = 10;
-            message = `🎰 ${resStr} 🎰 <br/> **超級大獎!** 五個 777，${multiplier} 倍獎金!`;
-        } else if (results[0] === 'BAR') {
-            multiplier = 7;
-            message = `🎰 ${resStr} 🎰 <br/> **大獎!** 五個 BAR，${multiplier} 倍獎金!`;
-        } else {
-            multiplier = 5;
-            message = `🎰 ${resStr} 🎰 <br/> 恭喜! 五個相同，${multiplier} 倍獎金!`;
-        }
+        multiplier = results[0] === '7️⃣' ? 10 : results[0] === 'BAR' ? 7 : 5;
+        message = `🎰 ${resStr} 🎰 <br/> 五個相同，${multiplier} 倍獎金!`;
     } else if (hasThreeSame) {
         multiplier = 2;
-        message = `🎰 ${resStr} 🎰 <br/> 恭喜! 三個相同，${multiplier} 倍獎金!`;
+        message = `🎰 ${resStr} 🎰 <br/> 三個相同，${multiplier} 倍獎金!`;
     } else if (barCount >= 2) {
         multiplier = 1.5;
-        message = `🎰 ${resStr} 🎰 <br/> 恭喜! 兩個 BAR，${multiplier} 倍獎金!`;
+        message = `🎰 ${resStr} 🎰 <br/> 兩個 BAR，${multiplier} 倍獎金!`;
     } else {
         message = `🎰 ${resStr} 🎰 <br/> 很遺憾，未中獎。`;
     }
-    
-    winnings = betAmount * multiplier;
-    netGain = winnings - betAmount;
-    currentPlayer.money += winnings;
 
+    const winnings = betAmount * multiplier;
+    const netGain = winnings - betAmount;
+    currentPlayer.money += winnings;
     return { winnings, message, resStr, netGain, betAmount, results };
 }
 
@@ -1930,6 +1950,7 @@ function showCasinoModal(currentPlayer) {
     const spinSymbols = ['🍒', '🍋', '🔔', 'BAR', '7️⃣', '💰', '💎'];
     let spinIntervals = [];
     const minBet = 50;
+    const casinoWinRate = Math.round((gameState.settings?.casinoWinRate ?? 0.35) * 100);
 
     const contentHtml = `<div id="casino-display" class="p-4 bg-gray-50 rounded-lg text-center">
                              <p class="text-sm text-gray-500 mb-2">請選擇您的投注籌碼 (最低 $${minBet})：</p>
@@ -1970,7 +1991,7 @@ function showCasinoModal(currentPlayer) {
 
     showModal(
         `[${currentPlayer.name}] Casino - 吃角子老虎機`, 
-        `<p class="text-lg">最低投注 $${minBet}，點擊籌碼按鈕進行累積。</p>`,
+        `<p class="text-lg">最低投注 ${minBet}，目前設定中獎率約 ${casinoWinRate}%，點擊籌碼按鈕進行累積。</p>`,
         () => {}, 
         contentHtml,
         '開始玩' 
@@ -2390,6 +2411,18 @@ function showSettingsModal() {
              </div>
 
              <div class="border-b pb-3">
+                  <label for="setting-casino-win-rate" class="font-bold text-gray-700 block mb-2">Casino 中獎率：</label>
+                  <div class="flex items-center gap-3">
+                      <input type="range" id="setting-casino-win-rate" min="5" max="90" step="5"
+                             value="${Math.round((currentSettings.casinoWinRate ?? 0.35) * 100)}" class="flex-1" />
+                      <output id="setting-casino-win-rate-output" class="w-14 text-right font-bold text-indigo-700">
+                          ${Math.round((currentSettings.casinoWinRate ?? 0.35) * 100)}%
+                      </output>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">可調 5%～90%；預設 35%。中獎後依圖案套用 1.5～10 倍獎金。</p>
+             </div>
+
+             <div class="border-b pb-3">
                   <label for="setting-hot-swap-mode" class="font-bold text-gray-700 block mb-2">
                       **熱機模式** (單人多角操作)
                   </label>
@@ -2451,6 +2484,9 @@ function showSettingsModal() {
         async () => {
             const newInterestRate = parseFloat(document.getElementById('setting-interest-rate').value);
             const newInitialMoney = parseInt(document.getElementById('setting-initial-money').value);
+            const newCasinoWinRate = Math.min(90, Math.max(5,
+                parseInt(document.getElementById('setting-casino-win-rate').value, 10) || 35
+            )) / 100;
             const newHotSwapMode = document.getElementById('setting-hot-swap-mode').checked; 
             const newDebugMode = document.getElementById('setting-debug-mode').checked; // NEW: Debug 模式
 
@@ -2458,6 +2494,7 @@ function showSettingsModal() {
             gameState.settings.interestRate = newInterestRate;
             gameState.settings.stocksConfig = currentStocks; 
             gameState.settings.initialMoney = newInitialMoney;
+            gameState.settings.casinoWinRate = newCasinoWinRate;
             gameState.settings.hotSwapMode = newHotSwapMode; 
             gameState.settings.debugMode = newDebugMode; // NEW: Debug 模式
             
@@ -2500,6 +2537,13 @@ function showSettingsModal() {
     );
     
     renderStockList();
+
+    const casinoRateInput = document.getElementById('setting-casino-win-rate');
+    const casinoRateOutput = document.getElementById('setting-casino-win-rate-output');
+    casinoRateInput.addEventListener('input', () => {
+        casinoRateOutput.value = `${casinoRateInput.value}%`;
+        casinoRateOutput.textContent = `${casinoRateInput.value}%`;
+    });
 
     document.getElementById('add-stock-btn').onclick = () => {
         const symbolInput = document.getElementById('new-stock-symbol');
