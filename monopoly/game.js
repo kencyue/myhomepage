@@ -858,35 +858,46 @@ function runDiceAnimation(finalDice1, finalDice2) {
 
 
 async function animateMove(playerIndex, steps) {
-    const player = gameState.players[playerIndex];
-    const startPosition = player.position;
-    let stepsTaken = 0;
+    const initialPlayer = gameState.players[playerIndex];
+    if (!initialPlayer) return;
 
-    while (stepsTaken < steps) {
+    const playerId = initialPlayer.id;
+    const startPosition = initialPlayer.position;
+
+    for (let stepsTaken = 1; stepsTaken <= steps; stepsTaken++) {
         await new Promise(resolve => setTimeout(resolve, MOVE_DELAY));
 
-        stepsTaken++;
-        player.position = (startPosition + stepsTaken) % totalSquares;
-        
-        if (player.position === 0 && stepsTaken < steps) {
-            player.money += BOARD[0].action;
-            addLog(`${player.name} 經過起點 (GO)，獲得 $${BOARD[0].action.toLocaleString()}。`);
+        // onSnapshot 可能在動畫途中替換 gameState，因此每一步都重新取得最新玩家物件。
+        const livePlayerIndex = gameState.players.findIndex(player => player.id === playerId);
+        const livePlayer = gameState.players[livePlayerIndex];
+        if (!livePlayer) return;
+
+        livePlayer.position = (startPosition + stepsTaken) % totalSquares;
+
+        if (livePlayer.position === 0 && stepsTaken < steps) {
+            livePlayer.money += BOARD[0].action;
+            addLog(`${livePlayer.name} 經過起點 (GO)，獲得 $${BOARD[0].action.toLocaleString()}。`);
         }
 
-        // 在移動的每一步都進行 UI 更新，但滾動只在本地（主控設備）執行
         renderPlayerStats();
         renderBoardDisplay();
-        
-        // NEW: 只在發起移動的設備上執行平滑滾動
-        const targetSquare = document.getElementById(`square-${player.position}`);
-        if (targetSquare) {
-            targetSquare.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-        }
+
+        // 讓新棋子節點先完成繪製，再把目前格移入可視區域。
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        document.getElementById(`square-${livePlayer.position}`)?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+        });
     }
-    saveCurrentPlayerState(player);
+
+    const finalPlayerIndex = gameState.players.findIndex(player => player.id === playerId);
+    const finalPlayer = gameState.players[finalPlayerIndex];
+    if (!finalPlayer) return;
+
+    saveCurrentPlayerState(finalPlayer);
     await updateGameState(gameState);
-    
-    await handleLandingAction(playerIndex);
+    await handleLandingAction(finalPlayerIndex);
 }
 
 async function handleLandingAction(currentPlayerIndex) {
