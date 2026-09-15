@@ -16,7 +16,7 @@ import {
 import { 
     getFirestore, 
     doc, 
-    setDoc, 
+    runTransaction, 
     onSnapshot, 
     getDoc, 
     setLogLevel 
@@ -342,36 +342,84 @@ function calculateRent(square) {
 }
 
 
+function showSyncConflictNotice() {
+    let notice = document.getElementById('sync-conflict-notice');
+    if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'sync-conflict-notice';
+        notice.className = 'fixed left-1/2 top-4 z-[100] -translate-x-1/2 rounded-lg bg-amber-500 px-4 py-3 text-sm font-bold text-white shadow-xl';
+        document.body.appendChild(notice);
+    }
+    notice.textContent = '遊戲狀態已被其他玩家更新，本次操作已取消，請依最新畫面再操作一次。';
+    clearTimeout(showSyncConflictNotice.timer);
+    showSyncConflictNotice.timer = setTimeout(() => notice.remove(), 5000);
+}
+
 async function updateGameState(newState, logText = null) {
-    try {
-        if (!gameRef) {
-            console.error('Firestore 參考未初始化.');
-            return;
-        }
-        const newLog = [...newState.log];
-        if (logText) {
-            const time = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            newLog.unshift({ text: `[${time}] ${logText}`, time: Date.now() });
-            while (newLog.length > 30) {
-                newLog.pop();
-            }
-        }
-        
-        // NEW LOGIC: Update lastActiveTimestamp for the controlling user's player(s)
-        const now = Date.now();
-        newState.players = newState.players.map(p => {
-            // 檢查當前用戶是否控制了這個玩家
-            if (p.currentUserId === userId) {
-                return { ...p, lastActiveTimestamp: now };
-            }
-            return p;
+    if (!gameRef || !db) {
+        throw new Error('Firestore 尚未初始化');
+    }
+
+    const expectedRevision = Number.isInteger(newState?.revision)
+        ? newState.revision
+        : (Number.isInteger(gameState?.revision) ? gameState.revision : 0);
+
+    const newLog = [...(newState.log || [])];
+    if (logText) {
+        const time = new Date().toLocaleTimeString('zh-TW', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
         });
-        // END NEW LOGIC
-        
-        await setDoc(gameRef, { ...newState, log: newLog });
+        newLog.unshift({ text: `[${time}] ${logText}`, time: Date.now() });
+        while (newLog.length > 30) newLog.pop();
+    }
+
+    const now = Date.now();
+    const players = (newState.players || []).map(player => (
+        player.currentUserId === userId
+            ? { ...player, lastActiveTimestamp: now }
+            : player
+    ));
+
+    try {
+        const nextRevision = await runTransaction(db, async transaction => {
+            const latestSnapshot = await transaction.get(gameRef);
+            const latestState = latestSnapshot.exists() ? latestSnapshot.data() : null;
+            const latestRevision = Number.isInteger(latestState?.revision)
+                ? latestState.revision
+                : 0;
+
+            if (latestState && latestRevision !== expectedRevision) {
+                const conflict = new Error(
+                    `遊戲狀態版本衝突：本機 ${expectedRevision}，伺服器 ${latestRevision}`
+                );
+                conflict.code = 'game/state-conflict';
+                throw conflict;
+            }
+
+            const revision = latestRevision + 1;
+            transaction.set(gameRef, {
+                ...newState,
+                players,
+                log: newLog,
+                revision
+            });
+            return revision;
+        });
+
+        newState.revision = nextRevision;
+        if (gameState) gameState.revision = nextRevision;
+        return true;
     } catch (error) {
-        console.error('更新遊戲狀態失敗:', error);
-        addLog(`**更新失敗**：無法寫入數據庫 (${error.message})`, 'error');
+        isProcessingAction = false;
+        if (error.code === 'game/state-conflict') {
+            console.warn(error.message);
+            showSyncConflictNotice();
+        } else {
+            console.error('更新遊戲狀態失敗:', error);
+        }
+        throw error;
     }
 }
 
@@ -1815,7 +1863,7 @@ function showCardModal(player, message, type, isNonBlocking) {
             setTimeout(async () => {
                 // 確保 pendingAction 被清除
                 const nextState = { ...gameState, pendingAction: { type: 'none', squareIndex: null, card: null } };
-                await setDoc(gameRef, nextState);
+                await updateGameState(nextState);
                 await endTurn();
             }, 50);
         } else {
@@ -4080,6 +4128,37 @@ function showModal(title, message, confirmAction, contentHtml = null, confirmTex
     document.getElementById('modal').classList.add('flex');
 }
 
+async function syncCurrentStocksConfiguration() {
+    await runTransaction(db, async transaction => {
+        const latestSnapshot = await transaction.get(gameRef);
+        if (!latestSnapshot.exists()) return;
+
+        const latestState = latestSnapshot.data();
+        const currentStocks = [...(latestState.currentStocks || [])];
+        let changed = false;
+
+        STOCKS_INITIAL_CONFIG.forEach(configStock => {
+            if (!currentStocks.some(stock => stock.symbol === configStock.symbol)) {
+                currentStocks.push({
+                    name: configStock.name,
+                    symbol: configStock.symbol,
+                    price: configStock.price,
+                    sellPrice: Math.floor(configStock.price * 0.8),
+                    volatility: configStock.volatility || DEFAULT_VOLATILITY
+                });
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            const revision = Number.isInteger(latestState.revision)
+                ? latestState.revision + 1
+                : 1;
+            transaction.update(gameRef, { currentStocks, revision });
+        }
+    });
+}
+
 async function listenForGameState() {
     gameRef = doc(db, `artifacts/${appId}/public/data/melbourne_monopoly`, 'game_master');
     console.log(`[${userId}] Using gameRef path: ${gameRef.path}`);
@@ -4120,7 +4199,12 @@ try {
         initialGameState.players[0].isPlaying = true;
     }
     await retryFirestoreOperation(async () => {
-        await setDoc(gameRef, initialGameState);
+        await runTransaction(db, async transaction => {
+            const latestSnapshot = await transaction.get(gameRef);
+            if (!latestSnapshot.exists()) {
+                transaction.set(gameRef, { ...initialGameState, revision: 0 });
+            }
+        });
     }, 5);
 
     console.log(`[${userId}] 成功創建新文件並初始化遊戲狀態。`);
@@ -4135,6 +4219,9 @@ try {
     onSnapshot(gameRef, (doc) => {
 if (doc.exists()) {
     const newGameState = doc.data();
+    newGameState.revision = Number.isInteger(newGameState.revision)
+        ? newGameState.revision
+        : 0;
 
      // --- 【核心修正：MOVING 狀態重連恢復邏輯】 ---
 if (newGameState.status === 'MOVING') {
@@ -4186,9 +4273,10 @@ if (newGameState.status === 'MOVING') {
         }
     });
     if (needsStockUpdate) {
-        console.log(`[${userId}] stocksConfig/currentStocks 不一致，強制同步。`);
-        newGameState.currentStocks = updatedCurrentStocks;
-        setDoc(gameRef, { ...newGameState, log: newGameState.log });
+        console.log(`[${userId}] stocksConfig/currentStocks 不一致，安全同步缺少的股票。`);
+        void syncCurrentStocksConfiguration().catch(error => {
+            console.error('股票設定同步失敗:', error);
+        });
     }
     // --- 結束同步 ---
 
