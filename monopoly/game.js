@@ -1423,15 +1423,13 @@ async function showPropertyBuyModal(currentPlayer, currentSquare) {
          () => { 
              // Confirm Action: 購買地產
              if (canAfford) {
-                 // 延遲執行異步購買和結束回合，確保 Modal 已經關閉
-                 setTimeout(() => performBuyProperty(currentPlayer, currentSquare), 50); 
+                 return performBuyProperty(currentPlayer, currentSquare);
              } else {
                  // 如果錢不夠，確認按鈕是「確認離開」，僅結束回合
-                 setTimeout(async () => {
-                     // **NEW: 清除 pendingAction**
+                 return (async () => {
                      await updateGameState({ ...gameState, status: 'ROLLED', pendingAction: { type: 'none', squareIndex: null, card: null } }, `${currentPlayer.name} 因現金不足，放棄購買 ${currentSquare.name}。`);
                      await endTurn();
-                 }, 50);
+                 })();
              }
          },
          contentTemplate,
@@ -4104,6 +4102,9 @@ function showModal(title, message, confirmAction, contentHtml = null, confirmTex
     cancelBtn.textContent = '取消'; 
     
     confirmBtn.textContent = confirmText;
+    confirmBtn.disabled = false;
+    confirmBtn.removeAttribute('aria-busy');
+    confirmBtn.classList.remove('opacity-60', 'cursor-wait');
     
     // 處理確認按鈕的點擊事件
     const closeAndReset = () => {
@@ -4112,6 +4113,9 @@ function showModal(title, message, confirmAction, contentHtml = null, confirmTex
         // 重設確認按鈕樣式，確保買不起時的樣式不會殘留
         confirmBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
         confirmBtn.classList.remove('bg-gray-400', 'hover:bg-gray-500');
+        confirmBtn.disabled = false;
+        confirmBtn.removeAttribute('aria-busy');
+        confirmBtn.classList.remove('opacity-60', 'cursor-wait');
     };
     
     // 處理頂部關閉按鈕
@@ -4121,10 +4125,21 @@ function showModal(title, message, confirmAction, contentHtml = null, confirmTex
         confirmBtn.onclick = closeAndReset;
         cancelBtn.classList.add('hidden');
     } else {
-        confirmBtn.onclick = () => {
-            // 先執行 Action，再關閉 Modal
-            confirmAction();
-            closeAndReset(); // 如果 Action 成功，則關閉
+        confirmBtn.onclick = async () => {
+            if (confirmBtn.disabled) return;
+            confirmBtn.disabled = true;
+            confirmBtn.setAttribute('aria-busy', 'true');
+            confirmBtn.classList.add('opacity-60', 'cursor-wait');
+
+            try {
+                await Promise.resolve(confirmAction());
+                closeAndReset();
+            } catch (error) {
+                console.error('Modal 操作失敗:', error);
+                confirmBtn.disabled = false;
+                confirmBtn.removeAttribute('aria-busy');
+                confirmBtn.classList.remove('opacity-60', 'cursor-wait');
+            }
         };
     }
 
