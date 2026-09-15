@@ -316,7 +316,8 @@ function getInitialGameState(initialMoney = DEFAULT_INITIAL_MONEY) {
             hotSwapMode: false, 
             suburbSummaries: {}, 
             // ** NEW: DEBUG 模式開關 (預設隱藏) **
-            debugMode: false
+            debugMode: false,
+            casinoWinRate: 0.35
         },
         // **NEW: 新增 pendingAction 狀態來處理購買/陷害卡重開彈窗的需求**
         pendingAction: {
@@ -485,7 +486,7 @@ nextTurnLog = `回合結束，輪到 ${nextPlayer.name} (監獄服刑中) 開始
     await updateGameState(nextState, nextTurnLog);
     
     // 【修正】延遲解鎖，給 UI 更新和玩家反應的時間，防止誤觸下一回合
-    setTimeout(() => { isProcessingAction = false; }, 1000);
+    isProcessingAction = false;
 }
 
 /**
@@ -614,8 +615,7 @@ steps = dice1 + dice2;
     
     await animateMove(currentPlayerIndex, steps);
     
-    // 【修正】移動動畫結束後解鎖
-    setTimeout(() => { isProcessingAction = false; }, 500);
+    // animateMove 會在落地操作顯示前解除鎖定。
 } 
 async function savePlayerSettings(players, newPlayerCount, currentTurn) {
     const currentPlayingCount = players.filter(p => p.isPlaying).length;
@@ -821,59 +821,69 @@ saveCurrentPlayerState(currentPlayer);
  * NEW: 骰子滾動動畫
  */
 function runDiceAnimation(finalDice1, finalDice2) {
-     return new Promise(resolve => {
-         const dice1El = document.getElementById('dice-display-1');
-         const dice2El = document.getElementById('dice-display-2');
-         let animationCount = 0;
-         const maxRolls = 15; // 模擬滾動的次數
-         const diceValues = [1, 2, 3, 4, 5, 6];
+    const dice1El = document.getElementById('dice-display-1');
+    const dice2El = document.getElementById('dice-display-2');
+    const values = [1, 2, 3, 4, 5, 6];
+    const duration = 950;
+    const frameInterval = 65;
 
-         dice1El.classList.add('dice-spinning');
-         dice2El.classList.add('dice-spinning');
+    Object.values(DICE_IMAGES).forEach(src => {
+        const image = new Image();
+        image.src = src;
+    });
 
-         const rollInterval = setInterval(() => {
-                      animationCount++;
-                      
-                      // 隨機切換圖片
-                      const rand1 = diceValues[Math.floor(Math.random() * diceValues.length)];
-                      const rand2 = diceValues[Math.floor(Math.random() * diceValues.length)];
-                      
-                      dice1El.src = DICE_IMAGES[rand1];
-                      dice2El.src = DICE_IMAGES[rand2];
+    const animations = [
+        dice1El.animate([
+            { transform: 'rotate(0deg) scale(1)' },
+            { transform: 'rotate(180deg) scale(1.16)' },
+            { transform: 'rotate(360deg) scale(1)' }
+        ], { duration, easing: 'cubic-bezier(.22,.8,.25,1)' }),
+        dice2El.animate([
+            { transform: 'rotate(0deg) scale(1)' },
+            { transform: 'rotate(-180deg) scale(1.16)' },
+            { transform: 'rotate(-360deg) scale(1)' }
+        ], { duration, easing: 'cubic-bezier(.22,.8,.25,1)' })
+    ];
 
-                      if (animationCount >= maxRolls) {
-                              clearInterval(rollInterval);
-                              
-                              // 停止動畫並顯示最終結果
-                              dice1El.classList.remove('dice-spinning');
-                              dice2El.classList.remove('dice-spinning');
-                              dice1El.src = DICE_IMAGES[finalDice1];
-                              dice2El.src = DICE_IMAGES[finalDice2];
-                              
-                              resolve();
-                          }
-         }, 100); // 每 100 毫秒切換一次圖片
-     });
+    return new Promise(resolve => {
+        const startedAt = performance.now();
+        let lastFrameAt = 0;
+        const renderFrame = now => {
+            const elapsed = now - startedAt;
+            if (elapsed - lastFrameAt >= frameInterval) {
+                lastFrameAt = elapsed;
+                dice1El.src = DICE_IMAGES[values[Math.floor(Math.random() * values.length)]];
+                dice2El.src = DICE_IMAGES[values[Math.floor(Math.random() * values.length)]];
+            }
+            if (elapsed < duration) {
+                requestAnimationFrame(renderFrame);
+                return;
+            }
+            animations.forEach(animation => animation.cancel());
+            dice1El.src = DICE_IMAGES[finalDice1];
+            dice2El.src = DICE_IMAGES[finalDice2];
+            resolve();
+        };
+        requestAnimationFrame(renderFrame);
+    });
 }
-
 
 async function animateMove(playerIndex, steps) {
     const initialPlayer = gameState.players[playerIndex];
     if (!initialPlayer) return;
-
     const playerId = initialPlayer.id;
     const startPosition = initialPlayer.position;
 
     for (let stepsTaken = 1; stepsTaken <= steps; stepsTaken++) {
-        await new Promise(resolve => setTimeout(resolve, MOVE_DELAY));
-
-        // onSnapshot 可能在動畫途中替換 gameState，因此每一步都重新取得最新玩家物件。
+        const previousToken = document.querySelector(
+            `.player-token-inner[data-player-id="${CSS.escape(playerId)}"]`
+        );
+        const previousRect = previousToken?.getBoundingClientRect();
         const livePlayerIndex = gameState.players.findIndex(player => player.id === playerId);
         const livePlayer = gameState.players[livePlayerIndex];
         if (!livePlayer) return;
 
         livePlayer.position = (startPosition + stepsTaken) % totalSquares;
-
         if (livePlayer.position === 0 && stepsTaken < steps) {
             livePlayer.money += BOARD[0].action;
             addLog(`${livePlayer.name} 經過起點 (GO)，獲得 $${BOARD[0].action.toLocaleString()}。`);
@@ -882,21 +892,32 @@ async function animateMove(playerIndex, steps) {
         renderPlayerStats();
         renderBoardDisplay();
 
-        // 讓新棋子節點先完成繪製，再把目前格移入可視區域。
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        const nextToken = document.querySelector(
+            `.player-token-inner[data-player-id="${CSS.escape(playerId)}"]`
+        );
+        const nextRect = nextToken?.getBoundingClientRect();
+        if (previousRect && nextRect && nextToken) {
+            const animation = nextToken.animate([
+                { transform: `translate(${previousRect.left - nextRect.left}px, ${previousRect.top - nextRect.top}px) scale(.92)` },
+                { transform: 'translate(0, 0) scale(1.08)', offset: 0.72 },
+                { transform: 'translate(0, 0) scale(1)' }
+            ], { duration: MOVE_DELAY, easing: 'cubic-bezier(.22,.8,.25,1)', fill: 'both' });
+            await animation.finished.catch(() => {});
+        } else {
+            await new Promise(resolve => setTimeout(resolve, MOVE_DELAY));
+        }
+
         document.getElementById(`square-${livePlayer.position}`)?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
+            behavior: 'smooth', block: 'nearest', inline: 'center'
         });
     }
 
     const finalPlayerIndex = gameState.players.findIndex(player => player.id === playerId);
     const finalPlayer = gameState.players[finalPlayerIndex];
     if (!finalPlayer) return;
-
     saveCurrentPlayerState(finalPlayer);
     await updateGameState(gameState);
+    isProcessingAction = false;
     await handleLandingAction(finalPlayerIndex);
 }
 
@@ -1844,51 +1865,71 @@ function showCardModal(player, message, type, isNonBlocking) {
 
 function handleCasinoLogic(currentPlayer, betAmount) {
     const symbols = ['🍒', '🍋', '🔔', 'BAR', '7️⃣'];
-    // 修正：確保結果是 5 個
-    const results = Array(5).fill().map(() => symbols[Math.floor(Math.random() * symbols.length)]);
+    const configuredRate = Number(gameState.settings?.casinoWinRate);
+    const winRate = Number.isFinite(configuredRate)
+        ? Math.min(0.9, Math.max(0.05, configuredRate))
+        : 0.35;
+    let results;
+
+    if (Math.random() < winRate) {
+        const prizeRoll = Math.random();
+        if (prizeRoll < 0.05) {
+            results = Array(5).fill(Math.random() < 0.5 ? '7️⃣' : 'BAR');
+        } else if (prizeRoll < 0.25) {
+            const nonBar = symbols.filter(symbol => symbol !== 'BAR');
+            results = ['BAR', 'BAR',
+                nonBar[Math.floor(Math.random() * nonBar.length)],
+                nonBar[Math.floor(Math.random() * nonBar.length)],
+                nonBar[Math.floor(Math.random() * nonBar.length)]
+            ];
+        } else {
+            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+            const others = symbols.filter(item => item !== symbol);
+            results = [symbol, symbol, symbol,
+                others[Math.floor(Math.random() * others.length)],
+                others[Math.floor(Math.random() * others.length)]
+            ];
+        }
+        results.sort(() => Math.random() - 0.5);
+    } else {
+        do {
+            results = Array.from({ length: 5 }, () => symbols[Math.floor(Math.random() * symbols.length)]);
+            const sampleCounts = results.reduce((map, symbol) => {
+                map[symbol] = (map[symbol] || 0) + 1;
+                return map;
+            }, {});
+            if (!Object.values(sampleCounts).some(count => count >= 3) && (sampleCounts.BAR || 0) < 2) break;
+        } while (true);
+    }
 
     currentPlayer.money -= betAmount;
-    let winnings = 0;
-    let netGain = -betAmount;
-    let message = '';
-    let multiplier = 0;
-
     const resStr = results.join(' ');
-    // 檢查是否所有結果都相同
-    const allSame = results.every(val => val === results[0]);
-    // 檢查是否有三個相同
-    const counts = results.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {});
+    const counts = results.reduce((map, symbol) => {
+        map[symbol] = (map[symbol] || 0) + 1;
+        return map;
+    }, {});
+    const allSame = results.every(symbol => symbol === results[0]);
     const hasThreeSame = Object.values(counts).some(count => count >= 3);
-    // 檢查是否有兩個 BAR
-    const barCount = counts['BAR'] || 0;
-    
-    
+    const barCount = counts.BAR || 0;
+    let multiplier = 0;
+    let message;
+
     if (allSame) {
-        // 修正: 5個相同獎勵更高 (因為現在是 5 個輪盤)
-        if (results[0] === '7️⃣') {
-            multiplier = 10;
-            message = `🎰 ${resStr} 🎰 <br/> **超級大獎!** 五個 777，${multiplier} 倍獎金!`;
-        } else if (results[0] === 'BAR') {
-            multiplier = 7;
-            message = `🎰 ${resStr} 🎰 <br/> **大獎!** 五個 BAR，${multiplier} 倍獎金!`;
-        } else {
-            multiplier = 5;
-            message = `🎰 ${resStr} 🎰 <br/> 恭喜! 五個相同，${multiplier} 倍獎金!`;
-        }
+        multiplier = results[0] === '7️⃣' ? 10 : results[0] === 'BAR' ? 7 : 5;
+        message = `🎰 ${resStr} 🎰 <br/> 五個相同，${multiplier} 倍獎金!`;
     } else if (hasThreeSame) {
         multiplier = 2;
-        message = `🎰 ${resStr} 🎰 <br/> 恭喜! 三個相同，${multiplier} 倍獎金!`;
+        message = `🎰 ${resStr} 🎰 <br/> 三個相同，${multiplier} 倍獎金!`;
     } else if (barCount >= 2) {
         multiplier = 1.5;
-        message = `🎰 ${resStr} 🎰 <br/> 恭喜! 兩個 BAR，${multiplier} 倍獎金!`;
+        message = `🎰 ${resStr} 🎰 <br/> 兩個 BAR，${multiplier} 倍獎金!`;
     } else {
         message = `🎰 ${resStr} 🎰 <br/> 很遺憾，未中獎。`;
     }
-    
-    winnings = betAmount * multiplier;
-    netGain = winnings - betAmount;
-    currentPlayer.money += winnings;
 
+    const winnings = betAmount * multiplier;
+    const netGain = winnings - betAmount;
+    currentPlayer.money += winnings;
     return { winnings, message, resStr, netGain, betAmount, results };
 }
 
@@ -1909,6 +1950,7 @@ function showCasinoModal(currentPlayer) {
     const spinSymbols = ['🍒', '🍋', '🔔', 'BAR', '7️⃣', '💰', '💎'];
     let spinIntervals = [];
     const minBet = 50;
+    const casinoWinRate = Math.round((gameState.settings?.casinoWinRate ?? 0.35) * 100);
 
     const contentHtml = `<div id="casino-display" class="p-4 bg-gray-50 rounded-lg text-center">
                              <p class="text-sm text-gray-500 mb-2">請選擇您的投注籌碼 (最低 $${minBet})：</p>
@@ -1949,7 +1991,7 @@ function showCasinoModal(currentPlayer) {
 
     showModal(
         `[${currentPlayer.name}] Casino - 吃角子老虎機`, 
-        `<p class="text-lg">最低投注 $${minBet}，點擊籌碼按鈕進行累積。</p>`,
+        `<p class="text-lg">最低投注 ${minBet}，目前設定中獎率約 ${casinoWinRate}%，點擊籌碼按鈕進行累積。</p>`,
         () => {}, 
         contentHtml,
         '開始玩' 
@@ -2369,6 +2411,18 @@ function showSettingsModal() {
              </div>
 
              <div class="border-b pb-3">
+                  <label for="setting-casino-win-rate" class="font-bold text-gray-700 block mb-2">Casino 中獎率：</label>
+                  <div class="flex items-center gap-3">
+                      <input type="range" id="setting-casino-win-rate" min="5" max="90" step="5"
+                             value="${Math.round((currentSettings.casinoWinRate ?? 0.35) * 100)}" class="flex-1" />
+                      <output id="setting-casino-win-rate-output" class="w-14 text-right font-bold text-indigo-700">
+                          ${Math.round((currentSettings.casinoWinRate ?? 0.35) * 100)}%
+                      </output>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">可調 5%～90%；預設 35%。中獎後依圖案套用 1.5～10 倍獎金。</p>
+             </div>
+
+             <div class="border-b pb-3">
                   <label for="setting-hot-swap-mode" class="font-bold text-gray-700 block mb-2">
                       **熱機模式** (單人多角操作)
                   </label>
@@ -2430,6 +2484,9 @@ function showSettingsModal() {
         async () => {
             const newInterestRate = parseFloat(document.getElementById('setting-interest-rate').value);
             const newInitialMoney = parseInt(document.getElementById('setting-initial-money').value);
+            const newCasinoWinRate = Math.min(90, Math.max(5,
+                parseInt(document.getElementById('setting-casino-win-rate').value, 10) || 35
+            )) / 100;
             const newHotSwapMode = document.getElementById('setting-hot-swap-mode').checked; 
             const newDebugMode = document.getElementById('setting-debug-mode').checked; // NEW: Debug 模式
 
@@ -2437,6 +2494,7 @@ function showSettingsModal() {
             gameState.settings.interestRate = newInterestRate;
             gameState.settings.stocksConfig = currentStocks; 
             gameState.settings.initialMoney = newInitialMoney;
+            gameState.settings.casinoWinRate = newCasinoWinRate;
             gameState.settings.hotSwapMode = newHotSwapMode; 
             gameState.settings.debugMode = newDebugMode; // NEW: Debug 模式
             
@@ -2479,6 +2537,13 @@ function showSettingsModal() {
     );
     
     renderStockList();
+
+    const casinoRateInput = document.getElementById('setting-casino-win-rate');
+    const casinoRateOutput = document.getElementById('setting-casino-win-rate-output');
+    casinoRateInput.addEventListener('input', () => {
+        casinoRateOutput.value = `${casinoRateInput.value}%`;
+        casinoRateOutput.textContent = `${casinoRateInput.value}%`;
+    });
 
     document.getElementById('add-stock-btn').onclick = () => {
         const symbolInput = document.getElementById('new-stock-symbol');
@@ -3664,6 +3729,7 @@ function renderBoardDisplay() {
 
             return `<div class="player-token-container"> 
                              <div class="player-token-inner ${tokenClass} ${highlightClass}" 
+                                  data-player-id="${escapeHtml(p.id)}"
                                   style="${tokenStyle}">
                                   ${tokenContent}
                              </div>

@@ -151,3 +151,10 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+.player-token-inner,
+#dice-display-1,
+#dice-display-2 {
+    will-change: transform;
+    backface-visibility: hidden;
+}
