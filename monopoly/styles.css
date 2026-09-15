@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+html, body {
+    /* 徹底禁止 iPad 手勢與滾動回彈，避免誤觸放大 */
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    /* 禁止選取與呼叫菜單 */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none; /* 禁用所有預設手勢，由我們控制 */
+}
+/* 定義棋子顏色 */
+.player-0 { background-color: #ef4444; } /* 紅色 */
+.player-1 { background-color: #3b82f6; } /* 藍色 */
+.player-2 { background-color: #10b981; } /* 綠色 */
+.player-3 { background-color: #f59e0b; } /* 黃色 */
+
+/* Card Modal 樣式，確保高對比度 */
+.card-chance { background-color: #ffedd5; border: 3px solid #f97316; color: #1f2937; }
+.card-fate { background-color: #fee2e2; border: 3px solid #ef4444; color: #1f2937; }
+
+/* Casino 動畫 */
+@keyframes slotMachineSpin {
+    0% { transform: translateY(0) rotateX(0deg); opacity: 1; }
+    50% { transform: translateY(-10px) rotateX(10deg); opacity: 0.8; }
+    100% { transform: translateY(0) rotateX(0deg); opacity: 1; }
+}
+.slot-spinning {
+    animation: slotMachineSpin 0.1s infinite alternate;
+}
+
+/* 修正: 通用模態視窗大小調整 */
+#modal > div {
+     max-width: 90%;
+     max-height: 90vh;
+     overflow-y: auto;
+}
+/* 修正: 模態視窗內容區域滾動 */
+#modal-content {
+     max-height: 70vh;
+     overflow-y: auto;
+     padding-right: 0.5rem;
+}
+
+/* [RWD 修正] 棋盤方格高度在小螢幕上更高 */
+#board-display > div {
+     min-height: 10rem; 
+}
+
+/* [RWD 修正] 讓棋盤容器在手機上填充更多空間 */
+#board-container {
+     width: 100%;
+}
+
+/* 放大玩家卡片頭像 (w-12 h-12 = 48px) */
+.player-avatar-large {
+    width: 48px; 
+    height: 48px; 
+}
+
+/* NEW: 棋子平滑過渡 */
+.player-token-container {
+    /* 為了讓子元素能夠絕對定位在父元素底部 */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 5px; /* 稍微抬升棋子，使其不貼住邊界 */
+}
+.player-token-inner {
+    width: 40px; 
+    height: 40px;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: white;
+    border-radius: 9999px; /* rounded-full */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-xl */
+    border-width: 4px;
+    border-style: solid;
+    border-color: #facc15; /* border-yellow-400 */
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* NEW: 骰子動畫樣式 */
+@keyframes diceSpin {
+    0% { transform: rotate(0deg) scale(1); opacity: 1; }
+    25% { transform: rotate(10deg) scale(1.05); opacity: 0.9; }
+    50% { transform: rotate(-10deg) scale(1); opacity: 1; }
+    75% { transform: rotate(5deg) scale(1.05); opacity: 0.9; }
+    100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+.dice-spinning {
+    animation: diceSpin 0.15s infinite; /* 使用較快的速度無限次動畫 */
+}
+
+/* NEW: 房屋/公寓/大樓標誌 */
+.house-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    margin-left: 2px;
+    font-size: 8px;
+    line-height: 14px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+}
+.house { background-color: #34d399; } /* 綠色 (House) */
+.apartment { background-color: #3b82f6; } /* 藍色 (Apartment) - 2 & 3 houses */
+.skyscraper { background-color: #ef4444; } /* 紅色 (Skyscraper) - 4 houses */
+
+/* 移除所有互動元素的雙擊縮放延遲 */
+button, a, .cursor-pointer, #board-display > div {
+    touch-action: manipulation;
+    -webkit-user-select: none; /* 防止長按選取文字文字 */
+    user-select: none;
+}
+
+body {
+    /* 修正 iPad 全螢幕滾動體驗 */
+    overscroll-behavior: none;
+}
+
+#app {
+    /* 讓內容在固定容器內滾動 */
+    overflow-y: auto;
+    height: 100vh;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 棋盤與按鈕允許點擊 */
+#board-container, button, .cursor-pointer {
+    touch-action: manipulation !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
