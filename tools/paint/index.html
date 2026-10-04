@@ -959,61 +959,46 @@ function applyRedact(x0,y0,w,h) {
   const srcData=src.data;
   const pixelCount=sw*sh;
 
-  // 真正的隱私遮蔽：完全破壞原本的空間關係。
-  // 每個輸出像素都從選區中的隨機位置取樣，不保留任何字形/邊緣結構。
+  // 真正的「全 pixel 洗牌」：
+  // 建立 0..N-1 的完整索引，Fisher-Yates 洗牌後逐一搬移。
+  // 每一顆原始 pixel 恰好使用一次，不重複、不遺漏。
+  const order=new Uint32Array(pixelCount);
+  for(let i=0;i<pixelCount;i++) order[i]=i;
+
+  for(let i=pixelCount-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    const tmp=order[i];
+    order[i]=order[j];
+    order[j]=tmp;
+  }
+
   const scrambled=document.createElement('canvas');
   scrambled.width=sw;
   scrambled.height=sh;
   const scctx=scrambled.getContext('2d');
-  const outData=scctx.createImageData(sw,sh);
-  const dst=outData.data;
-
-  let avgR=0,avgG=0,avgB=0;
-  for(let i=0;i<srcData.length;i+=4) {
-    avgR+=srcData[i];
-    avgG+=srcData[i+1];
-    avgB+=srcData[i+2];
-  }
-  avgR/=pixelCount;
-  avgG/=pixelCount;
-  avgB/=pixelCount;
+  const shuffled=scctx.createImageData(sw,sh);
+  const dst=shuffled.data;
 
   for(let p=0;p<pixelCount;p++) {
-    const srcPixel=Math.floor(Math.random()*pixelCount)*4;
+    const s=order[p]*4;
     const d=p*4;
-    dst[d]=srcData[srcPixel];
-    dst[d+1]=srcData[srcPixel+1];
-    dst[d+2]=srcData[srcPixel+2];
-    dst[d+3]=255;
+    dst[d]=srcData[s];
+    dst[d+1]=srcData[s+1];
+    dst[d+2]=srcData[s+2];
+    dst[d+3]=srcData[s+3];
   }
-  scctx.putImageData(outData,0,0);
+  scctx.putImageData(shuffled,0,0);
 
-  // 再做一次極端降採樣，讓高對比文字資訊進一步消失。
-  const tiny=document.createElement('canvas');
-  tiny.width=Math.max(1,Math.round(sw*0.08));
-  tiny.height=Math.max(1,Math.round(sh*0.08));
-  const tctx=tiny.getContext('2d');
-  tctx.imageSmoothingEnabled=true;
-  tctx.imageSmoothingQuality='high';
-  tctx.drawImage(scrambled,0,0,tiny.width,tiny.height);
-
+  // 洗牌後再 blur；這時已經沒有原始空間結構，
+  // blur 只是把隨機噪點柔化，不可能保留原本字形。
   const out=document.createElement('canvas');
   out.width=sw;
   out.height=sh;
   const octx=out.getContext('2d');
-  octx.imageSmoothingEnabled=true;
-  octx.imageSmoothingQuality='high';
+  octx.filter='blur(12px)';
+  octx.drawImage(scrambled,0,0);
 
-  // 放大 + 強模糊，將剩餘的局部高低對比壓平。
-  octx.filter='blur(14px)';
-  octx.drawImage(tiny,0,0,tiny.width,tiny.height,0,0,sw,sh);
-  octx.filter='none';
-
-  // 用選區平均色做半透明覆蓋，避免任何殘餘筆畫或明暗結構被人眼猜回來。
-  octx.fillStyle=`rgba(${Math.round(avgR)},${Math.round(avgG)},${Math.round(avgB)},0.62)`;
-  octx.fillRect(0,0,sw,sh);
-
-  // 再一輪模糊，邊界也自然一點。
+  // 第二輪 blur，進一步去除隨機顆粒感。
   const pass=document.createElement('canvas');
   pass.width=sw;
   pass.height=sh;
