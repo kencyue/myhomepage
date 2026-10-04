@@ -1105,9 +1105,11 @@ function applyRedact(x0,y0,w,h) {
   out.height=sh;
   out.getContext('2d').putImageData(finalData,0,0);
 
+  // 只替換目前框選區，不影響畫布上其他既有標註／馬賽克／遮蔽。
   ctx.clearRect(x,y,dw,dh);
   ctx.save();
-  ctx.globalCompositeOperation='copy';
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
   ctx.drawImage(out,x,y,dw,dh);
   ctx.restore();
 }
