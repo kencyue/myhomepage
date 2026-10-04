@@ -183,39 +183,78 @@ input[type=file] {
   padding: 0;
 }
 #optionBar input[type=range] {
-  width: min(320px, 72vw);
-  height: 36px;
-  accent-color: #007aff;
-  touch-action: pan-x;
+  -webkit-appearance: none;
+  appearance: none;
+  width: min(360px, 62vw);
+  height: 52px;
+  background: transparent;
+  touch-action: none;
+  cursor: pointer;
 }
 #optionBar input[type=range]::-webkit-slider-runnable-track {
-  height: 8px;
+  height: 12px;
+  background: #d9d9df;
   border-radius: 999px;
 }
 #optionBar input[type=range]::-webkit-slider-thumb {
-  width: 28px;
-  height: 28px;
-  margin-top: -10px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 52px;
+  height: 52px;
+  margin-top: -20px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #007aff;
+  box-shadow: 0 1px 6px rgba(0,0,0,.28);
 }
 #optionBar input[type=range]::-moz-range-track {
-  height: 8px;
+  height: 12px;
+  background: #d9d9df;
   border-radius: 999px;
 }
 #optionBar input[type=range]::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
-  border: 0;
+  width: 48px;
+  height: 48px;
+  border: 3px solid #fff;
   border-radius: 50%;
+  background: #007aff;
+  box-shadow: 0 1px 6px rgba(0,0,0,.28);
+}
+.mosaic-step {
+  display: none;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: #eef4ff;
+  color: #007aff;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.mosaic-step:active {
+  background: #dbe9ff;
+  transform: scale(.96);
 }
 @media (max-width: 640px) {
   #optionBar {
     width: calc(100% - 12px);
-    gap: .5rem;
-    padding: .6rem .75rem;
+    gap: .45rem;
+    padding: .65rem;
   }
   #optionBar input[type=range] {
-    width: min(76vw, 340px);
-    height: 44px;
+    flex: 1 1 160px;
+    width: auto;
+    min-width: 140px;
+    height: 58px;
+  }
+  .mosaic-step {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
   }
 }
 #optionBar span {
@@ -325,7 +364,9 @@ input[type=file] {
     <input type="color" id="colorPicker" value="#ff0000" title="顏色">
     <input type="range" id="sizeSlider" min="1" max="72" step="1" value="3">
     <span id="sizeDisplay">3px</span>
+    <button type="button" class="mosaic-step" id="mosaicMinus" aria-label="減少馬賽克程度">−</button>
     <input type="range" id="blurSlider" min="4" max="60" step="1" value="12" style="display:none;">
+    <button type="button" class="mosaic-step" id="mosaicPlus" aria-label="增加馬賽克程度">＋</button>
     <span id="blurDisplay" style="display:none;">12px</span>
   </div>
 </div>
@@ -346,7 +387,7 @@ const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),rectRed=$
 const hiRect=$('highlightRect'),hiOval=$('highlightOval');
 const blurBtn=$('blurTool'),mosaicBtn=$('mosaicTool'),textBtn=$('textTool');
 const undo=$('undoBtn'),dl=$('downloadBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn');
-const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay');
+const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay'),mosaicMinus=$('mosaicMinus'),mosaicPlus=$('mosaicPlus');
 const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),cancelText=$('cancelText');
 const errorMsg=$('errorMsg');
 const ctx=cv.getContext('2d');
@@ -610,6 +651,8 @@ function showDrawOptions() {
   sizeDisp.style.display='block';
   blurSlider.style.display='none';
   blurDisp.style.display='none';
+  mosaicMinus.style.display='none';
+  mosaicPlus.style.display='none';
   sizeDisp.textContent=`${brushWidth}px`;
   sizeSlider.value=brushWidth;
 }
@@ -621,6 +664,8 @@ function showTextOptions() {
   sizeDisp.style.display='block';
   blurSlider.style.display='none';
   blurDisp.style.display='none';
+  mosaicMinus.style.display='none';
+  mosaicPlus.style.display='none';
   sizeDisp.textContent=`${fontSize}px`;
   sizeSlider.value=fontSize;
 }
@@ -632,12 +677,16 @@ function showMosaicOptions() {
   sizeDisp.style.display='none';
   blurSlider.style.display='block';
   blurDisp.style.display='block';
+  mosaicMinus.style.display='inline-flex';
+  mosaicPlus.style.display='inline-flex';
   blurSlider.value=mosaicSize;
   blurDisp.textContent=`${mosaicSize}px`;
 }
 
 function hideOptions() {
   optBar.style.display='none';
+  mosaicMinus.style.display='none';
+  mosaicPlus.style.display='none';
 }
 
 colorPicker.oninput=e=>{drawColor=e.target.value;};
@@ -650,11 +699,15 @@ sizeSlider.oninput=e=>{
     sizeDisp.textContent=`${e.target.value}px`;
   }
 };
-blurSlider.oninput=e=>{
-  mosaicSize=parseInt(e.target.value);
+function setMosaicSize(value) {
+  mosaicSize=Math.max(
+    parseInt(blurSlider.min,10),
+    Math.min(parseInt(blurSlider.max,10),parseInt(value,10))
+  );
+  blurSlider.value=mosaicSize;
   blurDisp.textContent=`${mosaicSize}px`;
 
-  // 若剛剛才框了一個馬賽克，拉桿時即時重算那一塊，不必重新框選。
+  // 框完後仍可立即調整最後一個馬賽克區域。
   if(mode==='mosaic' && mosaicSelection) {
     ctx.putImageData(mosaicSelection.base,0,0);
     applyMosaic(
@@ -664,7 +717,11 @@ blurSlider.oninput=e=>{
       mosaicSelection.h
     );
   }
-};
+}
+
+blurSlider.oninput=e=>setMosaicSize(e.target.value);
+mosaicMinus.onclick=()=>setMosaicSize(mosaicSize-2);
+mosaicPlus.onclick=()=>setMosaicSize(mosaicSize+2);
 
 function setMode(m) {
   if(cropper) cancelBtn.click();
@@ -948,6 +1005,62 @@ function getRegionCanvas(x0,y0,w,h) {
   return {x,y,w,h,source};
 }
 
+function boxBlurPixels(src,w,h,radius) {
+  if(radius<=0) return new Uint8ClampedArray(src);
+
+  const tmp=new Uint8ClampedArray(src.length);
+  const out=new Uint8ClampedArray(src.length);
+  const size=radius*2+1;
+
+  // Horizontal pass
+  for(let y=0;y<h;y++) {
+    let rr=0,gg=0,bb=0,aa=0;
+    for(let k=-radius;k<=radius;k++) {
+      const x=Math.max(0,Math.min(w-1,k));
+      const i=(y*w+x)*4;
+      rr+=src[i]; gg+=src[i+1]; bb+=src[i+2]; aa+=src[i+3];
+    }
+    for(let x=0;x<w;x++) {
+      const d=(y*w+x)*4;
+      tmp[d]=rr/size; tmp[d+1]=gg/size; tmp[d+2]=bb/size; tmp[d+3]=aa/size;
+
+      const oldX=Math.max(0,x-radius);
+      const newX=Math.min(w-1,x+radius+1);
+      const oi=(y*w+oldX)*4;
+      const ni=(y*w+newX)*4;
+      rr+=src[ni]-src[oi];
+      gg+=src[ni+1]-src[oi+1];
+      bb+=src[ni+2]-src[oi+2];
+      aa+=src[ni+3]-src[oi+3];
+    }
+  }
+
+  // Vertical pass
+  for(let x=0;x<w;x++) {
+    let rr=0,gg=0,bb=0,aa=0;
+    for(let k=-radius;k<=radius;k++) {
+      const y=Math.max(0,Math.min(h-1,k));
+      const i=(y*w+x)*4;
+      rr+=tmp[i]; gg+=tmp[i+1]; bb+=tmp[i+2]; aa+=tmp[i+3];
+    }
+    for(let y=0;y<h;y++) {
+      const d=(y*w+x)*4;
+      out[d]=rr/size; out[d+1]=gg/size; out[d+2]=bb/size; out[d+3]=255;
+
+      const oldY=Math.max(0,y-radius);
+      const newY=Math.min(h-1,y+radius+1);
+      const oi=(oldY*w+x)*4;
+      const ni=(newY*w+x)*4;
+      rr+=tmp[ni]-tmp[oi];
+      gg+=tmp[ni+1]-tmp[oi+1];
+      bb+=tmp[ni+2]-tmp[oi+2];
+      aa+=tmp[ni+3]-tmp[oi+3];
+    }
+  }
+
+  return out;
+}
+
 function applyRedact(x0,y0,w,h) {
   const region=getRegionCanvas(x0,y0,w,h);
   if(!region) return;
@@ -955,61 +1068,48 @@ function applyRedact(x0,y0,w,h) {
   const {x,y,w:dw,h:dh,source}=region;
   const sw=source.width, sh=source.height;
   const sctx=source.getContext('2d');
-  const src=sctx.getImageData(0,0,sw,sh);
-  const srcData=src.data;
+  const imgData=sctx.getImageData(0,0,sw,sh);
+  const src=imgData.data;
   const pixelCount=sw*sh;
 
-  // 真正的「全 pixel 洗牌」：
-  // 建立 0..N-1 的完整索引，Fisher-Yates 洗牌後逐一搬移。
-  // 每一顆原始 pixel 恰好使用一次，不重複、不遺漏。
+  // 1) 框選範圍內「每一顆 pixel」都參加 Fisher-Yates 完整洗牌。
+  //    每顆原 pixel 恰好使用一次：不重複、不遺漏。
   const order=new Uint32Array(pixelCount);
   for(let i=0;i<pixelCount;i++) order[i]=i;
-
   for(let i=pixelCount-1;i>0;i--) {
     const j=Math.floor(Math.random()*(i+1));
-    const tmp=order[i];
-    order[i]=order[j];
-    order[j]=tmp;
+    const t=order[i]; order[i]=order[j]; order[j]=t;
   }
 
-  const scrambled=document.createElement('canvas');
-  scrambled.width=sw;
-  scrambled.height=sh;
-  const scctx=scrambled.getContext('2d');
-  const shuffled=scctx.createImageData(sw,sh);
-  const dst=shuffled.data;
-
+  const shuffled=new Uint8ClampedArray(src.length);
   for(let p=0;p<pixelCount;p++) {
     const s=order[p]*4;
     const d=p*4;
-    dst[d]=srcData[s];
-    dst[d+1]=srcData[s+1];
-    dst[d+2]=srcData[s+2];
-    dst[d+3]=srcData[s+3];
+    shuffled[d]=src[s];
+    shuffled[d+1]=src[s+1];
+    shuffled[d+2]=src[s+2];
+    shuffled[d+3]=255;
   }
-  scctx.putImageData(shuffled,0,0);
 
-  // 洗牌後再 blur；這時已經沒有原始空間結構，
-  // blur 只是把隨機噪點柔化，不可能保留原本字形。
+  // 2) 對「已洗牌的 pixel 資料」直接做 CPU box blur。
+  //    不再使用 Canvas filter，避免任何原圖透出或瀏覽器合成差異。
+  const radius=Math.max(6,Math.min(14,Math.round(Math.min(sw,sh)/18)));
+  const blurred1=boxBlurPixels(shuffled,sw,sh,radius);
+  const blurred2=boxBlurPixels(blurred1,sw,sh,Math.max(4,Math.round(radius*0.65)));
+
+  // 3) 直接寫入一個完全不透明的 ImageData，再覆蓋回主畫布。
+  //    此時框選範圍內已經不存在原始文字的空間排列。
+  const finalData=new ImageData(blurred2,sw,sh);
   const out=document.createElement('canvas');
   out.width=sw;
   out.height=sh;
-  const octx=out.getContext('2d');
-  octx.filter='blur(12px)';
-  octx.drawImage(scrambled,0,0);
-
-  // 第二輪 blur，進一步去除隨機顆粒感。
-  const pass=document.createElement('canvas');
-  pass.width=sw;
-  pass.height=sh;
-  pass.getContext('2d').drawImage(out,0,0);
-  octx.clearRect(0,0,sw,sh);
-  octx.filter='blur(8px)';
-  octx.drawImage(pass,0,0);
-  octx.filter='none';
+  out.getContext('2d').putImageData(finalData,0,0);
 
   ctx.clearRect(x,y,dw,dh);
+  ctx.save();
+  ctx.globalCompositeOperation='copy';
   ctx.drawImage(out,x,y,dw,dh);
+  ctx.restore();
 }
 
 function applyMosaic(x0,y0,w,h) {
@@ -1122,8 +1222,12 @@ reset.onclick=()=>{
 };
 
 let lastY=0;
-window.addEventListener('touchstart',e=>{lastY=e.touches[0].clientY;},{passive:true});
+window.addEventListener('touchstart',e=>{
+  if(e.target && e.target.matches && e.target.matches('input[type="range"]')) return;
+  lastY=e.touches[0].clientY;
+},{passive:true});
 window.addEventListener('touchmove',e=>{
+  if(e.target && e.target.matches && e.target.matches('input[type="range"]')) return;
   const y=e.touches[0].clientY;
   if(window.pageYOffset===0&&y>lastY) e.preventDefault();
 },{passive:false});
