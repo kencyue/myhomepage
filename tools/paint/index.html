@@ -869,10 +869,14 @@ function hexToRgba(hex,a=1) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-function pointerCanvasPoint(e) {
+function pointerCanvasPoint(e,phase='move') {
   const r=cv.getBoundingClientRect();
   const touchLike=e.pointerType==='touch'||e.pointerType==='pen';
-  const offsetY=touchLike?48:0;
+
+  // 起點必須跟手指實際落點一致，只有拖曳中的終點往上偏移，
+  // 避免「一按下就已經偏掉」造成起點難以對準。
+  const offsetY=(touchLike && phase!=='start')?48:0;
+
   return {
     x:Math.max(0,Math.min(cv.width,e.clientX-r.left)),
     y:Math.max(0,Math.min(cv.height,e.clientY-r.top-offsetY)),
@@ -893,7 +897,7 @@ function showTouchCursorAt(x,y,on) {
 cv.addEventListener('pointerdown',e=>{
   if(mosaicSelection) mosaicSelection=null;
 
-  const p=pointerCanvasPoint(e);
+  const p=pointerCanvasPoint(e,'start');
   sx=p.x;
   sy=p.y;
   if(mode==='none') return;
@@ -940,7 +944,7 @@ cv.addEventListener('pointerdown',e=>{
 cv.addEventListener('pointermove',e=>{
   if(!drawing) return;
 
-  const p=pointerCanvasPoint(e);
+  const p=pointerCanvasPoint(e,'move');
   const x=p.x,y=p.y,w=x-sx,h=y-sy;
   showTouchCursorAt(x,y,p.touchLike);
 
@@ -971,7 +975,7 @@ cv.addEventListener('pointerup',e=>{
     try { cv.releasePointerCapture(e.pointerId); } catch {}
   }
 
-  const p=pointerCanvasPoint(e);
+  const p=pointerCanvasPoint(e,'end');
   const x=p.x,y=p.y,w=x-sx,h=y-sy;
 
   if(gestureBase) ctx.putImageData(gestureBase,0,0);
