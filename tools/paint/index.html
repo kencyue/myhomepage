@@ -156,6 +156,38 @@ input[type=file] {
   touch-action: none;
   cursor: crosshair;
 }
+#touchCursor {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  margin-top: -11px;
+  border: 2px solid #007aff;
+  border-radius: 50%;
+  background: rgba(255,255,255,.8);
+  box-shadow: 0 1px 5px rgba(0,0,0,.25);
+  pointer-events: none;
+  z-index: 20;
+  display: none;
+}
+#touchCursor::before,
+#touchCursor::after {
+  content: '';
+  position: absolute;
+  background: #007aff;
+}
+#touchCursor::before {
+  left: 9px;
+  top: -7px;
+  width: 2px;
+  height: 32px;
+}
+#touchCursor::after {
+  left: -7px;
+  top: 9px;
+  width: 32px;
+  height: 2px;
+}
 .cropper-container {
   max-width: 100%!important;
   max-height: 70vh!important;
@@ -359,7 +391,7 @@ input[type=file] {
   <input type="file" id="fileCamera" accept="image/*" capture="environment">
   <div id="drop-zone">或拖拉圖片到這裡</div>
   <div id="errorMsg"></div>
-  <div id="canvasWrap"><img id="imgBase" alt=""><canvas id="markupLayer"></canvas></div>
+  <div id="canvasWrap"><img id="imgBase" alt=""><canvas id="markupLayer"></canvas><div id="touchCursor" aria-hidden="true"></div></div>
   <div id="optionBar" class="btn-row">
     <input type="color" id="colorPicker" value="#ff0000" title="顏色">
     <input type="range" id="sizeSlider" min="1" max="72" step="1" value="3">
@@ -381,7 +413,7 @@ input[type=file] {
 const $=id=>document.getElementById(id);
 const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 const fGal=$('fileGallery'),fCam=$('fileCamera');
-const selBtns=$('selectBtns'),drop=$('drop-zone'),wrap=$('canvasWrap'),img=$('imgBase'),cv=$('markupLayer'),bar=$('toolBar');
+const selBtns=$('selectBtns'),drop=$('drop-zone'),wrap=$('canvasWrap'),img=$('imgBase'),cv=$('markupLayer'),bar=$('toolBar'),touchCursor=$('touchCursor');
 const cropBtn=$('cropTool'),cancelBtn=$('cancelCrop');
 const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),rectRed=$('rectRed');
 const hiRect=$('highlightRect'),hiOval=$('highlightOval');
@@ -392,7 +424,7 @@ const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),c
 const errorMsg=$('errorMsg');
 const ctx=cv.getContext('2d');
 let mode='none',cropper=null,stream=null;
-let drawing=false,sx=0,sy=0,preview=null;
+let drawing=false,sx=0,sy=0,preview=null,gestureBase=null;
 const UM=10,markStack=[],cropStack=[];
 let hasMask=false;
 let markupDirty=false;
@@ -483,6 +515,8 @@ function enterWorkArea() {
   hasMask=false;
   markupDirty=false;
   mosaicSelection=null;
+  gestureBase=null;
+  showTouchCursorAt(0,0,false);
   cropper&&cropper.destroy();
   cropper=null;
   toggleCrop(false);
@@ -835,28 +869,57 @@ function hexToRgba(hex,a=1) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-cv.addEventListener('pointerdown',e=>{
-  // 開始新的操作就固定前一個馬賽克結果。
-  if(mosaicSelection) mosaicSelection=null;
+function pointerCanvasPoint(e) {
   const r=cv.getBoundingClientRect();
-  sx=e.clientX-r.left;
-  sy=e.clientY-r.top;
-  if(mode==='none') return;
-  drawing=true;
-  if (cv.setPointerCapture) {
-    try { cv.setPointerCapture(e.pointerId); } catch {}
-  }
-  pushMark();
-  if(mode==='text'&&!textRect) {
-    preview=ctx.getImageData(0,0,cv.width,cv.height);
+  const touchLike=e.pointerType==='touch'||e.pointerType==='pen';
+  const offsetY=touchLike?48:0;
+  return {
+    x:Math.max(0,Math.min(cv.width,e.clientX-r.left)),
+    y:Math.max(0,Math.min(cv.height,e.clientY-r.top-offsetY)),
+    touchLike
+  };
+}
+
+function showTouchCursorAt(x,y,on) {
+  if(!on) {
+    touchCursor.style.display='none';
     return;
   }
+  touchCursor.style.display='block';
+  touchCursor.style.left=`${x}px`;
+  touchCursor.style.top=`${y}px`;
+}
+
+cv.addEventListener('pointerdown',e=>{
+  if(mosaicSelection) mosaicSelection=null;
+
+  const p=pointerCanvasPoint(e);
+  sx=p.x;
+  sy=p.y;
+  if(mode==='none') return;
+
+  drawing=true;
+  if(cv.setPointerCapture) {
+    try { cv.setPointerCapture(e.pointerId); } catch {}
+  }
+
+  // 每次操作都保存一份獨立且不可變的底圖快照。
+  // pointermove 只拿這份快照做預覽，避免上一個遮蔽/馬賽克被回寫掉。
+  gestureBase=ctx.getImageData(0,0,cv.width,cv.height);
+  preview=gestureBase;
+  pushMark();
+
+  showTouchCursorAt(sx,sy,p.touchLike);
+
+  if(mode==='text'&&!textRect) return;
+
   if(mode==='text'&&textRect) {
     textModal.style.display='flex';
     cv.style.pointerEvents='none';
     textInput.focus();
     return;
   }
+
   if(mode.startsWith('pen')) {
     ctx.lineCap='round';
     ctx.lineWidth=(mode==='penYellow'?brushWidth*3:brushWidth);
@@ -864,74 +927,122 @@ cv.addEventListener('pointerdown',e=>{
     ctx.beginPath();
     ctx.moveTo(sx,sy);
   }
+
   if((mode==='highlightRect'||mode==='highlightOval')&&!hasMask) {
     ctx.fillStyle='rgba(0,0,0,0.5)';
     ctx.fillRect(0,0,cv.width,cv.height);
     hasMask=true;
+    gestureBase=ctx.getImageData(0,0,cv.width,cv.height);
+    preview=gestureBase;
   }
-  preview=ctx.getImageData(0,0,cv.width,cv.height);
 });
 
-cv.addEventListener('pointermove', e => {
-  if (!drawing) return;
-  const r = cv.getBoundingClientRect(),
-        x = e.clientX - r.left,
-        y = e.clientY - r.top,
-        w = x - sx,
-        h = y - sy;
-  if (mode.startsWith('pen')) {
-    ctx.lineTo(x, y);
+cv.addEventListener('pointermove',e=>{
+  if(!drawing) return;
+
+  const p=pointerCanvasPoint(e);
+  const x=p.x,y=p.y,w=x-sx,h=y-sy;
+  showTouchCursorAt(x,y,p.touchLike);
+
+  if(mode.startsWith('pen')) {
+    ctx.lineTo(x,y);
     ctx.stroke();
-  } else {
-    ctx.putImageData(preview, 0, 0);
-    switch (mode) {
-      case 'ellipse': drawEllipse(sx, sy, w, h); break;
-      case 'rectRed': drawRect(sx, sy, w, h); break;
-      case 'highlightRect': highlightRect(w, h); break;
-      case 'highlightOval': highlightOval(w, h); break;
-      case 'blur':
-      case 'mosaic': drawBlurOutline(sx, sy, w, h); break;
-      case 'text': drawTextRect(sx, sy, w, h); break;
-    }
+    return;
+  }
+
+  if(gestureBase) ctx.putImageData(gestureBase,0,0);
+
+  switch(mode) {
+    case 'ellipse': drawEllipse(sx,sy,w,h); break;
+    case 'rectRed': drawRect(sx,sy,w,h); break;
+    case 'highlightRect': highlightRect(w,h); break;
+    case 'highlightOval': highlightOval(w,h); break;
+    case 'blur':
+    case 'mosaic': drawBlurOutline(sx,sy,w,h); break;
+    case 'text': drawTextRect(sx,sy,w,h); break;
   }
 });
 
 cv.addEventListener('pointerup',e=>{
   if(!drawing) return;
   drawing=false;
-  if (cv.releasePointerCapture) {
+
+  if(cv.releasePointerCapture) {
     try { cv.releasePointerCapture(e.pointerId); } catch {}
   }
-  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,w=x-sx,h=y-sy;
-  ctx.putImageData(preview,0,0);
+
+  const p=pointerCanvasPoint(e);
+  const x=p.x,y=p.y,w=x-sx,h=y-sy;
+
+  if(gestureBase) ctx.putImageData(gestureBase,0,0);
+  showTouchCursorAt(0,0,false);
+
   switch(mode) {
-    case 'ellipse': drawEllipse(sx,sy,w,h); markupDirty=true; break;
-    case 'rectRed': drawRect(sx,sy,w,h); markupDirty=true; break;
-    case 'highlightRect': highlightRect(w,h); markupDirty=true; break;
-    case 'highlightOval': highlightOval(w,h); markupDirty=true; break;
-    case 'penRed': case 'penYellow': ctx.lineTo(x,y); ctx.stroke(); markupDirty=true; break;
-    case 'blur': applyRedact(sx,sy,w,h); markupDirty=true; break;
+    case 'ellipse':
+      drawEllipse(sx,sy,w,h);
+      markupDirty=true;
+      break;
+    case 'rectRed':
+      drawRect(sx,sy,w,h);
+      markupDirty=true;
+      break;
+    case 'highlightRect':
+      highlightRect(w,h);
+      markupDirty=true;
+      break;
+    case 'highlightOval':
+      highlightOval(w,h);
+      markupDirty=true;
+      break;
+    case 'penRed':
+    case 'penYellow':
+      ctx.lineTo(x,y);
+      ctx.stroke();
+      markupDirty=true;
+      break;
+    case 'blur':
+      applyRedact(sx,sy,w,h);
+      markupDirty=true;
+      break;
     case 'mosaic':
       mosaicSelection={
         x:sx,y:sy,w,h,
-        base:new ImageData(new Uint8ClampedArray(preview.data),preview.width,preview.height)
+        base:new ImageData(
+          new Uint8ClampedArray(gestureBase.data),
+          gestureBase.width,
+          gestureBase.height
+        )
       };
       applyMosaic(sx,sy,w,h);
       markupDirty=true;
       break;
-    case 'text': textRect={x:sx,y:sy,w:w,h:h}; drawTextRect(sx,sy,w,h); textModal.style.display='flex'; cv.style.pointerEvents='none'; textInput.focus(); break;
+    case 'text':
+      textRect={x:sx,y:sy,w,h};
+      drawTextRect(sx,sy,w,h);
+      textModal.style.display='flex';
+      cv.style.pointerEvents='none';
+      textInput.focus();
+      break;
   }
+
+  gestureBase=null;
+  preview=null;
 });
 
 cv.addEventListener('pointercancel',e=>{
   if(!drawing) return;
   drawing=false;
-  if (cv.releasePointerCapture) {
+
+  if(cv.releasePointerCapture) {
     try { cv.releasePointerCapture(e.pointerId); } catch {}
   }
-  if(preview) ctx.putImageData(preview,0,0);
-  // pointercancel 沒有產生有效操作，不應留下假的 undo 步驟。
+
+  if(gestureBase) ctx.putImageData(gestureBase,0,0);
   if(markStack.length) markStack.pop();
+
+  showTouchCursorAt(0,0,false);
+  gestureBase=null;
+  preview=null;
 });
 
 function drawEllipse(x0,y0,w,h) {
@@ -1213,6 +1324,8 @@ reset.onclick=()=>{
   hasMask=false;
   markupDirty=false;
   mosaicSelection=null;
+  gestureBase=null;
+  showTouchCursorAt(0,0,false);
   cv.style.pointerEvents='auto';
   cancelBtn.style.display='none';
   cropBtn.querySelector('.label').textContent='裁切';
