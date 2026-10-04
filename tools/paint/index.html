@@ -183,8 +183,40 @@ input[type=file] {
   padding: 0;
 }
 #optionBar input[type=range] {
-  width: 140px;
+  width: min(320px, 72vw);
+  height: 36px;
   accent-color: #007aff;
+  touch-action: pan-x;
+}
+#optionBar input[type=range]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+}
+#optionBar input[type=range]::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+}
+#optionBar input[type=range]::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+}
+#optionBar input[type=range]::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+}
+@media (max-width: 640px) {
+  #optionBar {
+    width: calc(100% - 12px);
+    gap: .5rem;
+    padding: .6rem .75rem;
+  }
+  #optionBar input[type=range] {
+    width: min(76vw, 340px);
+    height: 44px;
+  }
 }
 #optionBar span {
   font-size: .8rem;
@@ -325,6 +357,7 @@ let hasMask=false;
 let markupDirty=false;
 let drawColor='#ff0000',brushWidth=3,fontSize=24,mosaicSize=12;
 let textRect=null;
+let mosaicSelection=null;
 const tools=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,mosaicBtn,textBtn];
 const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
 
@@ -408,6 +441,7 @@ function enterWorkArea() {
   active(null);
   hasMask=false;
   markupDirty=false;
+  mosaicSelection=null;
   cropper&&cropper.destroy();
   cropper=null;
   toggleCrop(false);
@@ -619,10 +653,22 @@ sizeSlider.oninput=e=>{
 blurSlider.oninput=e=>{
   mosaicSize=parseInt(e.target.value);
   blurDisp.textContent=`${mosaicSize}px`;
+
+  // 若剛剛才框了一個馬賽克，拉桿時即時重算那一塊，不必重新框選。
+  if(mode==='mosaic' && mosaicSelection) {
+    ctx.putImageData(mosaicSelection.base,0,0);
+    applyMosaic(
+      mosaicSelection.x,
+      mosaicSelection.y,
+      mosaicSelection.w,
+      mosaicSelection.h
+    );
+  }
 };
 
 function setMode(m) {
   if(cropper) cancelBtn.click();
+  if(m!=='mosaic') mosaicSelection=null;
   mode=m;
   active(
     m==='penRed'?penRed:
@@ -681,6 +727,7 @@ function flattenMarkupToBase() {
 }
 
 async function startCrop() {
+  mosaicSelection=null;
   if(!img.src) {
     showError('尚未載入圖片');
     return;
@@ -732,6 +779,8 @@ function hexToRgba(hex,a=1) {
 }
 
 cv.addEventListener('pointerdown',e=>{
+  // 開始新的操作就固定前一個馬賽克結果。
+  if(mosaicSelection) mosaicSelection=null;
   const r=cv.getBoundingClientRect();
   sx=e.clientX-r.left;
   sy=e.clientY-r.top;
@@ -805,7 +854,14 @@ cv.addEventListener('pointerup',e=>{
     case 'highlightOval': highlightOval(w,h); markupDirty=true; break;
     case 'penRed': case 'penYellow': ctx.lineTo(x,y); ctx.stroke(); markupDirty=true; break;
     case 'blur': applyRedact(sx,sy,w,h); markupDirty=true; break;
-    case 'mosaic': applyMosaic(sx,sy,w,h); markupDirty=true; break;
+    case 'mosaic':
+      mosaicSelection={
+        x:sx,y:sy,w,h,
+        base:new ImageData(new Uint8ClampedArray(preview.data),preview.width,preview.height)
+      };
+      applyMosaic(sx,sy,w,h);
+      markupDirty=true;
+      break;
     case 'text': textRect={x:sx,y:sy,w:w,h:h}; drawTextRect(sx,sy,w,h); textModal.style.display='flex'; cv.style.pointerEvents='none'; textInput.focus(); break;
   }
 });
@@ -1037,6 +1093,7 @@ cancelText.onclick=()=>{
 };
 
 undo.onclick=()=>{
+  mosaicSelection=null;
   if(markStack.length) {
     const {imageData, hasMask: restoredHasMask, markupDirty: restoredDirty} = markStack.pop();
     ctx.putImageData(imageData,0,0);
@@ -1059,6 +1116,7 @@ reset.onclick=()=>{
   markStack.length=0;
   hasMask=false;
   markupDirty=false;
+  mosaicSelection=null;
   cv.style.pointerEvents='auto';
   cancelBtn.style.display='none';
   cropBtn.querySelector('.label').textContent='裁切';
