@@ -292,8 +292,8 @@ input[type=file] {
     <input type="color" id="colorPicker" value="#ff0000" title="顏色">
     <input type="range" id="sizeSlider" min="1" max="72" step="1" value="3">
     <span id="sizeDisplay">3px</span>
-    <input type="range" id="blurSlider" min="1" max="100" step="1" value="24" style="display:none;">
-    <span id="blurDisplay" style="display:none;">24</span>
+    <input type="range" id="blurSlider" min="1" max="100" step="1" value="50" style="display:none;">
+    <span id="blurDisplay" style="display:none;">50</span>
   </div>
 </div>
 <div id="textModal">
@@ -322,7 +322,7 @@ let drawing=false,sx=0,sy=0,preview=null;
 const UM=10,markStack=[],cropStack=[];
 let hasMask=false;
 let markupDirty=false;
-let drawColor='#ff0000',brushWidth=3,fontSize=24,blurStrength=24;
+let drawColor='#ff0000',brushWidth=3,fontSize=24,blurStrength=50;
 let textRect=null;
 const tools=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,textBtn];
 const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
@@ -867,8 +867,11 @@ function applyBlur(x0,y0,w,h) {
   const sctx=source.getContext('2d');
   sctx.drawImage(img,x*scaleX,y*scaleY,w*scaleX,h*scaleY,0,0,source.width,source.height);
 
-  // 用降採樣 + 多次 Gaussian blur。比單次 blur 強很多，對文字、帳號、車牌更可靠。
-  const factor=Math.max(0.08,1-blurStrength/115);
+  // 隱私遮蔽級模糊：
+  // 強度越高，先把內容壓到極小尺寸破壞文字筆畫，再放大並做多次 Gaussian blur。
+  const t=Math.max(0,Math.min(1,blurStrength/100));
+  const factor=Math.max(0.015,0.42*(1-t)*(1-t)+0.015);
+
   const small=document.createElement('canvas');
   small.width=Math.max(1,Math.round(source.width*factor));
   small.height=Math.max(1,Math.round(source.height*factor));
@@ -883,18 +886,23 @@ function applyBlur(x0,y0,w,h) {
   const bctx=blurred.getContext('2d');
   bctx.imageSmoothingEnabled=true;
   bctx.imageSmoothingQuality='high';
-  bctx.filter=`blur(${Math.max(2,blurStrength*0.55)}px)`;
+
+  // 第一階段：把極小縮圖放大，先消除細節。
+  bctx.filter=`blur(${Math.max(3,blurStrength*0.75)}px)`;
   bctx.drawImage(small,0,0,small.width,small.height,0,0,source.width,source.height);
-  // 第二次處理可避免高強度時仍看得出字形輪廓。
-  if(blurStrength>=35) {
+
+  // 第二、三階段：高強度時再反覆模糊，避免中文字仍看得出輪廓。
+  const passes = blurStrength >= 70 ? 3 : blurStrength >= 35 ? 2 : 1;
+  for(let i=1;i<passes;i++) {
     const pass=document.createElement('canvas');
     pass.width=blurred.width;
     pass.height=blurred.height;
     pass.getContext('2d').drawImage(blurred,0,0);
     bctx.clearRect(0,0,blurred.width,blurred.height);
-    bctx.filter=`blur(${Math.max(2,blurStrength*0.35)}px)`;
+    bctx.filter=`blur(${Math.max(4,blurStrength*(0.55-i*0.08))}px)`;
     bctx.drawImage(pass,0,0);
   }
+
   bctx.filter='none';
   ctx.drawImage(blurred,x,y,w,h);
 }
