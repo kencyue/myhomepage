@@ -954,66 +954,75 @@ function applyRedact(x0,y0,w,h) {
 
   const {x,y,w:dw,h:dh,source}=region;
   const sw=source.width, sh=source.height;
+  const sctx=source.getContext('2d');
+  const src=sctx.getImageData(0,0,sw,sh);
+  const srcData=src.data;
+  const pixelCount=sw*sh;
 
-  // 隱私遮蔽的目標是破壞資訊，而不是保留可辨識輪廓。
-  // 先切小塊並亂序，再做極端降採樣與多次模糊。
-  const cellSize=Math.max(5,Math.round(Math.min(sw,sh)/20));
-  const cells=[];
-  for(let yy=0;yy<sh;yy+=cellSize) {
-    for(let xx=0;xx<sw;xx+=cellSize) {
-      cells.push({
-        x:xx, y:yy,
-        w:Math.min(cellSize,sw-xx),
-        h:Math.min(cellSize,sh-yy)
-      });
-    }
+  // 真正的隱私遮蔽：完全破壞原本的空間關係。
+  // 每個輸出像素都從選區中的隨機位置取樣，不保留任何字形/邊緣結構。
+  const scrambled=document.createElement('canvas');
+  scrambled.width=sw;
+  scrambled.height=sh;
+  const scctx=scrambled.getContext('2d');
+  const outData=scctx.createImageData(sw,sh);
+  const dst=outData.data;
+
+  let avgR=0,avgG=0,avgB=0;
+  for(let i=0;i<srcData.length;i+=4) {
+    avgR+=srcData[i];
+    avgG+=srcData[i+1];
+    avgB+=srcData[i+2];
   }
+  avgR/=pixelCount;
+  avgG/=pixelCount;
+  avgB/=pixelCount;
 
-  const shuffled=[...cells];
-  for(let i=shuffled.length-1;i>0;i--) {
-    const j=Math.floor(Math.random()*(i+1));
-    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  for(let p=0;p<pixelCount;p++) {
+    const srcPixel=Math.floor(Math.random()*pixelCount)*4;
+    const d=p*4;
+    dst[d]=srcData[srcPixel];
+    dst[d+1]=srcData[srcPixel+1];
+    dst[d+2]=srcData[srcPixel+2];
+    dst[d+3]=255;
   }
+  scctx.putImageData(outData,0,0);
 
-  const mixed=document.createElement('canvas');
-  mixed.width=sw;
-  mixed.height=sh;
-  const mctx=mixed.getContext('2d');
-  cells.forEach((dst,i)=>{
-    const src=shuffled[i];
-    mctx.drawImage(source,src.x,src.y,src.w,src.h,dst.x,dst.y,dst.w,dst.h);
-  });
-
+  // 再做一次極端降採樣，讓高對比文字資訊進一步消失。
   const tiny=document.createElement('canvas');
-  tiny.width=Math.max(1,Math.round(sw*0.12));
-  tiny.height=Math.max(1,Math.round(sh*0.12));
+  tiny.width=Math.max(1,Math.round(sw*0.08));
+  tiny.height=Math.max(1,Math.round(sh*0.08));
   const tctx=tiny.getContext('2d');
   tctx.imageSmoothingEnabled=true;
-  tctx.imageSmoothingQuality='low';
-  tctx.drawImage(mixed,0,0,tiny.width,tiny.height);
+  tctx.imageSmoothingQuality='high';
+  tctx.drawImage(scrambled,0,0,tiny.width,tiny.height);
 
   const out=document.createElement('canvas');
   out.width=sw;
   out.height=sh;
-  let octx=out.getContext('2d');
+  const octx=out.getContext('2d');
   octx.imageSmoothingEnabled=true;
-  octx.imageSmoothingQuality='medium';
-  octx.filter='blur(10px)';
-  octx.drawImage(tiny,0,0,tiny.width,tiny.height,0,0,sw,sh);
+  octx.imageSmoothingQuality='high';
 
-  // 再做兩輪 blur，讓打亂後殘留的高對比筆畫也消失。
-  for(const radius of [8,6]) {
-    const pass=document.createElement('canvas');
-    pass.width=sw;
-    pass.height=sh;
-    pass.getContext('2d').drawImage(out,0,0);
-    octx.clearRect(0,0,sw,sh);
-    octx.filter=`blur(${radius}px)`;
-    octx.drawImage(pass,0,0);
-  }
+  // 放大 + 強模糊，將剩餘的局部高低對比壓平。
+  octx.filter='blur(14px)';
+  octx.drawImage(tiny,0,0,tiny.width,tiny.height,0,0,sw,sh);
   octx.filter='none';
 
-  // 先清掉標註層該區域，避免原標註透出，再畫遮蔽結果。
+  // 用選區平均色做半透明覆蓋，避免任何殘餘筆畫或明暗結構被人眼猜回來。
+  octx.fillStyle=`rgba(${Math.round(avgR)},${Math.round(avgG)},${Math.round(avgB)},0.62)`;
+  octx.fillRect(0,0,sw,sh);
+
+  // 再一輪模糊，邊界也自然一點。
+  const pass=document.createElement('canvas');
+  pass.width=sw;
+  pass.height=sh;
+  pass.getContext('2d').drawImage(out,0,0);
+  octx.clearRect(0,0,sw,sh);
+  octx.filter='blur(8px)';
+  octx.drawImage(pass,0,0);
+  octx.filter='none';
+
   ctx.clearRect(x,y,dw,dh);
   ctx.drawImage(out,x,y,dw,dh);
 }
