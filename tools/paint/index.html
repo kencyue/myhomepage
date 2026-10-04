@@ -274,7 +274,8 @@ input[type=file] {
   <button class="btn" id="rectRed" data-color="danger"><img src="icons/square.png" class="ico" alt=""><span class="label">畫框</span></button>
   <button class="btn" id="highlightOval" data-color="primary"><img src="icons/lightcircle.png" class="ico" alt=""><span class="label">高亮圓</span></button>
   <button class="btn" id="highlightRect" data-color="primary"><img src="icons/lightsquare.png" class="ico" alt=""><span class="label">高亮框</span></button>
-  <button class="btn" id="blurTool" data-color="primary"><img src="icons/drop.png" class="ico" alt=""><span class="label">模糊</span></button>
+  <button class="btn" id="blurTool" data-color="primary"><span class="ico" aria-hidden="true">🫥</span><span class="label">遮蔽</span></button>
+  <button class="btn" id="mosaicTool" data-color="primary"><span class="ico" aria-hidden="true">▦</span><span class="label">馬賽克</span></button>
   <button class="btn" id="textTool" data-color="primary"><img src="icons/text.png" class="ico" alt=""><span class="label">文字</span></button>
   <button class="btn" id="shareBtn" data-color="primary"><img src="icons/share.png" class="ico" alt=""><span class="label">分享</span></button>
   <button class="btn" id="downloadBtn" data-color="primary"><img src="icons/download.png" class="ico" alt=""><span class="label">下載</span></button>
@@ -292,8 +293,8 @@ input[type=file] {
     <input type="color" id="colorPicker" value="#ff0000" title="顏色">
     <input type="range" id="sizeSlider" min="1" max="72" step="1" value="3">
     <span id="sizeDisplay">3px</span>
-    <input type="range" id="blurSlider" min="1" max="100" step="1" value="50" style="display:none;">
-    <span id="blurDisplay" style="display:none;">50</span>
+    <input type="range" id="blurSlider" min="4" max="60" step="1" value="12" style="display:none;">
+    <span id="blurDisplay" style="display:none;">12px</span>
   </div>
 </div>
 <div id="textModal">
@@ -311,7 +312,7 @@ const selBtns=$('selectBtns'),drop=$('drop-zone'),wrap=$('canvasWrap'),img=$('im
 const cropBtn=$('cropTool'),cancelBtn=$('cancelCrop');
 const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),rectRed=$('rectRed');
 const hiRect=$('highlightRect'),hiOval=$('highlightOval');
-const blurBtn=$('blurTool'),textBtn=$('textTool');
+const blurBtn=$('blurTool'),mosaicBtn=$('mosaicTool'),textBtn=$('textTool');
 const undo=$('undoBtn'),dl=$('downloadBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn');
 const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay');
 const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),cancelText=$('cancelText');
@@ -322,9 +323,9 @@ let drawing=false,sx=0,sy=0,preview=null;
 const UM=10,markStack=[],cropStack=[];
 let hasMask=false;
 let markupDirty=false;
-let drawColor='#ff0000',brushWidth=3,fontSize=24,blurStrength=50;
+let drawColor='#ff0000',brushWidth=3,fontSize=24,mosaicSize=12;
 let textRect=null;
-const tools=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,textBtn];
+const tools=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,mosaicBtn,textBtn];
 const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
 
 function showError(message) {
@@ -590,15 +591,15 @@ function showTextOptions() {
   sizeSlider.value=fontSize;
 }
 
-function showBlurOptions() {
+function showMosaicOptions() {
   optBar.style.display='flex';
   colorPicker.style.display='none';
   sizeSlider.style.display='none';
   sizeDisp.style.display='none';
   blurSlider.style.display='block';
   blurDisp.style.display='block';
-  blurSlider.value=blurStrength;
-  blurDisp.textContent=blurStrength;
+  blurSlider.value=mosaicSize;
+  blurDisp.textContent=`${mosaicSize}px`;
 }
 
 function hideOptions() {
@@ -615,16 +616,29 @@ sizeSlider.oninput=e=>{
     sizeDisp.textContent=`${e.target.value}px`;
   }
 };
-blurSlider.oninput=e=>{blurStrength=parseInt(e.target.value);blurDisp.textContent=e.target.value;};
+blurSlider.oninput=e=>{
+  mosaicSize=parseInt(e.target.value);
+  blurDisp.textContent=`${mosaicSize}px`;
+};
 
 function setMode(m) {
   if(cropper) cancelBtn.click();
   mode=m;
-  active(m==='penRed'?penRed:m==='penYellow'?penYel:m==='ellipse'?ellipse:m==='rectRed'?rectRed:m==='highlightRect'?hiRect:m==='highlightOval'?hiOval:m==='blur'?blurBtn:m==='text'?textBtn:null);
+  active(
+    m==='penRed'?penRed:
+    m==='penYellow'?penYel:
+    m==='ellipse'?ellipse:
+    m==='rectRed'?rectRed:
+    m==='highlightRect'?hiRect:
+    m==='highlightOval'?hiOval:
+    m==='blur'?blurBtn:
+    m==='mosaic'?mosaicBtn:
+    m==='text'?textBtn:null
+  );
   if(['penRed','ellipse','rectRed'].includes(m)) showDrawOptions();
   else if(m==='penYellow') {drawColor='#ffff00';colorPicker.value='#ffff00';showDrawOptions();}
   else if(m==='text') showTextOptions();
-  else if(m==='blur') showBlurOptions();
+  else if(m==='mosaic') showMosaicOptions();
   else hideOptions();
   textRect=null;
 }
@@ -636,6 +650,7 @@ rectRed.onclick=()=>setMode('rectRed');
 hiRect.onclick=()=>setMode('highlightRect');
 hiOval.onclick=()=>setMode('highlightOval');
 blurBtn.onclick=()=>setMode('blur');
+mosaicBtn.onclick=()=>setMode('mosaic');
 textBtn.onclick=()=>setMode('text');
 
 function flattenMarkupToBase() {
@@ -768,7 +783,8 @@ cv.addEventListener('pointermove', e => {
       case 'rectRed': drawRect(sx, sy, w, h); break;
       case 'highlightRect': highlightRect(w, h); break;
       case 'highlightOval': highlightOval(w, h); break;
-      case 'blur': drawBlurOutline(sx, sy, w, h); break;
+      case 'blur':
+      case 'mosaic': drawBlurOutline(sx, sy, w, h); break;
       case 'text': drawTextRect(sx, sy, w, h); break;
     }
   }
@@ -788,7 +804,8 @@ cv.addEventListener('pointerup',e=>{
     case 'highlightRect': highlightRect(w,h); markupDirty=true; break;
     case 'highlightOval': highlightOval(w,h); markupDirty=true; break;
     case 'penRed': case 'penYellow': ctx.lineTo(x,y); ctx.stroke(); markupDirty=true; break;
-    case 'blur': applyBlur(sx,sy,w,h); markupDirty=true; break;
+    case 'blur': applyRedact(sx,sy,w,h); markupDirty=true; break;
+    case 'mosaic': applyMosaic(sx,sy,w,h); markupDirty=true; break;
     case 'text': textRect={x:sx,y:sy,w:w,h:h}; drawTextRect(sx,sy,w,h); textModal.style.display='flex'; cv.style.pointerEvents='none'; textInput.focus(); break;
   }
 });
@@ -849,15 +866,17 @@ function drawTextRect(x0,y0,w,h) {
   ctx.restore();
 }
 
-function applyBlur(x0,y0,w,h) {
+function getRegionCanvas(x0,y0,w,h) {
   let x=x0,y=y0;
   if(w<0) {x+=w;w=-w;}
   if(h<0) {y+=h;h=-h;}
+
   x=Math.max(0,Math.floor(x));
   y=Math.max(0,Math.floor(y));
   w=Math.min(cv.width-x,Math.ceil(w));
   h=Math.min(cv.height-y,Math.ceil(h));
-  if(w<2||h<2) return;
+
+  if(w<2||h<2) return null;
 
   const scaleX=img.naturalWidth/img.clientWidth;
   const scaleY=img.naturalHeight/img.clientHeight;
@@ -865,46 +884,111 @@ function applyBlur(x0,y0,w,h) {
   source.width=Math.max(1,Math.round(w));
   source.height=Math.max(1,Math.round(h));
   const sctx=source.getContext('2d');
+
+  // 底圖 + 目前標註一起抓，避免遮蔽範圍內仍殘留之前畫上的內容。
   sctx.drawImage(img,x*scaleX,y*scaleY,w*scaleX,h*scaleY,0,0,source.width,source.height);
+  sctx.drawImage(cv,x,y,w,h,0,0,source.width,source.height);
 
-  // 隱私遮蔽級模糊：
-  // 強度越高，先把內容壓到極小尺寸破壞文字筆畫，再放大並做多次 Gaussian blur。
-  const t=Math.max(0,Math.min(1,blurStrength/100));
-  const factor=Math.max(0.015,0.42*(1-t)*(1-t)+0.015);
+  return {x,y,w,h,source};
+}
 
-  const small=document.createElement('canvas');
-  small.width=Math.max(1,Math.round(source.width*factor));
-  small.height=Math.max(1,Math.round(source.height*factor));
-  const smctx=small.getContext('2d');
-  smctx.imageSmoothingEnabled=true;
-  smctx.imageSmoothingQuality='high';
-  smctx.drawImage(source,0,0,small.width,small.height);
+function applyRedact(x0,y0,w,h) {
+  const region=getRegionCanvas(x0,y0,w,h);
+  if(!region) return;
 
-  const blurred=document.createElement('canvas');
-  blurred.width=source.width;
-  blurred.height=source.height;
-  const bctx=blurred.getContext('2d');
-  bctx.imageSmoothingEnabled=true;
-  bctx.imageSmoothingQuality='high';
+  const {x,y,w:dw,h:dh,source}=region;
+  const sw=source.width, sh=source.height;
 
-  // 第一階段：把極小縮圖放大，先消除細節。
-  bctx.filter=`blur(${Math.max(3,blurStrength*0.75)}px)`;
-  bctx.drawImage(small,0,0,small.width,small.height,0,0,source.width,source.height);
-
-  // 第二、三階段：高強度時再反覆模糊，避免中文字仍看得出輪廓。
-  const passes = blurStrength >= 70 ? 3 : blurStrength >= 35 ? 2 : 1;
-  for(let i=1;i<passes;i++) {
-    const pass=document.createElement('canvas');
-    pass.width=blurred.width;
-    pass.height=blurred.height;
-    pass.getContext('2d').drawImage(blurred,0,0);
-    bctx.clearRect(0,0,blurred.width,blurred.height);
-    bctx.filter=`blur(${Math.max(4,blurStrength*(0.55-i*0.08))}px)`;
-    bctx.drawImage(pass,0,0);
+  // 隱私遮蔽的目標是破壞資訊，而不是保留可辨識輪廓。
+  // 先切小塊並亂序，再做極端降採樣與多次模糊。
+  const cellSize=Math.max(5,Math.round(Math.min(sw,sh)/20));
+  const cells=[];
+  for(let yy=0;yy<sh;yy+=cellSize) {
+    for(let xx=0;xx<sw;xx+=cellSize) {
+      cells.push({
+        x:xx, y:yy,
+        w:Math.min(cellSize,sw-xx),
+        h:Math.min(cellSize,sh-yy)
+      });
+    }
   }
 
-  bctx.filter='none';
-  ctx.drawImage(blurred,x,y,w,h);
+  const shuffled=[...cells];
+  for(let i=shuffled.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+
+  const mixed=document.createElement('canvas');
+  mixed.width=sw;
+  mixed.height=sh;
+  const mctx=mixed.getContext('2d');
+  cells.forEach((dst,i)=>{
+    const src=shuffled[i];
+    mctx.drawImage(source,src.x,src.y,src.w,src.h,dst.x,dst.y,dst.w,dst.h);
+  });
+
+  const tiny=document.createElement('canvas');
+  tiny.width=Math.max(1,Math.round(sw*0.12));
+  tiny.height=Math.max(1,Math.round(sh*0.12));
+  const tctx=tiny.getContext('2d');
+  tctx.imageSmoothingEnabled=true;
+  tctx.imageSmoothingQuality='low';
+  tctx.drawImage(mixed,0,0,tiny.width,tiny.height);
+
+  const out=document.createElement('canvas');
+  out.width=sw;
+  out.height=sh;
+  let octx=out.getContext('2d');
+  octx.imageSmoothingEnabled=true;
+  octx.imageSmoothingQuality='medium';
+  octx.filter='blur(10px)';
+  octx.drawImage(tiny,0,0,tiny.width,tiny.height,0,0,sw,sh);
+
+  // 再做兩輪 blur，讓打亂後殘留的高對比筆畫也消失。
+  for(const radius of [8,6]) {
+    const pass=document.createElement('canvas');
+    pass.width=sw;
+    pass.height=sh;
+    pass.getContext('2d').drawImage(out,0,0);
+    octx.clearRect(0,0,sw,sh);
+    octx.filter=`blur(${radius}px)`;
+    octx.drawImage(pass,0,0);
+  }
+  octx.filter='none';
+
+  // 先清掉標註層該區域，避免原標註透出，再畫遮蔽結果。
+  ctx.clearRect(x,y,dw,dh);
+  ctx.drawImage(out,x,y,dw,dh);
+}
+
+function applyMosaic(x0,y0,w,h) {
+  const region=getRegionCanvas(x0,y0,w,h);
+  if(!region) return;
+
+  const {x,y,w:dw,h:dh,source}=region;
+  const sw=source.width, sh=source.height;
+  const block=Math.max(2,mosaicSize);
+
+  const small=document.createElement('canvas');
+  small.width=Math.max(1,Math.round(sw/block));
+  small.height=Math.max(1,Math.round(sh/block));
+  const smctx=small.getContext('2d');
+  smctx.imageSmoothingEnabled=true;
+  smctx.drawImage(source,0,0,small.width,small.height);
+
+  const out=document.createElement('canvas');
+  out.width=sw;
+  out.height=sh;
+  const octx=out.getContext('2d');
+  octx.imageSmoothingEnabled=false;
+  octx.drawImage(small,0,0,small.width,small.height,0,0,sw,sh);
+
+  ctx.clearRect(x,y,dw,dh);
+  ctx.save();
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(out,x,y,dw,dh);
+  ctx.restore();
 }
 
 function drawTextInRect(txt,x,y,w,h) {
