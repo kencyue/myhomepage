@@ -636,14 +636,45 @@ hiOval.onclick=()=>setMode('highlightOval');
 blurBtn.onclick=()=>setMode('blur');
 textBtn.onclick=()=>setMode('text');
 
-function startCrop() {
+function flattenMarkupToBase() {
+  if(!markupDirty) return Promise.resolve();
+  const o=document.createElement('canvas');
+  o.width=img.naturalWidth;
+  o.height=img.naturalHeight;
+  const octx=o.getContext('2d');
+  octx.drawImage(img,0,0);
+  octx.drawImage(cv,0,0,o.width,o.height);
+  const nextSrc=o.toDataURL('image/png');
+
+  return new Promise((resolve,reject)=>{
+    img.onload=()=>{
+      fitCanvas();
+      ctx.clearRect(0,0,cv.width,cv.height);
+      markStack.length=0;
+      hasMask=false;
+      markupDirty=false;
+      resolve();
+    };
+    img.onerror=()=>{
+      showError('合併標註失敗，無法進入裁切');
+      reject(new Error('flatten markup failed'));
+    };
+    img.src=nextSrc;
+  });
+}
+
+async function startCrop() {
   if(!img.src) {
     showError('尚未載入圖片');
     return;
   }
   if(!cropper) {
-    cropper=new Cropper(img,{viewMode:1,responsive:true,autoCropArea:0.9});
-    toggleCrop(true);
+    try {
+      // Cropper 只認底圖；先把畫框、文字、模糊等標註合併，避免裁切後跑位或消失。
+      await flattenMarkupToBase();
+      cropper=new Cropper(img,{viewMode:1,responsive:true,autoCropArea:0.9});
+      toggleCrop(true);
+    } catch {}
   } else {
     applyCrop();
   }
