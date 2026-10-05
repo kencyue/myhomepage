@@ -580,7 +580,16 @@ function imageDataToDataURL(data) {
 
 function captureCurrentDocument() {
   const doc=documents.find(d=>d.id===activeDocId);
-  if(!doc || !img.src) return;
+  if(!doc) return;
+  if(!img.src) {
+    doc.imgSrc=null;
+    doc.markupDataURL=null;
+    doc.markStack=[];
+    doc.cropStack=[];
+    doc.hasMask=false;
+    doc.markupDirty=false;
+    return;
+  }
 
   doc.imgSrc=img.src;
   doc.canvasWidth=cv.width;
@@ -627,8 +636,8 @@ function renderDocumentTabs() {
   });
 }
 
-function showEmptyWorkspace() {
-  activeDocId=null;
+function showEmptyWorkspace(doc=null) {
+  activeDocId=doc?.id||null;
   img.removeAttribute('src');
   wrap.style.display='none';
   drop.style.display='block';
@@ -640,12 +649,26 @@ function showEmptyWorkspace() {
   mode='none';
   markStack.length=0;
   cropStack.length=0;
+  hasMask=false;
+  markupDirty=false;
+  mosaicSelection=null;
+  gestureBase=null;
   ctx.clearRect(0,0,cv.width,cv.height);
   renderDocumentTabs();
 }
 
 function restoreDocument(doc) {
   if(!doc) return;
+
+  if(!doc.imgSrc) {
+    if(cropper) {
+      cropper.destroy();
+      cropper=null;
+    }
+    activeDocId=doc.id;
+    showEmptyWorkspace(doc);
+    return;
+  }
 
   if(cropper) {
     cropper.destroy();
@@ -744,9 +767,22 @@ function closeDocument(docId) {
 
 function startNewDocument() {
   captureCurrentDocument();
-  pendingNewDocument=true;
-  fGal.value='';
-  fGal.click();
+
+  const doc={
+    id:`doc-${nextDocId++}`,
+    name:`新圖片 ${documents.length+1}`,
+    imgSrc:null,
+    markupDataURL:null,
+    markStack:[],
+    cropStack:[],
+    hasMask:false,
+    markupDirty:false,
+    mosaicSize:12
+  };
+
+  documents.push(doc);
+  activeDocId=doc.id;
+  showEmptyWorkspace(doc);
 }
 
 function active(btn) {
@@ -807,19 +843,34 @@ function load(file) {
   r.onload=e=>{
     captureCurrentDocument();
 
-    const doc={
-      id:`doc-${nextDocId++}`,
-      name:file.name||`圖片 ${nextDocId-1}`,
-      imgSrc:e.target.result,
-      markupDataURL:null,
-      markStack:[],
-      cropStack:[],
-      hasMask:false,
-      markupDirty:false,
-      mosaicSize:12
-    };
+    let doc=documents.find(d=>d.id===activeDocId);
 
-    documents.push(doc);
+    // 若目前就是用「＋」建立的空白工作頁，直接把圖片載入這個 Tab。
+    // 否則才建立新的文件 Tab。
+    if(doc && !doc.imgSrc) {
+      doc.name=file.name||doc.name||`圖片 ${nextDocId-1}`;
+      doc.imgSrc=e.target.result;
+      doc.markupDataURL=null;
+      doc.markStack=[];
+      doc.cropStack=[];
+      doc.hasMask=false;
+      doc.markupDirty=false;
+      doc.mosaicSize=12;
+    } else {
+      doc={
+        id:`doc-${nextDocId++}`,
+        name:file.name||`圖片 ${nextDocId-1}`,
+        imgSrc:e.target.result,
+        markupDataURL:null,
+        markStack:[],
+        cropStack:[],
+        hasMask:false,
+        markupDirty:false,
+        mosaicSize:12
+      };
+      documents.push(doc);
+    }
+
     pendingNewDocument=false;
     restoreDocument(doc);
   };
@@ -913,7 +964,7 @@ async function webShare() {
 }
 
 btnGal.onclick=()=>{
-  pendingNewDocument=true;
+  pendingNewDocument=false;
   fGal.value='';
   fGal.click();
 };
