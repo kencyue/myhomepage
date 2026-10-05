@@ -101,6 +101,106 @@ body {
   margin: 0 .3rem .3rem 0;
 }
 
+/* ===== 多文件工作區 Tabs ===== */
+#docTabsBar {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  padding: .45rem .75rem;
+  background: #ececf1;
+  border-bottom: 1px solid #d2d2d7;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+#docTabs {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+  flex: 1;
+}
+.doc-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-width: 110px;
+  max-width: 220px;
+  height: 38px;
+  padding: 0 .55rem 0 .75rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: rgba(255,255,255,.62);
+  color: #444;
+  cursor: pointer;
+  user-select: none;
+  flex: 0 0 auto;
+}
+.doc-tab:hover {
+  background: rgba(255,255,255,.9);
+}
+.doc-tab.active {
+  background: #fff;
+  color: #111;
+  border-color: #d2d2d7;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+.doc-tab-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+  font-size: .82rem;
+}
+.doc-tab-close {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #777;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 26px;
+}
+.doc-tab-close:hover {
+  background: #ececf1;
+  color: #111;
+}
+#newDocTab {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 0;
+  border-radius: 9px;
+  background: #fff;
+  color: #007aff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  touch-action: manipulation;
+}
+#newDocTab:active {
+  transform: scale(.96);
+}
+@media (max-width: 640px) {
+  #docTabsBar {
+    padding: .4rem .5rem;
+  }
+  .doc-tab {
+    min-width: 100px;
+    max-width: 170px;
+    height: 40px;
+  }
+  #newDocTab {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+}
+
 /* ===== 主區 ===== */
 .main {
   flex: 1;
@@ -383,7 +483,11 @@ input[type=file] {
   <button class="btn" id="shareBtn" data-color="primary"><img src="icons/share.png" class="ico" alt=""><span class="label">分享</span></button>
   <button class="btn" id="downloadBtn" data-color="primary"><img src="icons/download.png" class="ico" alt=""><span class="label">下載</span></button>
   <button class="btn" id="resetBtn"><img src="icons/clear.png" class="ico" alt=""><span class="label">清除</span></button>
-  <button class="btn" id="reload" onclick="confirm('確定要重新載入？') && location.reload()"><img src="icons/reload.png" class="ico" alt=""><span class="label">重整</span></button>
+  <button class="btn" id="reload"><img src="icons/gallery.png" class="ico" alt=""><span class="label">新增</span></button>
+</div>
+<div id="docTabsBar">
+  <div id="docTabs"></div>
+  <button type="button" id="newDocTab" title="新增圖片" aria-label="新增圖片">＋</button>
 </div>
 <div class="main">
   <div class="btn-row" id="selectBtns" style="display:none"></div>
@@ -418,10 +522,11 @@ const cropBtn=$('cropTool'),cancelBtn=$('cancelCrop');
 const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),rectRed=$('rectRed');
 const hiRect=$('highlightRect'),hiOval=$('highlightOval');
 const blurBtn=$('blurTool'),mosaicBtn=$('mosaicTool'),textBtn=$('textTool');
-const undo=$('undoBtn'),dl=$('downloadBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn');
+const undo=$('undoBtn'),dl=$('downloadBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn'),reloadBtn=$('reload');
 const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay'),mosaicMinus=$('mosaicMinus'),mosaicPlus=$('mosaicPlus');
 const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),cancelText=$('cancelText');
 const errorMsg=$('errorMsg');
+const docTabs=$('docTabs'),newDocTab=$('newDocTab');
 const ctx=cv.getContext('2d');
 let mode='none',cropper=null,stream=null;
 let drawing=false,sx=0,sy=0,preview=null,gestureBase=null;
@@ -431,6 +536,13 @@ let markupDirty=false;
 let drawColor='#ff0000',brushWidth=3,fontSize=24,mosaicSize=12;
 let textRect=null;
 let mosaicSelection=null;
+
+// ===== 多文件工作區 =====
+const documents=[];
+let activeDocId=null;
+let nextDocId=1;
+let pendingNewDocument=false;
+
 const tools=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,mosaicBtn,textBtn];
 const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
 
@@ -438,6 +550,203 @@ function showError(message) {
   errorMsg.style.display = 'block';
   errorMsg.textContent = message;
   setTimeout(() => { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }, 3000);
+}
+
+function cloneImageData(data) {
+  if(!data) return null;
+  return new ImageData(
+    new Uint8ClampedArray(data.data),
+    data.width,
+    data.height
+  );
+}
+
+function cloneMarkStack(stack) {
+  return stack.map(item=>({
+    imageData:cloneImageData(item.imageData),
+    hasMask:!!item.hasMask,
+    markupDirty:!!item.markupDirty
+  }));
+}
+
+function imageDataToDataURL(data) {
+  if(!data || !data.width || !data.height) return null;
+  const t=document.createElement('canvas');
+  t.width=data.width;
+  t.height=data.height;
+  t.getContext('2d').putImageData(data,0,0);
+  return t.toDataURL('image/png');
+}
+
+function captureCurrentDocument() {
+  const doc=documents.find(d=>d.id===activeDocId);
+  if(!doc || !img.src) return;
+
+  doc.imgSrc=img.src;
+  doc.canvasWidth=cv.width;
+  doc.canvasHeight=cv.height;
+  doc.markupDataURL=imageDataToDataURL(ctx.getImageData(0,0,cv.width,cv.height));
+  doc.markStack=cloneMarkStack(markStack);
+  doc.cropStack=[...cropStack];
+  doc.hasMask=hasMask;
+  doc.markupDirty=markupDirty;
+  doc.mosaicSize=mosaicSize;
+}
+
+function renderDocumentTabs() {
+  docTabs.innerHTML='';
+  documents.forEach(doc=>{
+    const tab=document.createElement('div');
+    tab.className='doc-tab'+(doc.id===activeDocId?' active':'');
+    tab.dataset.docId=doc.id;
+
+    const name=document.createElement('span');
+    name.className='doc-tab-name';
+    name.textContent=doc.name||'未命名圖片';
+    name.title=doc.name||'未命名圖片';
+
+    const close=document.createElement('button');
+    close.type='button';
+    close.className='doc-tab-close';
+    close.textContent='×';
+    close.title='關閉';
+
+    tab.appendChild(name);
+    tab.appendChild(close);
+
+    tab.addEventListener('click',e=>{
+      if(e.target===close) return;
+      switchDocument(doc.id);
+    });
+    close.addEventListener('click',e=>{
+      e.stopPropagation();
+      closeDocument(doc.id);
+    });
+
+    docTabs.appendChild(tab);
+  });
+}
+
+function showEmptyWorkspace() {
+  activeDocId=null;
+  img.removeAttribute('src');
+  wrap.style.display='none';
+  drop.style.display='block';
+  drop.textContent='或拖拉圖片到這裡／直接貼上剪貼簿圖片（Ctrl+V / Cmd+V）';
+  btnGal.style.display='flex';
+  camBtn.style.display='flex';
+  hideOptions();
+  active(null);
+  mode='none';
+  markStack.length=0;
+  cropStack.length=0;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  renderDocumentTabs();
+}
+
+function restoreDocument(doc) {
+  if(!doc) return;
+
+  if(cropper) {
+    cropper.destroy();
+    cropper=null;
+  }
+  if(stream) {
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+
+  activeDocId=doc.id;
+  mosaicSelection=null;
+  gestureBase=null;
+  preview=null;
+  drawing=false;
+  showTouchCursorAt(0,0,false);
+
+  img.onload=()=>{
+    selBtns.style.display='none';
+    drop.style.display='none';
+    wrap.style.display='block';
+    bar.style.display='flex';
+    btnGal.style.display='none';
+    camBtn.style.display='none';
+
+    fitCanvas();
+    ctx.clearRect(0,0,cv.width,cv.height);
+
+    const finishRestore=()=>{
+      markStack.length=0;
+      for(const item of doc.markStack||[]) {
+        markStack.push({
+          imageData:cloneImageData(item.imageData),
+          hasMask:!!item.hasMask,
+          markupDirty:!!item.markupDirty
+        });
+      }
+
+      cropStack.length=0;
+      cropStack.push(...(doc.cropStack||[]));
+      hasMask=!!doc.hasMask;
+      markupDirty=!!doc.markupDirty;
+      mosaicSize=doc.mosaicSize||12;
+      blurSlider.value=mosaicSize;
+      mode='none';
+      active(null);
+      hideOptions();
+      toggleCrop(false);
+      renderDocumentTabs();
+    };
+
+    if(doc.markupDataURL) {
+      const overlay=new Image();
+      overlay.onload=()=>{
+        ctx.drawImage(overlay,0,0,cv.width,cv.height);
+        finishRestore();
+      };
+      overlay.onerror=finishRestore;
+      overlay.src=doc.markupDataURL;
+    } else {
+      finishRestore();
+    }
+  };
+
+  img.onerror=()=>showError('無法切換到這個圖片分頁');
+  img.src=doc.imgSrc;
+}
+
+function switchDocument(docId) {
+  if(docId===activeDocId) return;
+  captureCurrentDocument();
+  const doc=documents.find(d=>d.id===docId);
+  if(doc) restoreDocument(doc);
+}
+
+function closeDocument(docId) {
+  const index=documents.findIndex(d=>d.id===docId);
+  if(index<0) return;
+
+  if(docId===activeDocId) captureCurrentDocument();
+  documents.splice(index,1);
+
+  if(documents.length===0) {
+    showEmptyWorkspace();
+    return;
+  }
+
+  if(docId===activeDocId) {
+    const next=documents[Math.min(index,documents.length-1)];
+    activeDocId=null;
+    restoreDocument(next);
+  } else {
+    renderDocumentTabs();
+  }
+}
+
+function startNewDocument() {
+  captureCurrentDocument();
+  pendingNewDocument=true;
+  fGal.value='';
+  fGal.click();
 }
 
 function active(btn) {
@@ -485,19 +794,39 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', resi
 function load(file) {
   if (!file) {
     showError('未選擇任何檔案');
+    pendingNewDocument=false;
     return;
   }
   if (!validImageTypes.includes(file.type)) {
     showError('請選擇有效的圖片格式（JPEG、PNG、GIF、BMP、WebP）');
+    pendingNewDocument=false;
     return;
   }
-  const r = new FileReader();
-  r.onload = e => {
-    img.src = e.target.result;
-    img.onload = enterWorkArea;
-    img.onerror = () => showError('無法載入圖片，請檢查檔案是否損壞');
+
+  const r=new FileReader();
+  r.onload=e=>{
+    captureCurrentDocument();
+
+    const doc={
+      id:`doc-${nextDocId++}`,
+      name:file.name||`圖片 ${nextDocId-1}`,
+      imgSrc:e.target.result,
+      markupDataURL:null,
+      markStack:[],
+      cropStack:[],
+      hasMask:false,
+      markupDirty:false,
+      mosaicSize:12
+    };
+
+    documents.push(doc);
+    pendingNewDocument=false;
+    restoreDocument(doc);
   };
-  r.onerror = () => showError('讀取檔案失敗，請重試');
+  r.onerror=()=>{
+    pendingNewDocument=false;
+    showError('讀取檔案失敗，請重試');
+  };
   r.readAsDataURL(file);
 }
 
@@ -523,6 +852,7 @@ function enterWorkArea() {
   hideOptions();
   btnGal.style.display='none';
   camBtn.style.display='none';
+  renderDocumentTabs();
 }
 
 function toggleCrop(on) {
@@ -583,16 +913,15 @@ async function webShare() {
 }
 
 btnGal.onclick=()=>{
-  fGal.value = ''; // Reset input to allow re-selecting the same file
+  pendingNewDocument=true;
+  fGal.value='';
   fGal.click();
 };
 
 fGal.onchange=e=>{
-  if(e.target.files[0]) {
-    load(e.target.files[0]);
-  } else {
-    showError('未選擇圖片');
-  }
+  const file=e.target.files[0];
+  if(file) load(file);
+  else pendingNewDocument=false;
 };
 
 camBtn.onclick=()=>{
@@ -684,24 +1013,28 @@ async function openCam() {
     c.width=v.videoWidth;
     c.height=v.videoHeight;
     c.getContext('2d').drawImage(v,0,0);
-    img.src=c.toDataURL();
-    img.onload=()=>{
-      stream.getTracks().forEach(t=>t.stop());
-      stream=null;
-      wrap.innerHTML='';
-      wrap.appendChild(img);
-      wrap.appendChild(cv);
-      enterWorkArea();
+    const dataUrl=c.toDataURL('image/png');
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+    wrap.innerHTML='';
+    wrap.appendChild(img);
+    wrap.appendChild(cv);
+    wrap.appendChild(touchCursor);
+
+    captureCurrentDocument();
+    const doc={
+      id:`doc-${nextDocId++}`,
+      name:`拍照 ${documents.length+1}`,
+      imgSrc:dataUrl,
+      markupDataURL:null,
+      markStack:[],
+      cropStack:[],
+      hasMask:false,
+      markupDirty:false,
+      mosaicSize:12
     };
-    img.onerror=()=>{
-      showError('無法載入攝影機圖片');
-      stream.getTracks().forEach(t=>t.stop());
-      stream=null;
-      wrap.innerHTML='';
-      wrap.appendChild(img);
-      wrap.appendChild(cv);
-      enterWorkArea();
-    };
+    documents.push(doc);
+    restoreDocument(doc);
   };
 }
 
@@ -816,6 +1149,9 @@ hiOval.onclick=()=>setMode('highlightOval');
 blurBtn.onclick=()=>setMode('blur');
 mosaicBtn.onclick=()=>setMode('mosaic');
 textBtn.onclick=()=>setMode('text');
+
+newDocTab.onclick=startNewDocument;
+reloadBtn.onclick=startNewDocument;
 
 function flattenMarkupToBase() {
   if(!markupDirty) return Promise.resolve();
@@ -1344,8 +1680,8 @@ undo.onclick=()=>{
   }
 };
 
-dl.onclick=saveFile;
-share.onclick=webShare;
+dl.onclick=async()=>{ await saveFile(); captureCurrentDocument(); };
+share.onclick=async()=>{ await webShare(); captureCurrentDocument(); };
 
 reset.onclick=()=>{
   if(cropper) {cropper.destroy();cropper=null;}
@@ -1365,6 +1701,7 @@ reset.onclick=()=>{
   mode='none';
   textModal.style.display='none';
   textRect=null;
+  captureCurrentDocument();
 };
 
 let lastY=0;
@@ -1377,6 +1714,9 @@ window.addEventListener('touchmove',e=>{
   const y=e.touches[0].clientY;
   if(window.pageYOffset===0&&y>lastY) e.preventDefault();
 },{passive:false});
+
+// 初始化多文件工作區
+showEmptyWorkspace();
 </script>
 </body>
 </html>
