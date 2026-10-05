@@ -389,7 +389,7 @@ input[type=file] {
   <div class="btn-row" id="selectBtns" style="display:none"></div>
   <input type="file" id="fileGallery" accept="image/*">
   <input type="file" id="fileCamera" accept="image/*" capture="environment">
-  <div id="drop-zone">或拖拉圖片到這裡</div>
+  <div id="drop-zone">或拖拉圖片到這裡／直接貼上剪貼簿圖片（Ctrl+V / Cmd+V）</div>
   <div id="errorMsg"></div>
   <div id="canvasWrap"><img id="imgBase" alt=""><canvas id="markupLayer"></canvas><div id="touchCursor" aria-hidden="true"></div></div>
   <div id="optionBar" class="btn-row">
@@ -632,6 +632,33 @@ drop.addEventListener('drop',e=>{
   } else {
     showError('未拖放任何檔案');
   }
+});
+
+// ===== 剪貼簿貼上圖片 =====
+window.addEventListener('paste',e=>{
+  // 使用者正在文字輸入框輸入時，不攔截一般文字貼上。
+  const target=e.target;
+  if(target && (
+    target.tagName==='INPUT' ||
+    target.tagName==='TEXTAREA' ||
+    target.isContentEditable
+  )) {
+    return;
+  }
+
+  const items=Array.from(e.clipboardData?.items || []);
+  const imageItem=items.find(item=>item.type && item.type.startsWith('image/'));
+
+  if(!imageItem) return;
+
+  const file=imageItem.getAsFile();
+  if(!file) {
+    showError('無法讀取剪貼簿圖片');
+    return;
+  }
+
+  e.preventDefault();
+  load(file);
 });
 
 async function openCam() {
