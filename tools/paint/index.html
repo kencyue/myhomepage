@@ -480,6 +480,7 @@ input[type=file] {
   <button class="btn" id="blurTool" data-color="primary"><span class="ico" aria-hidden="true">🫥</span><span class="label">遮蔽</span></button>
   <button class="btn" id="mosaicTool" data-color="primary"><span class="ico" aria-hidden="true">▦</span><span class="label">馬賽克</span></button>
   <button class="btn" id="textTool" data-color="primary"><img src="icons/text.png" class="ico" alt=""><span class="label">文字</span></button>
+  <button class="btn" id="copyBtn" data-color="primary" title="複製圖片（Ctrl+C / Cmd+C）"><span class="ico" aria-hidden="true">⧉</span><span class="label">複製</span></button>
   <button class="btn" id="shareBtn" data-color="primary"><img src="icons/share.png" class="ico" alt=""><span class="label">分享</span></button>
   <button class="btn" id="downloadBtn" data-color="primary"><img src="icons/download.png" class="ico" alt=""><span class="label">下載</span></button>
   <button class="btn" id="resetBtn"><img src="icons/clear.png" class="ico" alt=""><span class="label">清除</span></button>
@@ -522,7 +523,7 @@ const cropBtn=$('cropTool'),cancelBtn=$('cancelCrop');
 const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),rectRed=$('rectRed');
 const hiRect=$('highlightRect'),hiOval=$('highlightOval');
 const blurBtn=$('blurTool'),mosaicBtn=$('mosaicTool'),textBtn=$('textTool');
-const undo=$('undoBtn'),dl=$('downloadBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn'),reloadBtn=$('reload');
+const undo=$('undoBtn'),dl=$('downloadBtn'),copyBtn=$('copyBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn'),reloadBtn=$('reload');
 const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay'),mosaicMinus=$('mosaicMinus'),mosaicPlus=$('mosaicPlus');
 const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),cancelText=$('cancelText');
 const errorMsg=$('errorMsg');
@@ -946,6 +947,44 @@ async function saveFile() {
   a.download=f;
   a.href=o.toDataURL();
   a.click();
+}
+
+async function copyCurrentImage() {
+  if(!img.src) {
+    showError('尚未載入圖片');
+    return false;
+  }
+
+  if(!navigator.clipboard || !window.ClipboardItem) {
+    showError('此瀏覽器不支援圖片剪貼簿');
+    return false;
+  }
+
+  try {
+    const canvas=await mergedCanvas();
+    const blob=await new Promise((resolve,reject)=>{
+      canvas.toBlob(b=>b?resolve(b):reject(new Error('canvas toBlob failed')),'image/png');
+    });
+
+    await navigator.clipboard.write([
+      new ClipboardItem({'image/png':blob})
+    ]);
+
+    const oldLabel=copyBtn.querySelector('.label')?.textContent;
+    copyBtn.classList.add('on-success');
+    if(copyBtn.querySelector('.label')) copyBtn.querySelector('.label').textContent='已複製';
+    setTimeout(()=>{
+      copyBtn.classList.remove('on-success');
+      if(copyBtn.querySelector('.label')) copyBtn.querySelector('.label').textContent=oldLabel||'複製';
+    },1200);
+
+    captureCurrentDocument();
+    return true;
+  } catch(err) {
+    console.error('copy image failed',err);
+    showError('複製圖片失敗，請確認瀏覽器剪貼簿權限');
+    return false;
+  }
 }
 
 async function webShare() {
@@ -1732,7 +1771,28 @@ undo.onclick=()=>{
 };
 
 dl.onclick=async()=>{ await saveFile(); captureCurrentDocument(); };
+copyBtn.onclick=copyCurrentImage;
 share.onclick=async()=>{ await webShare(); captureCurrentDocument(); };
+
+window.addEventListener('keydown',e=>{
+  const isCopy=(e.ctrlKey||e.metaKey) && !e.altKey && e.key.toLowerCase()==='c';
+  if(!isCopy) return;
+
+  const target=e.target;
+  const isTextTarget=target && (
+    target.tagName==='INPUT' ||
+    target.tagName==='TEXTAREA' ||
+    target.isContentEditable
+  );
+
+  // 文字欄位內保留瀏覽器原生 Ctrl+C / Cmd+C。
+  if(isTextTarget) return;
+
+  if(!img.src) return;
+
+  e.preventDefault();
+  copyCurrentImage();
+});
 
 reset.onclick=()=>{
   if(cropper) {cropper.destroy();cropper=null;}
