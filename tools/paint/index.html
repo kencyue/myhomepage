@@ -800,6 +800,311 @@ input[type=file] {
   }
 }
 
+
+/* ===== Ken Paint unified light theme (desktop + mobile) ===== */
+body {
+  background: #f3f4f6;
+  color: #202124;
+}
+
+#docTabsBar {
+  background: #eef0f3;
+  border-bottom: 1px solid #d6d9de;
+}
+
+.doc-tab {
+  background: #f7f8fa;
+  color: #656970;
+  border-color: transparent;
+}
+
+.doc-tab:hover {
+  background: #ffffff;
+}
+
+.doc-tab.active {
+  background: #ffffff;
+  color: #202124;
+  border-color: #d6d9de;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+
+.doc-tab-close {
+  color: #7b7f86;
+}
+
+.doc-tab-close:hover {
+  background: #e8eaed;
+  color: #202124;
+}
+
+#newDocTab {
+  background: #ffffff;
+  color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(0,0,0,.07);
+}
+
+.main {
+  background: #f6f7f9;
+  color: #202124;
+}
+
+#welcomeScreen {
+  background: transparent;
+}
+
+#welcomeLogo {
+  object-fit: contain;
+}
+
+.welcome-action {
+  border: 1px solid #c7cbd1;
+  background: #ffffff;
+  color: #202124;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+.welcome-action:hover {
+  background: #f1f3f5;
+  border-color: #aeb3ba;
+}
+
+#drop-zone {
+  border-color: #c9cdd3;
+  background: #ffffff;
+  color: #7a7f87;
+}
+
+#drop-zone strong {
+  color: #4d5156;
+}
+
+#drop-zone span {
+  color: #8a8f96;
+}
+
+#drop-zone.dragover {
+  background: #eef6ff;
+  border-color: #60a5fa;
+  color: #2563eb;
+}
+
+#optionBar {
+  background: #ffffff;
+  color: #202124;
+  border-color: #d6d9de;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+#optionBar span {
+  color: #202124;
+}
+
+#errorMsg {
+  color: #d93025;
+}
+
+@media (min-width: 769px) {
+  body {
+    padding-left: 82px;
+    background: #f3f4f6;
+    color: #202124;
+  }
+
+  .sidebar {
+    width: 82px;
+    background: #ffffff;
+    border-right: 1px solid #d6d9de;
+    box-shadow: 1px 0 4px rgba(0,0,0,.04);
+  }
+
+  .sidebar .btn {
+    background: transparent;
+    color: #34373c;
+  }
+
+  .sidebar .btn:hover {
+    background: #eef1f4;
+  }
+
+  .sidebar .btn:active {
+    background: #e3e6ea;
+  }
+
+  .sidebar .btn.on-success,
+  .sidebar .btn.on-warn,
+  .sidebar .btn.on-danger,
+  .sidebar .btn.on-primary {
+    background: #e8f1ff;
+    color: #1f2937;
+    box-shadow: inset 0 0 0 1px #93c5fd;
+  }
+
+  #docTabsBar {
+    background: #eef0f3;
+    border-bottom: 1px solid #d6d9de;
+  }
+
+  .doc-tab {
+    background: #e7e9ed;
+    color: #6d7178;
+  }
+
+  .doc-tab:hover {
+    background: #f2f3f5;
+  }
+
+  .doc-tab.active {
+    background: #ffffff;
+    color: #202124;
+    box-shadow: inset 0 -2px #60a5fa;
+  }
+
+  #newDocTab {
+    background: transparent;
+    color: #555960;
+    box-shadow: none;
+  }
+
+  #newDocTab:hover {
+    background: #e2e5e9;
+  }
+
+  .main {
+    background: #f6f7f9;
+    color: #202124;
+  }
+
+  #welcomeScreen {
+    margin-top: 42px;
+  }
+
+  #welcomeLogo {
+    width: 174px;
+    max-height: 132px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
+  }
+
+  #optionBar {
+    background: #ffffff;
+    color: #202124;
+    border-bottom: 1px solid #d6d9de;
+  }
+
+  #optionBar span {
+    color: #202124;
+  }
+
+  #imgBase {
+    box-shadow: 0 5px 20px rgba(0,0,0,.18);
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    background: #f4f5f7;
+    color: #202124;
+  }
+
+  .sidebar {
+    background: #ffffff;
+    border-bottom: 1px solid #d6d9de;
+  }
+
+  .sidebar .btn {
+    background: #ffffff;
+    color: #202124;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+
+  .sidebar .btn:hover,
+  .sidebar .btn:active {
+    background: #eef1f4;
+  }
+
+  .sidebar .btn.on-success,
+  .sidebar .btn.on-warn,
+  .sidebar .btn.on-danger,
+  .sidebar .btn.on-primary {
+    background: #e8f1ff;
+    color: #202124;
+  }
+
+  .sidebar .btn .label {
+    color: #202124;
+  }
+
+  #docTabsBar {
+    background: #eef0f3;
+  }
+
+  .main {
+    background: #f6f7f9;
+    padding: 1rem .75rem 1.25rem;
+  }
+
+  #welcomeScreen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding-top: 18px;
+  }
+
+  #welcomeLogo {
+    display: block;
+    width: 132px;
+    max-height: 100px;
+    border-radius: 12px;
+    box-shadow: 0 5px 16px rgba(0,0,0,.09);
+  }
+
+  #welcomeActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    width: min(100%, 320px);
+    gap: 8px;
+  }
+
+  .welcome-action {
+    min-width: 0;
+    height: 42px;
+    padding: 0 10px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  #drop-zone {
+    width: min(100%, 360px);
+    max-width: none;
+    min-height: 112px;
+    margin: 0;
+    padding: 20px 16px;
+    border: 1px dashed #c9cdd3;
+    border-radius: 10px;
+    background: #ffffff;
+  }
+
+  #drop-zone strong {
+    font-size: 15px;
+  }
+
+  #drop-zone span {
+    font-size: 12px;
+  }
+
+  #optionBar {
+    background: #ffffff;
+    color: #202124;
+  }
+
+  #optionBar span {
+    color: #202124;
+  }
+}
+
 </style>
 </head>
 <body>
