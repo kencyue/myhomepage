@@ -1329,8 +1329,12 @@ async function performUndo() {
 }
 
 async function performRedo() {
-  if(!redoStack.length || !img.src) return;
-  if(cropper) await cancelCropSession();
+  if(!img.src) return;
+  if(cropper) {
+    await cancelCropSession();
+    return;
+  }
+  if(!redoStack.length) return;
   const current=snapshotCurrentState();
   const target=redoStack.pop();
   if(current) {
@@ -1350,7 +1354,7 @@ function captureCurrentDocument() {
     doc.undoStack=[]; doc.redoStack=[];
     return;
   }
-  const state=snapshotCurrentState();
+  const state=(cropper && cropSessionSnapshot) ? cloneSnapshot(cropSessionSnapshot) : snapshotCurrentState();
   doc.imgSrc=state.imgSrc;
   doc.markupDataURL=state.markupDataURL;
   doc.hasMask=state.hasMask;
