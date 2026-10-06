@@ -525,18 +525,243 @@ input[type=file] {
   margin-top: 0.5rem;
   text-align: center;
 }
+
+/* ===== Ken Paint desktop editor theme ===== */
+#welcomeScreen {
+  display: contents;
+}
+#welcomeLogo,
+#welcomeActions {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  body {
+    padding-left: 108px;
+    background: #1f1f1f;
+    color: #e6e6e6;
+  }
+
+  .sidebar {
+    width: 108px;
+    height: 100vh;
+    background: #242424;
+    border-right: 1px solid #3a3a3a;
+    border-bottom: 0;
+    box-shadow: none;
+    padding: 10px 8px;
+    gap: 6px;
+    align-content: flex-start;
+    overflow-y: auto;
+  }
+
+  .sidebar .btn {
+    flex: 0 0 43px;
+    width: 43px;
+    height: 48px;
+    margin: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #d7d7d7;
+    box-shadow: none;
+  }
+
+  .sidebar .btn:hover {
+    background: #383838;
+    transform: none;
+  }
+
+  .sidebar .btn:active {
+    background: #454545;
+  }
+
+  .sidebar .btn.on-success,
+  .sidebar .btn.on-warn,
+  .sidebar .btn.on-danger,
+  .sidebar .btn.on-primary {
+    background: #3e3e3e;
+    color: #fff;
+    box-shadow: inset 2px 0 #2f9cff;
+  }
+
+  .sidebar .btn .ico {
+    width: 23px;
+    height: 23px;
+    font-size: 1.2rem;
+  }
+
+  .sidebar .btn .label {
+    margin-top: 3px;
+    font-size: 10px;
+    color: #c7c7c7;
+  }
+
+  #docTabsBar {
+    min-height: 45px;
+    padding: 5px 8px;
+    background: #292929;
+    border-bottom: 1px solid #3a3a3a;
+  }
+
+  .doc-tab {
+    height: 34px;
+    min-width: 110px;
+    background: #303030;
+    color: #aaa;
+    border-color: transparent;
+    border-radius: 4px 4px 0 0;
+    box-shadow: none;
+  }
+
+  .doc-tab:hover {
+    background: #363636;
+  }
+
+  .doc-tab.active {
+    background: #414141;
+    color: #fff;
+    border-color: #4b4b4b;
+    box-shadow: none;
+  }
+
+  .doc-tab-close {
+    color: #aaa;
+  }
+
+  .doc-tab-close:hover {
+    background: #505050;
+    color: #fff;
+  }
+
+  #newDocTab {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 4px;
+    background: #333;
+    color: #ddd;
+    box-shadow: none;
+  }
+
+  .main {
+    position: relative;
+    padding: 18px;
+    background: #1f1f1f;
+    color: #e4e4e4;
+  }
+
+  #welcomeScreen {
+    width: min(760px, 88%);
+    min-height: 520px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+  }
+
+  #welcomeLogo {
+    display: block;
+    width: min(260px, 42vw);
+    max-height: 170px;
+    object-fit: contain;
+  }
+
+  #welcomeActions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .welcome-action {
+    min-width: 130px;
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid #686868;
+    border-radius: 5px;
+    background: #292929;
+    color: #e8e8e8;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .welcome-action:hover {
+    background: #363636;
+    border-color: #858585;
+  }
+
+  #drop-zone {
+    width: min(680px, 100%);
+    max-width: none;
+    min-height: 165px;
+    margin: 10px 0 0;
+    padding: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #505050;
+    border-radius: 6px;
+    background: #242424;
+    color: #777;
+  }
+
+  #drop-zone strong {
+    font-size: 17px;
+    font-weight: 500;
+    color: #aaa;
+  }
+
+  #drop-zone span {
+    font-size: 13px;
+    color: #777;
+  }
+
+  #drop-zone.dragover {
+    background: #29343e;
+    border-color: #2f9cff;
+    color: #d7ecff;
+  }
+
+  #canvasWrap {
+    margin: auto;
+  }
+
+  #imgBase {
+    border-radius: 0;
+    box-shadow: 0 5px 24px rgba(0,0,0,.55);
+  }
+
+  #optionBar {
+    order: -1;
+    width: 100%;
+    margin: -18px -18px 16px;
+    padding: 8px 14px;
+    justify-content: flex-start;
+    gap: 10px;
+    border-radius: 0;
+    background: #2b2b2b;
+    color: #ddd;
+    box-shadow: none;
+    border-bottom: 1px solid #3a3a3a;
+  }
+
+  #optionBar span {
+    color: #ddd;
+  }
+
+  #errorMsg {
+    color: #ff6961;
+  }
+}
+
 </style>
 </head>
 <body>
 <div class="sidebar btn-row" id="toolBar">
-  <div class="brand" aria-label="Ken Paint">
-    <img
-      class="brand-logo"
-      src="icons/ken-paint-logo.png"
-      alt="Ken Paint"
-      onerror="this.onerror=null;this.src='../../images/paint.png';"
-    >
-    </div>
   <button class="btn" id="btnGallery"><img src="icons/gallery.png" class="ico" alt=""><span class="label">相簿</span></button>
   <button class="btn" id="cameraBtn"><img src="icons/camera.png" class="ico" alt=""><span class="label">拍照</span></button>
   <button class="btn" id="undoBtn"><img src="icons/undo.png" class="ico" alt=""><span class="label">上一步</span></button>
@@ -565,7 +790,19 @@ input[type=file] {
   <div class="btn-row" id="selectBtns" style="display:none"></div>
   <input type="file" id="fileGallery" accept="image/*">
   <input type="file" id="fileCamera" accept="image/*" capture="environment">
-  <div id="drop-zone">或拖拉圖片到這裡／直接貼上剪貼簿圖片（Ctrl+V / Cmd+V）</div>
+  <div id="welcomeScreen">
+    <img id="welcomeLogo" src="icons/ken-paint-logo.png" alt="Ken Paint">
+    <div id="welcomeActions">
+      <button type="button" class="welcome-action" id="welcomeOpen">開啟圖片</button>
+      <button type="button" class="welcome-action" id="welcomePaste">貼上圖片</button>
+      <button type="button" class="welcome-action" id="welcomeNew">新增工作頁</button>
+      <button type="button" class="welcome-action" id="welcomeCamera">拍照</button>
+    </div>
+    <div id="drop-zone">
+      <strong>拖曳圖片到這裡</strong>
+      <span>或直接 Ctrl+V / Cmd+V 貼上圖片</span>
+    </div>
+  </div>
   <div id="errorMsg"></div>
   <div id="canvasWrap"><img id="imgBase" alt=""><canvas id="markupLayer"></canvas><div id="touchCursor" aria-hidden="true"></div></div>
   <div id="optionBar" class="btn-row">
@@ -598,6 +835,7 @@ const undo=$('undoBtn'),dl=$('downloadBtn'),copyBtn=$('copyBtn'),share=$('shareB
 const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay'),mosaicMinus=$('mosaicMinus'),mosaicPlus=$('mosaicPlus');
 const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),cancelText=$('cancelText');
 const errorMsg=$('errorMsg');
+const welcome=$('welcomeScreen'),welcomeOpen=$('welcomeOpen'),welcomePaste=$('welcomePaste'),welcomeNew=$('welcomeNew'),welcomeCamera=$('welcomeCamera');
 const docTabs=$('docTabs'),newDocTab=$('newDocTab');
 const ctx=cv.getContext('2d');
 let mode='none',cropper=null,stream=null;
@@ -712,8 +950,8 @@ function showEmptyWorkspace(doc=null) {
   activeDocId=doc?.id||null;
   img.removeAttribute('src');
   wrap.style.display='none';
-  drop.style.display='block';
-  drop.textContent='或拖拉圖片到這裡／直接貼上剪貼簿圖片（Ctrl+V / Cmd+V）';
+  welcome.style.display='';
+  drop.style.display='';
   btnGal.style.display='flex';
   camBtn.style.display='flex';
   hideOptions();
@@ -760,6 +998,7 @@ function restoreDocument(doc) {
 
   img.onload=()=>{
     selBtns.style.display='none';
+    welcome.style.display='none';
     drop.style.display='none';
     wrap.style.display='block';
     bar.style.display='flex';
@@ -955,6 +1194,7 @@ function load(file) {
 
 function enterWorkArea() {
   selBtns.style.display='none';
+  welcome.style.display='none';
   drop.style.display='none';
   wrap.style.display='block';
   bar.style.display='flex';
@@ -1073,6 +1313,29 @@ async function webShare() {
   });
 }
 
+welcomeOpen.onclick=()=>btnGal.click();
+welcomeCamera.onclick=()=>camBtn.click();
+welcomeNew.onclick=startNewDocument;
+welcomePaste.onclick=async()=>{
+  if(!navigator.clipboard?.read) {
+    showError('請使用 Ctrl+V / Cmd+V 貼上圖片');
+    return;
+  }
+  try {
+    const items=await navigator.clipboard.read();
+    for(const item of items) {
+      const type=item.types.find(t=>t.startsWith('image/'));
+      if(!type) continue;
+      const blob=await item.getType(type);
+      load(new File([blob], 'clipboard-image.png', {type}));
+      return;
+    }
+    showError('剪貼簿內沒有圖片');
+  } catch {
+    showError('無法直接讀取剪貼簿，請使用 Ctrl+V / Cmd+V');
+  }
+};
+
 btnGal.onclick=()=>{
   pendingNewDocument=false;
   fGal.value='';
@@ -1166,6 +1429,7 @@ async function openCam() {
   wrap.appendChild(v);
   wrap.style.display='block';
   selBtns.style.display='none';
+  welcome.style.display='none';
   drop.style.display='none';
   bar.style.display='flex';
   v.onloadedmetadata=()=>v.play();
