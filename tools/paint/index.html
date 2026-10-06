@@ -85,7 +85,7 @@ body {
   pointer-events: none;
 }
 
-/* ===== 工具列（橫排可換行） ===== */
+/* ===== 工具列 ===== */
 .sidebar {
   display: flex;
   flex-direction: row;
@@ -99,6 +99,71 @@ body {
 }
 .sidebar .btn {
   margin: 0 .3rem .3rem 0;
+}
+.brand {
+  display: none;
+}
+.brand-logo {
+  display: block;
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+.brand-name {
+  font-size: .72rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: #1d1d1f;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 桌面版：固定左側垂直工具列，手機維持原本橫向配置 */
+@media (min-width: 769px) {
+  body {
+    padding-left: 92px;
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    width: 92px;
+    height: 100vh;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: .45rem;
+    padding: .65rem .5rem .8rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-right: 1px solid #d2d2d7;
+    border-bottom: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,.04);
+    scrollbar-width: thin;
+  }
+  .sidebar .btn {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+  .brand {
+    display: flex;
+    flex: 0 0 auto;
+    width: 100%;
+    padding: .15rem 0 .65rem;
+    margin-bottom: .15rem;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    border-bottom: 1px solid #e5e5ea;
+  }
+  #docTabsBar {
+    flex: 0 0 auto;
+  }
+  .main {
+    min-width: 0;
+  }
 }
 
 /* ===== 多文件工作區 Tabs ===== */
@@ -466,6 +531,15 @@ input[type=file] {
 </head>
 <body>
 <div class="sidebar btn-row" id="toolBar">
+  <div class="brand" aria-label="Ken Paint">
+    <img
+      class="brand-logo"
+      src="icons/ken-paint-logo.png"
+      alt="Ken Paint"
+      onerror="this.onerror=null;this.src='../../images/paint.png';"
+    >
+    <span class="brand-name">Ken Paint</span>
+  </div>
   <button class="btn" id="btnGallery"><img src="icons/gallery.png" class="ico" alt=""><span class="label">相簿</span></button>
   <button class="btn" id="cameraBtn"><img src="icons/camera.png" class="ico" alt=""><span class="label">拍照</span></button>
   <button class="btn" id="undoBtn"><img src="icons/undo.png" class="ico" alt=""><span class="label">上一步</span></button>
