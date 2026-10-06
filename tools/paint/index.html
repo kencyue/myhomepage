@@ -1208,6 +1208,13 @@ let nextDocId=1;
 let pendingNewDocument=false;
 
 const tools=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,mosaicBtn,textBtn];
+const imageRequiredButtons=[cropBtn,penRed,penYel,ellipse,rectRed,hiRect,hiOval,blurBtn,mosaicBtn,textBtn,copyBtn,share,dl,reset];
+
+function updateToolAvailability(hasImage=!!img.src) {
+  imageRequiredButtons.forEach(btn=>{btn.disabled=!hasImage;});
+  updateHistoryButtons();
+}
+
 const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
 
 bar.querySelectorAll('.btn').forEach(btn=>{
@@ -1399,7 +1406,7 @@ function showEmptyWorkspace(doc=null) {
   hasMask=false; markupDirty=false;
   mosaicSelection=null; gestureBase=null;
   ctx.clearRect(0,0,cv.width,cv.height);
-  updateHistoryButtons();
+  updateToolAvailability(false);
   renderDocumentTabs();
 }
 
@@ -1439,7 +1446,7 @@ function restoreDocument(doc) {
       active(null);
       hideOptions();
       toggleCrop(false);
-      updateHistoryButtons();
+      updateToolAvailability(true);
       renderDocumentTabs();
     };
 
@@ -1608,7 +1615,7 @@ function enterWorkArea() {
   ctx.clearRect(0,0,cv.width,cv.height);
   undoStack.length=0;
   redoStack.length=0;
-  updateHistoryButtons();
+  updateToolAvailability(true);
   mode='none';
   active(null);
   hasMask=false;
@@ -1979,7 +1986,7 @@ textBtn.onclick=()=>setMode('text');
 newDocTab.onclick=startNewDocument;
 reloadBtn.onclick=startNewDocument;
 
-async function startCrop() {
+async async function startCrop() {
   if(!img.src) {showError('尚未載入圖片');return;}
   if(cropper) {await applyCrop();return;}
 
@@ -2204,10 +2211,15 @@ cv.addEventListener('pointerup',e=>{
       break;
   }
 
-  if(mode!=='text') commitActionSnapshot();
-  gestureBase=null;
-  preview=null;
-  captureCurrentDocument();
+  if(mode!=='text') {
+    commitActionSnapshot();
+    gestureBase=null;
+    preview=null;
+    captureCurrentDocument();
+  } else {
+    // 文字框尚未確認，保留 preview 給「確定／取消」還原虛線框。
+    gestureBase=null;
+  }
 });
 
 cv.addEventListener('pointercancel',e=>{
@@ -2546,7 +2558,7 @@ window.addEventListener('touchmove',e=>{
 
 // 初始化多文件工作區
 showEmptyWorkspace();
-updateHistoryButtons();
+updateToolAvailability(false);
 </script>
 </body>
 </html>
