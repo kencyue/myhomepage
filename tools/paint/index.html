@@ -110,16 +110,6 @@ body {
   object-fit: contain;
   border-radius: 14px;
 }
-.brand-name {
-  font-size: .72rem;
-  line-height: 1.15;
-  font-weight: 700;
-  letter-spacing: .02em;
-  color: #1d1d1f;
-  text-align: center;
-  white-space: nowrap;
-}
-
 /* 桌面版：固定左側垂直工具列，手機維持原本橫向配置 */
 @media (min-width: 769px) {
   body {
@@ -131,11 +121,12 @@ body {
     z-index: 60;
     width: 132px;
     height: 100vh;
-    display: grid;
-    grid-template-columns: repeat(2, 44px);
-    grid-auto-rows: 44px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
-    align-content: start;
+    align-content: flex-start;
+    align-items: flex-start;
     gap: .45rem;
     padding: .65rem .5rem .8rem;
     overflow-x: hidden;
@@ -146,19 +137,18 @@ body {
     scrollbar-width: thin;
   }
   .sidebar .btn {
+    flex: 0 0 44px;
     margin: 0;
   }
   .brand {
     display: flex;
-    grid-column: 1 / -1;
+    flex: 0 0 100%;
     width: 100%;
-    min-height: 82px;
-    padding: .15rem 0 .65rem;
-    margin-bottom: .15rem;
-    flex-direction: column;
+    min-height: 66px;
+    padding: .05rem 0 .55rem;
+    margin-bottom: .1rem;
     align-items: center;
     justify-content: center;
-    gap: .35rem;
     border-bottom: 1px solid #e5e5ea;
   }
   #docTabsBar {
@@ -541,8 +531,7 @@ input[type=file] {
       alt="Ken Paint"
       onerror="this.onerror=null;this.src='../../images/paint.png';"
     >
-    <span class="brand-name">Ken Paint</span>
-  </div>
+    </div>
   <button class="btn" id="btnGallery"><img src="icons/gallery.png" class="ico" alt=""><span class="label">相簿</span></button>
   <button class="btn" id="cameraBtn"><img src="icons/camera.png" class="ico" alt=""><span class="label">拍照</span></button>
   <button class="btn" id="undoBtn"><img src="icons/undo.png" class="ico" alt=""><span class="label">上一步</span></button>
