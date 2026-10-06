@@ -123,17 +123,19 @@ body {
 /* 桌面版：固定左側垂直工具列，手機維持原本橫向配置 */
 @media (min-width: 769px) {
   body {
-    padding-left: 92px;
+    padding-left: 132px;
   }
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 60;
-    width: 92px;
+    width: 132px;
     height: 100vh;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(2, 44px);
+    grid-auto-rows: 44px;
+    justify-content: center;
+    align-content: start;
     gap: .45rem;
     padding: .65rem .5rem .8rem;
     overflow-x: hidden;
@@ -144,17 +146,18 @@ body {
     scrollbar-width: thin;
   }
   .sidebar .btn {
-    flex: 0 0 auto;
     margin: 0;
   }
   .brand {
     display: flex;
-    flex: 0 0 auto;
+    grid-column: 1 / -1;
     width: 100%;
+    min-height: 82px;
     padding: .15rem 0 .65rem;
     margin-bottom: .15rem;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: .35rem;
     border-bottom: 1px solid #e5e5ea;
   }
