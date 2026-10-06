@@ -1311,8 +1311,12 @@ function restoreSnapshot(state) {
 }
 
 async function performUndo() {
-  if(!undoStack.length || !img.src) return;
-  if(cropper) await cancelCropSession();
+  if(!img.src) return;
+  if(cropper) {
+    await cancelCropSession();
+    return;
+  }
+  if(!undoStack.length) return;
   const current=snapshotCurrentState();
   const target=undoStack.pop();
   if(current) {
@@ -1986,7 +1990,7 @@ textBtn.onclick=()=>setMode('text');
 newDocTab.onclick=startNewDocument;
 reloadBtn.onclick=startNewDocument;
 
-async async function startCrop() {
+async function startCrop() {
   if(!img.src) {showError('尚未載入圖片');return;}
   if(cropper) {await applyCrop();return;}
 
