@@ -3,8 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
-<title>圖片標註工具</title>
-<link rel="icon" type="image/png" sizes="32x32" href="../../images/paint.png">
+<title>Ken Paint</title>
+<meta name="application-name" content="Ken Paint">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ken Paint">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/ken-paint-logo.png">
+<link rel="apple-touch-icon" href="icons/ken-paint-logo.png">
 <!-- CropperJS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
@@ -2567,6 +2575,14 @@ window.addEventListener('touchmove',e=>{
 // 初始化多文件工作區
 showEmptyWorkspace();
 updateToolAvailability(false);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('Service Worker 註冊失敗', err);
+    });
+  });
+}
 </script>
 </body>
 </html>
