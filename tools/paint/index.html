@@ -1105,13 +1105,18 @@ body {
   }
 }
 
+
+.redo-ico { transform: scaleX(-1); }
+.btn:disabled { opacity: .32; cursor: default; pointer-events: none; }
 </style>
 </head>
 <body>
 <div class="sidebar btn-row" id="toolBar">
-  <button class="btn" id="btnGallery"><img src="icons/gallery.png" class="ico" alt=""><span class="label">相簿</span></button>
+  <button class="btn" id="btnGallery"><img src="icons/gallery.png" class="ico" alt=""><span class="label">開啟</span></button>
   <button class="btn" id="cameraBtn"><img src="icons/camera.png" class="ico" alt=""><span class="label">拍照</span></button>
-  <button class="btn" id="undoBtn"><img src="icons/undo.png" class="ico" alt=""><span class="label">上一步</span></button>
+  <button class="btn" id="reload"><img src="icons/gallery.png" class="ico" alt=""><span class="label">新增</span></button>
+  <button class="btn" id="undoBtn" disabled><img src="icons/undo.png" class="ico" alt=""><span class="label">上一步</span></button>
+  <button class="btn" id="redoBtn" disabled><img src="icons/undo.png" class="ico redo-ico" alt=""><span class="label">下一步</span></button>
   <button class="btn" id="cropTool" data-color="success"><img src="icons/crop.png" class="ico" alt=""><span class="label">裁切</span></button>
   <button class="btn" id="cancelCrop" data-color="danger" style="display:none;"><img src="icons/cancel.png" class="ico" alt=""><span class="label">取消</span></button>
   <button class="btn" id="penRed" data-color="danger"><img src="icons/pen.png" class="ico" alt=""><span class="label">畫筆</span></button>
@@ -1126,8 +1131,7 @@ body {
   <button class="btn" id="copyBtn" data-color="primary" title="複製圖片（Ctrl+C / Cmd+C）"><span class="ico" aria-hidden="true">⧉</span><span class="label">複製</span></button>
   <button class="btn" id="shareBtn" data-color="primary"><img src="icons/share.png" class="ico" alt=""><span class="label">分享</span></button>
   <button class="btn" id="downloadBtn" data-color="primary"><img src="icons/download.png" class="ico" alt=""><span class="label">下載</span></button>
-  <button class="btn" id="resetBtn"><img src="icons/clear.png" class="ico" alt=""><span class="label">清除</span></button>
-  <button class="btn" id="reload"><img src="icons/gallery.png" class="ico" alt=""><span class="label">新增</span></button>
+  <button class="btn" id="resetBtn"><img src="icons/clear.png" class="ico" alt=""><span class="label">清除標註</span></button>
 </div>
 <div id="docTabsBar">
   <div id="docTabs"></div>
@@ -1178,7 +1182,7 @@ const cropBtn=$('cropTool'),cancelBtn=$('cancelCrop');
 const penRed=$('penRed'),penYel=$('penYellow'),ellipse=$('ellipseRed'),rectRed=$('rectRed');
 const hiRect=$('highlightRect'),hiOval=$('highlightOval');
 const blurBtn=$('blurTool'),mosaicBtn=$('mosaicTool'),textBtn=$('textTool');
-const undo=$('undoBtn'),dl=$('downloadBtn'),copyBtn=$('copyBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn'),reloadBtn=$('reload');
+const undo=$('undoBtn'),redo=$('redoBtn'),dl=$('downloadBtn'),copyBtn=$('copyBtn'),share=$('shareBtn'),reset=$('resetBtn'),btnGal=$('btnGallery'),camBtn=$('cameraBtn'),reloadBtn=$('reload');
 const optBar=$('optionBar'),colorPicker=$('colorPicker'),sizeSlider=$('sizeSlider'),sizeDisp=$('sizeDisplay'),blurSlider=$('blurSlider'),blurDisp=$('blurDisplay'),mosaicMinus=$('mosaicMinus'),mosaicPlus=$('mosaicPlus');
 const textModal=$('textModal'),textForm=$('textForm'),textInput=$('textInput'),cancelText=$('cancelText');
 const errorMsg=$('errorMsg');
@@ -1187,7 +1191,10 @@ const docTabs=$('docTabs'),newDocTab=$('newDocTab');
 const ctx=cv.getContext('2d');
 let mode='none',cropper=null,stream=null;
 let drawing=false,sx=0,sy=0,preview=null,gestureBase=null;
-const UM=10,markStack=[],cropStack=[];
+const HISTORY_LIMIT=20;
+let undoStack=[], redoStack=[];
+let pendingActionSnapshot=null;
+let cropSessionSnapshot=null;
 let hasMask=false;
 let markupDirty=false;
 let drawColor='#ff0000',brushWidth=3,fontSize=24,mosaicSize=12;
@@ -1214,23 +1221,6 @@ function showError(message) {
   setTimeout(() => { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }, 3000);
 }
 
-function cloneImageData(data) {
-  if(!data) return null;
-  return new ImageData(
-    new Uint8ClampedArray(data.data),
-    data.width,
-    data.height
-  );
-}
-
-function cloneMarkStack(stack) {
-  return stack.map(item=>({
-    imageData:cloneImageData(item.imageData),
-    hasMask:!!item.hasMask,
-    markupDirty:!!item.markupDirty
-  }));
-}
-
 function imageDataToDataURL(data) {
   if(!data || !data.width || !data.height) return null;
   const t=document.createElement('canvas');
@@ -1240,28 +1230,123 @@ function imageDataToDataURL(data) {
   return t.toDataURL('image/png');
 }
 
+function snapshotCurrentState() {
+  if(!img.src) return null;
+  let markupDataURL=null;
+  if(cv.width && cv.height) {
+    try { markupDataURL=imageDataToDataURL(ctx.getImageData(0,0,cv.width,cv.height)); } catch {}
+  }
+  return {imgSrc:img.src,markupDataURL,hasMask:!!hasMask,markupDirty:!!markupDirty,mosaicSize};
+}
+
+function cloneSnapshot(state) { return state ? {...state} : null; }
+function cloneHistory(stack) { return (stack||[]).map(cloneSnapshot).filter(Boolean); }
+
+function updateHistoryButtons() {
+  undo.disabled=!undoStack.length;
+  redo.disabled=!redoStack.length;
+}
+
+function pushUndoSnapshot(state, clearRedo=true) {
+  if(!state) return;
+  if(undoStack.length>=HISTORY_LIMIT) undoStack.shift();
+  undoStack.push(cloneSnapshot(state));
+  if(clearRedo) redoStack.length=0;
+  updateHistoryButtons();
+}
+
+function beginActionSnapshot() { pendingActionSnapshot=snapshotCurrentState(); }
+function commitActionSnapshot() {
+  if(pendingActionSnapshot) pushUndoSnapshot(pendingActionSnapshot,true);
+  pendingActionSnapshot=null;
+}
+function discardActionSnapshot() { pendingActionSnapshot=null; }
+
+function cancelTransientUi() {
+  drawing=false;
+  gestureBase=null;
+  preview=null;
+  mosaicSelection=null;
+  textRect=null;
+  showTouchCursorAt(0,0,false);
+  textModal.style.display='none';
+  textInput.value='';
+  cv.style.pointerEvents='auto';
+}
+
+function restoreSnapshot(state) {
+  if(!state || !state.imgSrc) return Promise.resolve();
+  if(cropper) { cropper.destroy(); cropper=null; }
+  cancelTransientUi();
+  return new Promise((resolve,reject)=>{
+    img.onload=()=>{
+      fitCanvas();
+      ctx.clearRect(0,0,cv.width,cv.height);
+      const finish=()=>{
+        hasMask=!!state.hasMask;
+        markupDirty=!!state.markupDirty;
+        mosaicSize=state.mosaicSize||12;
+        blurSlider.value=mosaicSize;
+        blurDisp.textContent=`${mosaicSize}px`;
+        toggleCrop(false);
+        resolve();
+      };
+      if(state.markupDataURL) {
+        const overlay=new Image();
+        overlay.onload=()=>{ctx.drawImage(overlay,0,0,cv.width,cv.height);finish();};
+        overlay.onerror=finish;
+        overlay.src=state.markupDataURL;
+      } else finish();
+    };
+    img.onerror=()=>{showError('無法還原編輯狀態');reject(new Error('restore snapshot failed'));};
+    img.src=state.imgSrc;
+  });
+}
+
+async function performUndo() {
+  if(!undoStack.length || !img.src) return;
+  if(cropper) await cancelCropSession();
+  const current=snapshotCurrentState();
+  const target=undoStack.pop();
+  if(current) {
+    if(redoStack.length>=HISTORY_LIMIT) redoStack.shift();
+    redoStack.push(current);
+  }
+  await restoreSnapshot(target);
+  captureCurrentDocument();
+  updateHistoryButtons();
+}
+
+async function performRedo() {
+  if(!redoStack.length || !img.src) return;
+  if(cropper) await cancelCropSession();
+  const current=snapshotCurrentState();
+  const target=redoStack.pop();
+  if(current) {
+    if(undoStack.length>=HISTORY_LIMIT) undoStack.shift();
+    undoStack.push(current);
+  }
+  await restoreSnapshot(target);
+  captureCurrentDocument();
+  updateHistoryButtons();
+}
+
 function captureCurrentDocument() {
   const doc=documents.find(d=>d.id===activeDocId);
   if(!doc) return;
   if(!img.src) {
-    doc.imgSrc=null;
-    doc.markupDataURL=null;
-    doc.markStack=[];
-    doc.cropStack=[];
-    doc.hasMask=false;
-    doc.markupDirty=false;
+    doc.imgSrc=null; doc.markupDataURL=null; doc.hasMask=false; doc.markupDirty=false;
+    doc.undoStack=[]; doc.redoStack=[];
     return;
   }
-
-  doc.imgSrc=img.src;
-  doc.canvasWidth=cv.width;
-  doc.canvasHeight=cv.height;
-  doc.markupDataURL=imageDataToDataURL(ctx.getImageData(0,0,cv.width,cv.height));
-  doc.markStack=cloneMarkStack(markStack);
-  doc.cropStack=[...cropStack];
-  doc.hasMask=hasMask;
-  doc.markupDirty=markupDirty;
-  doc.mosaicSize=mosaicSize;
+  const state=snapshotCurrentState();
+  doc.imgSrc=state.imgSrc;
+  doc.markupDataURL=state.markupDataURL;
+  doc.hasMask=state.hasMask;
+  doc.markupDirty=state.markupDirty;
+  doc.mosaicSize=state.mosaicSize;
+  doc.undoStack=cloneHistory(undoStack);
+  doc.redoStack=cloneHistory(redoStack);
 }
 
 function renderDocumentTabs() {
@@ -1309,44 +1394,28 @@ function showEmptyWorkspace(doc=null) {
   hideOptions();
   active(null);
   mode='none';
-  markStack.length=0;
-  cropStack.length=0;
-  hasMask=false;
-  markupDirty=false;
-  mosaicSelection=null;
-  gestureBase=null;
+  undoStack=[]; redoStack=[];
+  pendingActionSnapshot=null; cropSessionSnapshot=null;
+  hasMask=false; markupDirty=false;
+  mosaicSelection=null; gestureBase=null;
   ctx.clearRect(0,0,cv.width,cv.height);
+  updateHistoryButtons();
   renderDocumentTabs();
 }
 
 function restoreDocument(doc) {
   if(!doc) return;
-
   if(!doc.imgSrc) {
-    if(cropper) {
-      cropper.destroy();
-      cropper=null;
-    }
+    if(cropper) {cropper.destroy();cropper=null;}
     activeDocId=doc.id;
     showEmptyWorkspace(doc);
     return;
   }
-
-  if(cropper) {
-    cropper.destroy();
-    cropper=null;
-  }
-  if(stream) {
-    stream.getTracks().forEach(t=>t.stop());
-    stream=null;
-  }
+  if(cropper) {cropper.destroy();cropper=null;}
+  if(stream) {stream.getTracks().forEach(t=>t.stop());stream=null;}
 
   activeDocId=doc.id;
-  mosaicSelection=null;
-  gestureBase=null;
-  preview=null;
-  drawing=false;
-  showTouchCursorAt(0,0,false);
+  cancelTransientUi();
 
   img.onload=()=>{
     selBtns.style.display='none';
@@ -1356,46 +1425,31 @@ function restoreDocument(doc) {
     bar.style.display='flex';
     btnGal.style.display='none';
     camBtn.style.display='none';
-
     fitCanvas();
     ctx.clearRect(0,0,cv.width,cv.height);
 
     const finishRestore=()=>{
-      markStack.length=0;
-      for(const item of doc.markStack||[]) {
-        markStack.push({
-          imageData:cloneImageData(item.imageData),
-          hasMask:!!item.hasMask,
-          markupDirty:!!item.markupDirty
-        });
-      }
-
-      cropStack.length=0;
-      cropStack.push(...(doc.cropStack||[]));
       hasMask=!!doc.hasMask;
       markupDirty=!!doc.markupDirty;
       mosaicSize=doc.mosaicSize||12;
       blurSlider.value=mosaicSize;
+      undoStack=cloneHistory(doc.undoStack);
+      redoStack=cloneHistory(doc.redoStack);
       mode='none';
       active(null);
       hideOptions();
       toggleCrop(false);
+      updateHistoryButtons();
       renderDocumentTabs();
     };
 
     if(doc.markupDataURL) {
       const overlay=new Image();
-      overlay.onload=()=>{
-        ctx.drawImage(overlay,0,0,cv.width,cv.height);
-        finishRestore();
-      };
+      overlay.onload=()=>{ctx.drawImage(overlay,0,0,cv.width,cv.height);finishRestore();};
       overlay.onerror=finishRestore;
       overlay.src=doc.markupDataURL;
-    } else {
-      finishRestore();
-    }
+    } else finishRestore();
   };
-
   img.onerror=()=>showError('無法切換到這個圖片分頁');
   img.src=doc.imgSrc;
 }
@@ -1436,8 +1490,8 @@ function startNewDocument() {
     name:`新圖片 ${documents.length+1}`,
     imgSrc:null,
     markupDataURL:null,
-    markStack:[],
-    cropStack:[],
+    undoStack:[],
+        redoStack:[],
     hasMask:false,
     markupDirty:false,
     mosaicSize:12
@@ -1514,8 +1568,8 @@ function load(file) {
       doc.name=file.name||doc.name||`圖片 ${nextDocId-1}`;
       doc.imgSrc=e.target.result;
       doc.markupDataURL=null;
-      doc.markStack=[];
-      doc.cropStack=[];
+      doc.undoStack=[];
+      doc.redoStack=[];
       doc.hasMask=false;
       doc.markupDirty=false;
       doc.mosaicSize=12;
@@ -1525,8 +1579,8 @@ function load(file) {
         name:file.name||`圖片 ${nextDocId-1}`,
         imgSrc:e.target.result,
         markupDataURL:null,
-        markStack:[],
-        cropStack:[],
+        undoStack:[],
+        redoStack:[],
         hasMask:false,
         markupDirty:false,
         mosaicSize:12
@@ -1552,8 +1606,9 @@ function enterWorkArea() {
   bar.style.display='flex';
   fitCanvas();
   ctx.clearRect(0,0,cv.width,cv.height);
-  markStack.length=0;
-  cropStack.length=0;
+  undoStack.length=0;
+  redoStack.length=0;
+  updateHistoryButtons();
   mode='none';
   active(null);
   hasMask=false;
@@ -1578,18 +1633,7 @@ function toggleCrop(on) {
   on?active(cropBtn):active(null);
 }
 
-function pushMark() {
-  if(markStack.length>=UM) markStack.shift();
-  markStack.push({imageData: ctx.getImageData(0,0,cv.width,cv.height), hasMask: hasMask, markupDirty});
-}
-
-function pushCrop() {
-  if(cropStack.length>=UM) cropStack.shift();
-  cropStack.push(img.src);
-}
-
-async function mergedCanvas() {
-  if(cropper) await applyCrop();
+function renderMergedCanvas() {
   const o=document.createElement('canvas');
   o.width=img.naturalWidth;
   o.height=img.naturalHeight;
@@ -1597,6 +1641,11 @@ async function mergedCanvas() {
   ct.drawImage(img,0,0);
   ct.drawImage(cv,0,0,o.width,o.height);
   return o;
+}
+
+async function mergedCanvas() {
+  if(cropper) await applyCrop();
+  return renderMergedCanvas();
 }
 
 async function saveFile() {
@@ -1804,8 +1853,8 @@ async function openCam() {
       name:`拍照 ${documents.length+1}`,
       imgSrc:dataUrl,
       markupDataURL:null,
-      markStack:[],
-      cropStack:[],
+      undoStack:[],
+        redoStack:[],
       hasMask:false,
       markupDirty:false,
       mosaicSize:12
@@ -1894,8 +1943,8 @@ blurSlider.oninput=e=>setMosaicSize(e.target.value);
 mosaicMinus.onclick=()=>setMosaicSize(mosaicSize-2);
 mosaicPlus.onclick=()=>setMosaicSize(mosaicSize+2);
 
-function setMode(m) {
-  if(cropper) cancelBtn.click();
+async function setMode(m) {
+  if(cropper) await cancelCropSession();
   if(m!=='mosaic') mosaicSelection=null;
   mode=m;
   active(
@@ -1930,79 +1979,65 @@ textBtn.onclick=()=>setMode('text');
 newDocTab.onclick=startNewDocument;
 reloadBtn.onclick=startNewDocument;
 
-function flattenMarkupToBase() {
-  if(!markupDirty) return Promise.resolve();
-  const o=document.createElement('canvas');
-  o.width=img.naturalWidth;
-  o.height=img.naturalHeight;
-  const octx=o.getContext('2d');
-  octx.drawImage(img,0,0);
-  octx.drawImage(cv,0,0,o.width,o.height);
-  const nextSrc=o.toDataURL('image/png');
+async function startCrop() {
+  if(!img.src) {showError('尚未載入圖片');return;}
+  if(cropper) {await applyCrop();return;}
 
-  return new Promise((resolve,reject)=>{
+  cancelTransientUi();
+  cropSessionSnapshot=snapshotCurrentState();
+  if(!cropSessionSnapshot) return;
+
+  const flattenedSrc=renderMergedCanvas().toDataURL('image/png');
+  await new Promise((resolve,reject)=>{
     img.onload=()=>{
       fitCanvas();
       ctx.clearRect(0,0,cv.width,cv.height);
-      markStack.length=0;
-      hasMask=false;
-      markupDirty=false;
-      resolve();
-    };
-    img.onerror=()=>{
-      showError('合併標註失敗，無法進入裁切');
-      reject(new Error('flatten markup failed'));
-    };
-    img.src=nextSrc;
-  });
-}
-
-async function startCrop() {
-  mosaicSelection=null;
-  if(!img.src) {
-    showError('尚未載入圖片');
-    return;
-  }
-  if(!cropper) {
-    try {
-      // Cropper 只認底圖；先把畫框、文字、模糊等標註合併，避免裁切後跑位或消失。
-      await flattenMarkupToBase();
+      hasMask=false; markupDirty=false;
       cropper=new Cropper(img,{viewMode:1,responsive:true,autoCropArea:0.9});
       toggleCrop(true);
-    } catch {}
-  } else {
-    applyCrop();
-  }
+      resolve();
+    };
+    img.onerror=()=>{cropSessionSnapshot=null;showError('無法進入裁切模式');reject(new Error('crop preparation failed'));};
+    img.src=flattenedSrc;
+  });
 }
 
 function applyCrop() {
   if(!cropper) return Promise.resolve();
-  pushCrop();
-  const c=cropper.getCroppedCanvas({imageSmoothingEnabled:true,imageSmoothingQuality:'high'});
-  const nextSrc=c.toDataURL('image/png');
+  const beforeCrop=cloneSnapshot(cropSessionSnapshot);
+  const cropped=cropper.getCroppedCanvas({imageSmoothingEnabled:true,imageSmoothingQuality:'high'});
+  const nextSrc=cropped.toDataURL('image/png');
+  const oldCropper=cropper;
   return new Promise((resolve,reject)=>{
-    const oldCropper=cropper;
     img.onload=()=>{
       oldCropper.destroy();
       cropper=null;
+      cropSessionSnapshot=null;
       toggleCrop(false);
       fitCanvas();
       ctx.clearRect(0,0,cv.width,cv.height);
-      markStack.length=0;
-      hasMask=false;
-      markupDirty=false;
+      hasMask=false; markupDirty=false;
+      if(beforeCrop) pushUndoSnapshot(beforeCrop,true);
+      captureCurrentDocument();
       resolve();
     };
-    img.onerror=()=>{
-      showError('裁切圖片失敗');
-      reject(new Error('crop image load failed'));
-    };
+    img.onerror=()=>{showError('裁切圖片失敗');reject(new Error('crop image load failed'));};
     img.src=nextSrc;
   });
 }
 
+async function cancelCropSession() {
+  if(!cropper) return;
+  const restore=cloneSnapshot(cropSessionSnapshot);
+  cropper.destroy();
+  cropper=null;
+  cropSessionSnapshot=null;
+  toggleCrop(false);
+  if(restore) await restoreSnapshot(restore);
+}
+
 cropBtn.onclick=startCrop;
-cancelBtn.onclick=()=>{cropper&&(cropper.destroy(),cropper=null,toggleCrop(false));};
+cancelBtn.onclick=()=>cancelCropSession();
 
 function hexToRgba(hex,a=1) {
   const r=parseInt(hex.substr(1,2),16),g=parseInt(hex.substr(3,2),16),b=parseInt(hex.substr(5,2),16);
@@ -2051,7 +2086,7 @@ cv.addEventListener('pointerdown',e=>{
   // pointermove 只拿這份快照做預覽，避免上一個遮蔽/馬賽克被回寫掉。
   gestureBase=ctx.getImageData(0,0,cv.width,cv.height);
   preview=gestureBase;
-  pushMark();
+  beginActionSnapshot();
 
   showTouchCursorAt(sx,sy,p.touchLike);
 
@@ -2169,8 +2204,10 @@ cv.addEventListener('pointerup',e=>{
       break;
   }
 
+  if(mode!=='text') commitActionSnapshot();
   gestureBase=null;
   preview=null;
+  captureCurrentDocument();
 });
 
 cv.addEventListener('pointercancel',e=>{
@@ -2182,7 +2219,7 @@ cv.addEventListener('pointercancel',e=>{
   }
 
   if(gestureBase) ctx.putImageData(gestureBase,0,0);
-  if(markStack.length) markStack.pop();
+  discardActionSnapshot();
 
   showTouchCursorAt(0,0,false);
   gestureBase=null;
@@ -2419,9 +2456,14 @@ textForm.onsubmit=e=>{
   e.preventDefault();
   const txt=textInput.value.trim();
   if(txt&&textRect) {
-    ctx.putImageData(preview,0,0);
+    if(preview) ctx.putImageData(preview,0,0);
     drawTextInRect(txt,textRect.x,textRect.y,textRect.w,textRect.h);
     markupDirty=true;
+    commitActionSnapshot();
+    captureCurrentDocument();
+  } else {
+    if(preview) ctx.putImageData(preview,0,0);
+    discardActionSnapshot();
   }
   textModal.style.display='none';
   textInput.value='';
@@ -2435,7 +2477,8 @@ textForm.onsubmit=e=>{
 cancelText.onclick=()=>{
   textModal.style.display='none';
   textInput.value='';
-  ctx.putImageData(preview,0,0);
+  if(preview) ctx.putImageData(preview,0,0);
+  discardActionSnapshot();
   textRect=null;
   mode='none';
   active(null);
@@ -2443,62 +2486,50 @@ cancelText.onclick=()=>{
   cv.style.pointerEvents='auto';
 };
 
-undo.onclick=()=>{
-  mosaicSelection=null;
-  if(markStack.length) {
-    const {imageData, hasMask: restoredHasMask, markupDirty: restoredDirty} = markStack.pop();
-    ctx.putImageData(imageData,0,0);
-    hasMask = restoredHasMask;
-    markupDirty = !!restoredDirty;
-  } else if(cropStack.length) {
-    img.src=cropStack.pop();
-    img.onload=fitCanvas;
-    img.onerror=()=>showError('無法還原裁切圖片');
-  }
-};
+undo.onclick=()=>performUndo();
+redo.onclick=()=>performRedo();
 
 dl.onclick=async()=>{ await saveFile(); captureCurrentDocument(); };
 copyBtn.onclick=copyCurrentImage;
 share.onclick=async()=>{ await webShare(); captureCurrentDocument(); };
 
 window.addEventListener('keydown',e=>{
-  const isCopy=(e.ctrlKey||e.metaKey) && !e.altKey && e.key.toLowerCase()==='c';
-  if(!isCopy) return;
-
   const target=e.target;
-  const isTextTarget=target && (
-    target.tagName==='INPUT' ||
-    target.tagName==='TEXTAREA' ||
-    target.isContentEditable
-  );
-
-  // 文字欄位內保留瀏覽器原生 Ctrl+C / Cmd+C。
+  const isTextTarget=target && (target.tagName==='INPUT'||target.tagName==='TEXTAREA'||target.isContentEditable);
   if(isTextTarget) return;
 
-  if(!img.src) return;
+  const mod=e.ctrlKey||e.metaKey;
+  const key=e.key.toLowerCase();
 
-  e.preventDefault();
-  copyCurrentImage();
+  if(mod && !e.altKey && key==='c') {
+    if(!img.src) return;
+    e.preventDefault();
+    copyCurrentImage();
+    return;
+  }
+  if(mod && !e.altKey && key==='z') {
+    e.preventDefault();
+    if(e.shiftKey) performRedo(); else performUndo();
+    return;
+  }
+  if(mod && !e.altKey && key==='y') {
+    e.preventDefault();
+    performRedo();
+  }
 });
 
-reset.onclick=()=>{
-  if(cropper) {cropper.destroy();cropper=null;}
-  if(stream) {stream.getTracks().forEach(t=>t.stop());stream=null;}
+reset.onclick=async()=>{
+  if(!img.src) return;
+  if(cropper) await cancelCropSession();
+  const before=snapshotCurrentState();
+  cancelTransientUi();
   ctx.clearRect(0,0,cv.width,cv.height);
-  markStack.length=0;
   hasMask=false;
   markupDirty=false;
-  mosaicSelection=null;
-  gestureBase=null;
-  showTouchCursorAt(0,0,false);
-  cv.style.pointerEvents='auto';
-  cancelBtn.style.display='none';
-  cropBtn.querySelector('.label').textContent='裁切';
   hideOptions();
   active(null);
   mode='none';
-  textModal.style.display='none';
-  textRect=null;
+  if(before) pushUndoSnapshot(before,true);
   captureCurrentDocument();
 };
 
@@ -2515,6 +2546,7 @@ window.addEventListener('touchmove',e=>{
 
 // 初始化多文件工作區
 showEmptyWorkspace();
+updateHistoryButtons();
 </script>
 </body>
 </html>
