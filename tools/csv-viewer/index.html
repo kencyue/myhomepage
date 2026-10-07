@@ -76,10 +76,9 @@ mobileFieldBtn.onclick=openFieldSheet;sheetBackdrop.onclick=closeFieldSheet;docu
 let compareData={A:null,B:null},compareSelected=new Set(),commonStart=0,commonEnd=0,compareStart=0,compareEnd=0,compareHighlight=null;
 function dtLocal(ms){let d=new Date(ms);return new Date(ms-d.getTimezoneOffset()*60000).toISOString().slice(0,19)}
 async function readCompareCsv(file){
- const txt=(await file.text()).replace(/\0/g,''),lines=txt.split(/\r?\n/).filter(Boolean);if(lines.length<2)throw Error('CSV 沒有資料');
- const hs=csvLine(lines[0]).map(clean),ti=hs.indexOf('記錄時間');if(ti<0)throw Error('找不到「記錄時間」欄位');
- let rs=[];for(let n=1;n<lines.length;n++){let a=csvLine(lines[n]),o={};hs.forEach((h,i)=>o[h]=clean(a[i]));let t=parseTime(o['記錄時間']);if(Number.isFinite(t)){o.__t=t;rs.push(o)}}
- if(!rs.length)throw Error('沒有可辨識的記錄時間');return {name:file.name,headers:hs,rows:rs,start:rs[0].__t,end:rs[rs.length-1].__t}
+ const reader=file.stream().getReader(),dec=new TextDecoder('utf-8'),maxKeep=120000;let buf='',hs=null,ti=-1,rs=[],valid=0,firstT=Infinity,lastT=-Infinity;
+ while(true){let z=await reader.read();if(z.done)break;buf+=dec.decode(z.value,{stream:true}).replace(/\0/g,'');let lines=buf.split(/\r?\n/);buf=lines.pop();for(const line of lines){if(!line)continue;let a=csvLine(line);if(!hs){hs=a.map(clean);ti=hs.indexOf('記錄時間');if(ti<0)throw Error('找不到「記錄時間」欄位');continue}let t=parseTime(clean(a[ti]));if(!Number.isFinite(t))continue;valid++;if(t<firstT)firstT=t;if(t>lastT)lastT=t;let o={__t:t};hs.forEach((h,i)=>o[h]=clean(a[i]));if(rs.length<maxKeep)rs.push(o);else if(valid%Math.ceil(valid/maxKeep)===0)rs.push(o);if(rs.length>maxKeep*1.15)rs=rs.filter((_,i)=>i%2===0)}await new Promise(r=>setTimeout(r,0))}
+ if(!hs||!rs.length)throw Error('沒有可辨識的記錄時間');rs.sort((a,b)=>a.__t-b.__t);return {name:file.name,headers:hs,rows:rs,start:firstT,end:lastT,total:valid}
 }
 async function loadCompare(side,file){
  document.getElementById('compareStatus').textContent='正在讀取 CSV '+side+'…';
@@ -98,7 +97,7 @@ function prepareCompare(){
 }
 function renderCompare(){
  let A=compareData.A,B=compareData.B;if(!A||!B||commonStart>=commonEnd)return;let ar=A.rows.filter(r=>r.__t>=compareStart&&r.__t<=compareEnd),br=B.rows.filter(r=>r.__t>=compareStart&&r.__t<=compareEnd),keys=[...compareSelected];
- let vals=[];[ar,br].forEach(rs=>keys.forEach(k=>rs.forEach(r=>{let v=num(r[k]);if(v!==null)vals.push(v)})));if(!vals.length){document.getElementById('compareStatus').textContent='此區間沒有已選欄位的數值';return}let mn=Math.min(...vals),mx=Math.max(...vals);if(mx===mn)mx=mn+1;
+ let mn=Infinity,mx=-Infinity,count=0;[ar,br].forEach(rs=>keys.forEach(k=>rs.forEach(r=>{let v=num(r[k]);if(v!==null){if(v<mn)mn=v;if(v>mx)mx=v;count++}})));if(!count){document.getElementById('compareStatus').textContent='此區間沒有已選欄位的數值';return}if(mx===mn)mx=mn+1;
  drawCompare(document.getElementById('canvasA'),ar,keys,mn,mx);drawCompare(document.getElementById('canvasB'),br,keys,mn,mx);document.getElementById('compareStatus').textContent='比較 '+new Date(compareStart).toLocaleString()+' ～ '+new Date(compareEnd).toLocaleString()+'｜A '+ar.length.toLocaleString()+' 筆・B '+br.length.toLocaleString()+' 筆'
 }
 function drawCompare(c,rs,keys,mn,mx){
