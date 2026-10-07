@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="104" fill="#1769aa"/><path d="M90 340h332M112 305l70-78 64 42 86-112 68 55" fill="none" stroke="white" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/><circle cx="182" cy="227" r="15" fill="white"/><circle cx="246" cy="269" r="15" fill="white"/><circle cx="332" cy="157" r="15" fill="white"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#35c9f2"/><stop offset=".55" stop-color="#1677e8"/><stop offset="1" stop-color="#0849bd"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".22"/></filter></defs>
+<rect x="18" y="18" width="476" height="476" rx="108" fill="url(#g)"/>
+<g filter="url(#s)"><path d="M112 108h218l72 72v210H112z" fill="#fff" opacity=".96"/><path d="M330 108v72h72" fill="#dbeafe"/>
+<g stroke="#d8e5f2" stroke-width="5"><path d="M142 225h230M142 270h230M142 315h230M188 205v145M250 205v145M312 205v145"/></g>
+<path d="M142 326c35-65 63 15 98-42s60 31 91-39 42-7 55-22" fill="none" stroke="#1478e8" stroke-width="14" stroke-linecap="round"/>
+<path d="M142 347c32-33 63-11 96-35s65 26 102-25" fill="none" stroke="#f59e0b" stroke-width="11" stroke-linecap="round"/>
+<rect x="72" y="82" width="168" height="82" rx="25" fill="#16a267"/><text x="156" y="138" text-anchor="middle" font-family="Arial,sans-serif" font-size="53" font-weight="700" fill="#fff">CSV</text>
+<g transform="translate(327 55)" stroke="#e8fbff" stroke-width="13" stroke-linecap="round"><path d="M44 0v104M0 26l88 52M88 26L0 78"/><path d="M44 0l-13 16M44 0l13 16M0 26l20 2M0 26l7 19M88 26l-20 2M88 26l-7 19M0 78l20-2M0 78l7-19M88 78l-20-2M88 78l-7-19M44 104l-13-16M44 104l13-16"/></g>
+</g></svg>
