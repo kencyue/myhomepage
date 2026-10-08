@@ -1017,24 +1017,19 @@ body {
 
   /* 手機工具列：維持可觸控，但大幅減少上下留白 */
   .sidebar {
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
     width: 100%;
     padding: 5px 6px;
     gap: 4px;
     background: #ffffff;
     border-bottom: 1px solid #d6d9de;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-  }
-
-  .sidebar::-webkit-scrollbar {
-    display: none;
+    overflow: visible;
   }
 
   .sidebar .btn {
-    flex: 0 0 42px;
-    width: 42px;
+    width: 100%;
+    min-width: 0;
     height: 46px;
     margin: 0;
     border-radius: 7px;
