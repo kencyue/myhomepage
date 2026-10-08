@@ -155,18 +155,19 @@ let comparePointTime=null;
 const RULE_KEY='acCsvViewerRulesV1';let customRules=[];try{const v=JSON.parse(localStorage.getItem(RULE_KEY)||'[]');if(Array.isArray(v))customRules=v}catch(e){}
 function availableRuleHeaders(){const names=new Set();for(const h of headers)if(!excluded(h)&&rows.some(r=>num(r[h])!==null))names.add(h);for(const side of ['A','B']){const d=compareData[side];if(d)for(const h of d.headers)if(!excluded(h)&&d.rows.some(r=>num(r[h])!==null))names.add(h)}return [...names].sort((a,b)=>a.localeCompare(b,'zh-Hant'))}
 function renderRuleEditor(){const root=document.getElementById('ruleList');root.replaceChildren();const available=availableRuleHeaders();
+ if(!available.length){const hint=document.createElement('p');hint.className='note';hint.textContent='尚未取得 CSV 數值標頭：請先載入單檔或雙檔 CSV，再回到此頁選擇欄位。';root.append(hint)}
  if(!customRules.length){const msg=document.createElement('p');msg.className='note';msg.textContent='尚無自訂規則。載入 CSV 後按「新增規則」，選擇實際標頭與各自的判定條件。';root.append(msg)}
  customRules.forEach((r,i)=>{const card=document.createElement('div');card.className='ruleEditor';const title=document.createElement('strong');title.textContent='規則 '+(i+1);card.append(title);
  const make=(label,options,key)=>{const wrap=document.createElement('label');wrap.textContent=label;const el=document.createElement('select');for(const [value,name] of options){const o=document.createElement('option');o.value=value;o.textContent=name;el.append(o)}el.value=r[key]||'';el.onchange=()=>{r[key]=el.value;if(key==='type')renderRuleEditor()};wrap.append(el);card.append(wrap);return el};
- const fields=available.map(h=>[h,fieldLabel(h)+'｜'+h]);if(r.field&&!available.includes(r.field))fields.unshift([r.field,'⚠ 目前檔案沒有：'+r.field]);make('CSV 數值標頭',[['','請選擇欄位'],...fields],'field');
+ const fields=available.map(h=>[h,fieldLabel(h)+'（'+compareGroup(h)[0]+'）']);if(r.field&&!available.includes(r.field))fields.unshift([r.field,'⚠ 目前檔案沒有：'+r.field]);const picker=make('CSV 數值標頭',[['',available.length?'請選擇欄位':'請先載入單檔或雙檔 CSV'],...fields],'field');picker.disabled=!available.length;
  make('警示條件',[['amplitude','時間內最大值－最小值 ≥'],['above','數值 ≥ 上限'],['below','數值 ≤ 下限'],['outside','超出正常範圍'],['inside','落在指定範圍'],['reversals','時間內升降反轉次數 ≥']],'type');
  const numeric=(label,key,value)=>{const wrap=document.createElement('label');wrap.textContent=label;const el=document.createElement('input');el.type='number';el.step='any';el.value=value??'';el.oninput=()=>{r[key]=el.value===''?null:Number(el.value)};wrap.append(el);card.append(wrap)};
  if(r.type==='outside'||r.type==='inside'){numeric('正常下限', 'lower',r.lower);numeric('正常上限','upper',r.upper)}else numeric(r.type==='amplitude'?'振幅門檻':r.type==='reversals'?'反轉次數':r.type==='below'?'數值下限':'數值上限','threshold',r.threshold);
  if(['amplitude','reversals'].includes(r.type))numeric('時間視窗（分鐘）','minutes',r.minutes??4);
  const del=document.createElement('button');del.type='button';del.className='btn secondary';del.textContent='刪除';del.onclick=()=>{customRules.splice(i,1);renderRuleEditor()};card.append(del);root.append(card)})
 }
-document.getElementById('addRule').onclick=()=>{const available=availableRuleHeaders();customRules.push({field:available[0]||'',type:'amplitude',threshold:null,minutes:4});renderRuleEditor()};
-document.getElementById('saveRules').onclick=()=>{if(customRules.some(r=>!r.field)){document.getElementById('ruleStatus').textContent='請先為每條規則選擇 CSV 標頭';return}localStorage.setItem(RULE_KEY,JSON.stringify(customRules));document.getElementById('ruleStatus').textContent='已儲存 '+customRules.length+' 條規則，重新分析即可套用'};
+document.getElementById('addRule').onclick=()=>{const available=availableRuleHeaders();customRules.push({field:'',type:'amplitude',threshold:null,minutes:4});renderRuleEditor()};
+document.getElementById('saveRules').onclick=()=>{if(customRules.some(r=>!r.field)){document.getElementById('ruleStatus').textContent='請先載入 CSV 並為每條規則選擇標頭';return}localStorage.setItem(RULE_KEY,JSON.stringify(customRules));document.getElementById('ruleStatus').textContent='已儲存 '+customRules.length+' 條規則，重新分析即可套用'};
 renderRuleEditor();
 function calculateStats(data,keys,timeGetter){
  const results=[];
