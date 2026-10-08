@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ken-paint-v1';
+const CACHE_NAME = 'ken-paint-v2';
 const APP_SHELL = [
   './',
   './index.html',
