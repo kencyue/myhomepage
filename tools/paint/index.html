@@ -1015,15 +1015,32 @@ body {
     color: #202124;
   }
 
+  /* 手機工具列：維持可觸控，但大幅減少上下留白 */
   .sidebar {
+    flex-wrap: nowrap;
+    width: 100%;
+    padding: 5px 6px;
+    gap: 4px;
     background: #ffffff;
     border-bottom: 1px solid #d6d9de;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .sidebar::-webkit-scrollbar {
+    display: none;
   }
 
   .sidebar .btn {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 46px;
+    margin: 0;
+    border-radius: 7px;
     background: #ffffff;
     color: #202124;
-    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    box-shadow: none;
   }
 
   .sidebar .btn:hover,
@@ -1039,17 +1056,62 @@ body {
     color: #202124;
   }
 
+  .sidebar .btn .ico {
+    width: 21px;
+    height: 21px;
+    font-size: 1.1rem;
+  }
+
   .sidebar .btn .label {
+    margin-top: 2px;
+    font-size: 9px;
+    line-height: 1;
     color: #202124;
   }
 
+  /* Tabs 由原本 40px 再縮，讓畫布多拿到高度 */
   #docTabsBar {
+    min-height: 36px;
+    padding: 3px 5px;
+    gap: 4px;
     background: #eef0f3;
+  }
+
+  #docTabs {
+    gap: 3px;
+  }
+
+  .doc-tab {
+    min-width: 88px;
+    max-width: 145px;
+    height: 32px;
+    padding: 0 5px 0 8px;
+    gap: 4px;
+    border-radius: 6px;
+  }
+
+  .doc-tab-name {
+    font-size: 11px;
+  }
+
+  .doc-tab-close {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    font-size: .9rem;
+  }
+
+  #newDocTab {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    border-radius: 6px;
+    font-size: 1.15rem;
   }
 
   .main {
     background: #f6f7f9;
-    padding: 1rem .75rem 1.25rem;
+    padding: 8px 7px 10px;
   }
 
   #welcomeScreen {
@@ -1057,59 +1119,110 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
-    padding-top: 18px;
+    gap: 9px;
+    padding-top: 8px;
   }
 
   #welcomeLogo {
     display: block;
-    width: 132px;
-    max-height: 100px;
-    border-radius: 12px;
-    box-shadow: 0 5px 16px rgba(0,0,0,.09);
+    width: 105px;
+    max-height: 78px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.08);
   }
 
   #welcomeActions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
-    width: min(100%, 320px);
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    width: min(100%, 390px);
+    gap: 5px;
   }
 
   .welcome-action {
     min-width: 0;
-    height: 42px;
-    padding: 0 10px;
-    font-size: 14px;
-    border-radius: 8px;
+    height: 36px;
+    padding: 0 5px;
+    font-size: 12px;
+    border-radius: 7px;
+    white-space: nowrap;
   }
 
   #drop-zone {
-    width: min(100%, 360px);
+    width: min(100%, 390px);
     max-width: none;
-    min-height: 112px;
+    min-height: 76px;
     margin: 0;
-    padding: 20px 16px;
+    padding: 12px 10px;
+    gap: 3px;
     border: 1px dashed #c9cdd3;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #ffffff;
   }
 
   #drop-zone strong {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   #drop-zone span {
-    font-size: 12px;
+    font-size: 10px;
   }
 
+  /* 工具選項列維持手指可操作，但不再占一大塊畫面 */
   #optionBar {
+    width: calc(100% - 4px);
+    margin: 0 0 7px;
+    padding: 5px 6px;
+    gap: 5px;
+    flex-wrap: nowrap;
     background: #ffffff;
     color: #202124;
+    border-radius: 8px;
+  }
+
+  #optionBar input[type=color] {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border-radius: 6px;
+  }
+
+  #optionBar input[type=range] {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 90px;
+    height: 42px;
+  }
+
+  #optionBar input[type=range]::-webkit-slider-runnable-track {
+    height: 8px;
+  }
+
+  #optionBar input[type=range]::-webkit-slider-thumb {
+    width: 34px;
+    height: 34px;
+    margin-top: -13px;
   }
 
   #optionBar span {
+    min-width: 30px;
+    font-size: 11px;
     color: #202124;
+  }
+
+  .mosaic-step {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 8px;
+    font-size: 1.35rem;
+  }
+
+  #imgBase {
+    max-height: calc(100dvh - 150px);
+  }
+
+  .cropper-container {
+    max-height: calc(100dvh - 150px)!important;
   }
 }
 
