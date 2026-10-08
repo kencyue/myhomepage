@@ -62,7 +62,7 @@ function finish(total){
  viewStart=0;viewEnd=1;fieldsEl.replaceChildren();sheetBody.replaceChildren();mobileFieldList.replaceChildren();
  const groups=new Map();numeric.forEach(h=>{const [place,kind]=compareGroup(h);if(!groups.has(place))groups.set(place,new Map());if(!groups.get(place).has(kind))groups.get(place).set(kind,[]);groups.get(place).get(kind).push(h)});
  const makeGroups=(root,mode)=>{buildTabbedFields(root,groups,mode,(h)=>{selected.has(h)?selected.delete(h):selected.add(h);syncFieldUI();scheduleRender()},selected)};
- makeGroups(fieldsEl,'chips');makeGroups(sheetBody,'checkbox');makeGroups(mobileFieldList,'checkbox');syncFieldUI();sampleCache=[];sampleCacheKey='';render();
+ makeGroups(fieldsEl,'chips');makeGroups(sheetBody,'checkbox');mobileFieldList.replaceChildren();syncFieldUI();sampleCache=[];sampleCacheKey='';render();
 }
 
 
