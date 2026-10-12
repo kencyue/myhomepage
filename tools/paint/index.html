@@ -1578,7 +1578,7 @@ function restoreDocument(doc) {
     welcome.style.display='none';
     drop.style.display='none';
     wrap.style.display='block';
-    bar.style.display='flex';
+    bar.style.removeProperty('display');
     btnGal.style.display='none';
     camBtn.style.display='none';
     fitCanvas();
@@ -1759,7 +1759,7 @@ function enterWorkArea() {
   welcome.style.display='none';
   drop.style.display='none';
   wrap.style.display='block';
-  bar.style.display='flex';
+  bar.style.removeProperty('display');
   fitCanvas();
   ctx.clearRect(0,0,cv.width,cv.height);
   undoStack.length=0;
@@ -1988,7 +1988,7 @@ async function openCam() {
   selBtns.style.display='none';
   welcome.style.display='none';
   drop.style.display='none';
-  bar.style.display='flex';
+  bar.style.removeProperty('display');
   v.onloadedmetadata=()=>v.play();
   v.onclick=()=>{
     const c=document.createElement('canvas');
