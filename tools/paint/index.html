@@ -1559,6 +1559,19 @@ function showEmptyWorkspace(doc=null) {
   renderDocumentTabs();
 }
 
+function setToolbarLayout() {
+  if (mobile) {
+    bar.style.setProperty('display','grid','important');
+    bar.style.gridTemplateColumns='repeat(6,minmax(0,1fr))';
+    bar.style.width='100%';
+    bar.style.maxHeight='35dvh';
+    bar.style.overflowY='auto';
+  } else {
+    bar.style.removeProperty('display');
+    bar.style.removeProperty('grid-template-columns');
+  }
+}
+
 function restoreDocument(doc) {
   if(!doc) return;
   if(!doc.imgSrc) {
@@ -1578,7 +1591,7 @@ function restoreDocument(doc) {
     welcome.style.display='none';
     drop.style.display='none';
     wrap.style.display='block';
-    bar.style.removeProperty('display');
+    setToolbarLayout();
     btnGal.style.display='none';
     camBtn.style.display='none';
     fitCanvas();
@@ -1759,7 +1772,7 @@ function enterWorkArea() {
   welcome.style.display='none';
   drop.style.display='none';
   wrap.style.display='block';
-  bar.style.removeProperty('display');
+  setToolbarLayout();
   fitCanvas();
   ctx.clearRect(0,0,cv.width,cv.height);
   undoStack.length=0;
@@ -1988,7 +2001,7 @@ async function openCam() {
   selBtns.style.display='none';
   welcome.style.display='none';
   drop.style.display='none';
-  bar.style.removeProperty('display');
+  setToolbarLayout();
   v.onloadedmetadata=()=>v.play();
   v.onclick=()=>{
     const c=document.createElement('canvas');
