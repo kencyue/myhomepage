@@ -51,24 +51,30 @@ export function buildPaper(items, shuffle, alternate = false) {
 }
 
 // 依既有 PHP 生成器的分類比例分配題數，採最大餘數法避免總數誤差。
-export function sampleProportionally(pool, target) {
+// 依題庫各類別實際庫存分配總題數；最大餘數法保證合計完全相符。
+export function allocateProportionalCounts(pool, target) {
     if (!Number.isSafeInteger(target) || target < 1 || target > pool.length) {
-        throw new Error('從題庫抽題數須介於 1 與題庫總數之間。');
+        throw new Error('試卷總題數須介於 1 與已生成題庫總數之間。');
     }
     const groups = new Map();
     for (const q of pool) {
-        const key = q.questionCategoryId || '__uncategorized__';
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(q);
+        const id = q.questionCategoryId || '__uncategorized__';
+        groups.set(id, (groups.get(id) || 0) + 1);
     }
-    const allocation = Array.from(groups, ([categoryId, questions]) => {
-        const exact = target * questions.length / pool.length;
-        return { categoryId, questions, count: Math.floor(exact), remainder: exact % 1 };
+    const allocation = Array.from(groups, ([categoryId, stock]) => {
+        const exact = target * stock / pool.length;
+        return { categoryId, count: Math.floor(exact), fraction: exact % 1 };
     });
-    let remaining = target - allocation.reduce((n, group) => n + group.count, 0);
-    allocation.sort((a, b) => b.remainder - a.remainder);
+    let remaining = target - allocation.reduce((sum, entry) => sum + entry.count, 0);
+    allocation.sort((a, b) => b.fraction - a.fraction);
     for (let i = 0; i < remaining; i++) allocation[i].count++;
-    return shuffledCopy(allocation.flatMap(group => shuffledCopy(group.questions).slice(0, group.count)));
+    return new Map(allocation.map(({ categoryId, count }) => [categoryId, count]));
+}
+
+export function sampleProportionally(pool, target) {
+    const ratios = allocateProportionalCounts(pool, target);
+    return shuffledCopy(selectQuestionsByCategory(pool,
+        Array.from(ratios, ([categoryId, count]) => ({ categoryId, count }))));
 }
 
 export function createQuestionPicker({ getQuestions, getProducts, getCategories, isAdmin, notify }) {
@@ -83,15 +89,22 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     const optionStyle = root.querySelector('#picker-option-style');
     const formatControl = root.querySelector('#picker-format');
     const copyButton = root.querySelector('#picker-copy');
-    const bankButton = root.querySelector('#picker-bank');
     const bankSection = root.querySelector('#picker-bank-section');
     const bankTextarea = root.querySelector('#picker-bank-text');
     const tabButtons = Array.from(root.querySelectorAll('[data-picker-set]'));
     const bankGenerateButton = root.querySelector('#picker-bank-generate');
     const bankExportButton = root.querySelector('#picker-bank-export');
-    const bankFromButton = root.querySelector('#picker-from-bank');
-    const bankCount = root.querySelector('#picker-bank-count');
     const bankStatus = root.querySelector('#picker-bank-status');
+    const bankUniform = root.querySelector('#picker-bank-uniform');
+    const paperTotal = root.querySelector('#picker-paper-total');
+    const paperUniform = root.querySelector('#picker-paper-uniform');
+    const paperRows = root.querySelector('#picker-paper-category-rows');
+    const paperStatus = root.querySelector('#picker-paper-status');
+    const paperDrawButton = root.querySelector('#picker-draw');
+    const paperAutoButton = root.querySelector('#picker-paper-auto');
+    const paperApplyUniformButton = root.querySelector('#picker-paper-apply-uniform');
+    const paperStep = root.querySelector('#picker-paper-settings');
+    let paperAllocationMode = 'auto';
     let bankQuestions = [];
     let picked = [];
     let papers = { A: [], B: [] };
@@ -125,24 +138,33 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         if (picked.length) renderPreview();
     }
 
-    function reset() {
+    function resetPaper() {
         picked = [];
-        bankQuestions = [];
         papers = { A: [], B: [] };
-        bankExportButton.disabled = true;
-        bankFromButton.disabled = true;
-        bankCount.value = '';
-        bankCount.max = '0';
-        bankStatus.textContent = '尚未生成題庫。';
-        bankSection.classList.add('hidden');
         exportButton.disabled = true;
         copyButton.disabled = true;
-        bankButton.disabled = true;
-        bankSection.classList.add('hidden');
-        bankTextarea.value = '';
         output.classList.add('hidden');
         preview.replaceChildren();
-        summary.textContent = '設定各類別的抽題數，再按「隨機挑題」。';
+        summary.textContent = '先生成題庫，再設定試卷題數。';
+    }
+
+    function reset() {
+        resetPaper();
+        bankQuestions = [];
+        bankExportButton.disabled = true;
+        paperDrawButton.disabled = true;
+        paperAutoButton.disabled = true;
+        paperApplyUniformButton.disabled = true;
+        paperTotal.value = '';
+        paperTotal.max = '0';
+        paperUniform.value = '';
+        paperAllocationMode = 'auto';
+        paperRows.replaceChildren();
+        paperStep.classList.add('opacity-60');
+        bankStatus.textContent = '尚未生成題庫，請先完成步驟 1。';
+        paperStatus.textContent = '請先生成題庫。';
+        bankSection.classList.add('hidden');
+        bankTextarea.value = '';
     }
 
     function refresh() {
@@ -205,7 +227,9 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     function updatePlannedTotal() {
         const requested = Array.from(rows.querySelectorAll('input[data-category-id]'))
             .reduce((total, input) => total + (Number(input.value) || 0), 0);
-        root.querySelector('#picker-request-total').textContent = '預計抽取：' + requested + ' 題';
+        root.querySelector('#picker-request-total').textContent = requested
+            ? '本次預定生成題庫：' + requested + ' 題'
+            : '未設定配額：生成所有符合條件題目';
     }
 
     function requirements() {
@@ -215,10 +239,135 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         }));
     }
 
+    function bankStockByCategory(id) {
+        return bankQuestions.filter(q => q.questionCategoryId === id).length;
+    }
+
+    function renderPaperCategoryRows() {
+        paperRows.replaceChildren();
+        for (const cat of getCategories()) {
+            const available = bankStockByCategory(cat.id);
+            if (!available) continue;
+            const wrapper = document.createElement('label');
+            wrapper.className = 'flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-100 bg-white px-4 py-3 text-sm';
+            const name = document.createElement('span');
+            name.className = 'font-semibold text-gray-800';
+            name.textContent = cat.name + '（題庫有 ' + available + ' 題）';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.max = String(available);
+            input.step = '1';
+            input.value = '0';
+            input.inputMode = 'numeric';
+            input.dataset.paperCategoryId = cat.id;
+            input.setAttribute('aria-label', '試卷：' + cat.name + '抽題數');
+            input.className = 'w-24 rounded-lg border border-gray-300 px-3 py-2 text-center focus:border-teal-500';
+            input.addEventListener('input', () => {
+                paperAllocationMode = 'manual';
+                resetPaper();
+                updatePaperSummary();
+            });
+            wrapper.append(name, input);
+            paperRows.append(wrapper);
+        }
+    }
+
+    function paperRequirements() {
+        return Array.from(paperRows.querySelectorAll('input[data-paper-category-id]'), input => ({
+            categoryId: input.dataset.paperCategoryId,
+            count: input.value.trim() === '' ? NaN : Number(input.value)
+        }));
+    }
+
+    function updatePaperSummary() {
+        const total = paperTotal.value.trim() === '' ? NaN : Number(paperTotal.value);
+        const rules = paperRequirements();
+        const sum = rules.reduce((n, rule) => n + (Number.isFinite(rule.count) ? rule.count : 0), 0);
+        const invalid = rules.filter(rule => !Number.isSafeInteger(rule.count) || rule.count < 0 ||
+            rule.count > bankStockByCategory(rule.categoryId));
+        const badTotal = !Number.isSafeInteger(total) || total < 1 || total > bankQuestions.length;
+        for (const input of paperRows.querySelectorAll('input[data-paper-category-id]')) {
+            input.classList.toggle('border-red-500', invalid.some(rule => rule.categoryId === input.dataset.paperCategoryId));
+        }
+        paperDrawButton.disabled = !bankQuestions.length || badTotal || invalid.length > 0 || sum !== total;
+        if (!bankQuestions.length) {
+            paperStatus.textContent = '請先生成題庫。';
+        } else if (badTotal) {
+            paperStatus.textContent = '⚠️ 試卷總題數請設定 1 至 ' + bankQuestions.length + ' 題。';
+        } else if (invalid.length) {
+            paperStatus.textContent = '⚠️ 類別題數需為非負整數，且不可超過生成題庫的庫存。';
+        } else if (sum !== total) {
+            paperStatus.textContent = '⚠️ 各類別合計 ' + sum + ' 題，與總題數 ' + total + ' 題不符（差 ' + (total - sum) + ' 題）。';
+        } else {
+            paperStatus.textContent = '✅ 試卷 ' + total + ' 題／分類合計 ' + sum +
+                ' 題，可以從已生成題庫抽卷' + (paperAllocationMode === 'manual' ? '（手動配額）' : '（按比例分配）') + '。';
+        }
+        paperStatus.classList.toggle('text-red-700', !!bankQuestions.length && (badTotal || !!invalid.length || sum !== total));
+    }
+
+    function autoAllocatePaper() {
+        if (!bankQuestions.length) return;
+        const total = paperTotal.value.trim() === '' ? NaN : Number(paperTotal.value);
+        let allocations;
+        try {
+            allocations = allocateProportionalCounts(bankQuestions, total);
+        } catch (error) {
+            updatePaperSummary();
+            return;
+        }
+        for (const input of paperRows.querySelectorAll('input[data-paper-category-id]')) {
+            input.value = String(allocations.get(input.dataset.paperCategoryId) || 0);
+        }
+        paperAllocationMode = 'auto';
+        resetPaper();
+        updatePaperSummary();
+    }
+
+    function applyUniformPaper() {
+        if (!bankQuestions.length) return;
+        const count = paperUniform.value.trim() === '' ? NaN : Number(paperUniform.value);
+        if (!Number.isSafeInteger(count) || count < 0) {
+            notify('每類題數請輸入 0 或正整數。', 'error');
+            return;
+        }
+        let total = 0;
+        let capped = false;
+        for (const input of paperRows.querySelectorAll('input[data-paper-category-id]')) {
+            const available = Number(input.max);
+            const amount = Math.min(count, available);
+            input.value = String(amount);
+            total += amount;
+            if (count > available) capped = true;
+        }
+        paperTotal.value = String(total);
+        paperAllocationMode = 'manual';
+        resetPaper();
+        updatePaperSummary();
+        if (capped) notify('有些類別題數不足，已依目前題庫庫存上限填入。', 'info');
+    }
+
+    function applyUniformBank() {
+        const amount = bankUniform.value.trim() === '' ? NaN : Number(bankUniform.value);
+        if (!Number.isSafeInteger(amount) || amount < 0) {
+            notify('每類題庫數請輸入 0 或正整數。', 'error');
+            return;
+        }
+        let capped = false;
+        for (const input of rows.querySelectorAll('input[data-category-id]')) {
+            const available = Number(input.max);
+            input.value = String(Math.min(amount, available));
+            if (amount > available) capped = true;
+        }
+        reset();
+        updatePlannedTotal();
+        if (capped) notify('有些類別庫存不足，已依原始題庫上限填入。', 'info');
+    }
+
     function renderPreview() {
         preview.replaceChildren();
         const selectedIds = new Set(picked.map(q => q.id));
-        const source = sourceQuestions();
+        const source = bankQuestions;
         papers[activeSet].forEach((q, index) => {
             const card = document.createElement('article');
             card.className = 'rounded-xl border border-gray-200 bg-white p-4 shadow-sm';
@@ -248,7 +397,6 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
                 if (originalIndex < 0) return;
                 picked[originalIndex] = unused[Math.floor(Math.random() * unused.length)];
                 remakePapers();
-                bankSection.classList.add('hidden');
                 renderPreview();
                 notify('已替換第 ' + (index + 1) + ' 題。', 'success');
             });
@@ -275,7 +423,6 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         output.classList.remove('hidden');
         exportButton.disabled = false;
         copyButton.disabled = false;
-        bankButton.disabled = false;
     }
 
     function setPaperQuestions(questions, message) {
@@ -289,7 +436,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         if (!isAdmin()) return;
         const rules = requirements();
         if (rules.some(rule => !Number.isSafeInteger(rule.count) || rule.count < 0)) {
-            notify('請輸入有效的各類別題數。', 'error');
+            notify('請輸入有效的各類別題庫數量。', 'error');
             return;
         }
         const source = sourceQuestions();
@@ -297,55 +444,40 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             notify('目前選擇的商品範圍內沒有題目。', 'error');
             return;
         }
-        const hasQuotas = rules.some(rule => rule.count > 0);
         try {
-            // 舊版 PHP：未設定各類別數量時，產生全部可用題庫。
-            bankQuestions = hasQuotas ? selectQuestionsByCategory(source, rules) : source.slice();
-            bankCount.max = String(bankQuestions.length);
-            bankCount.value = String(bankQuestions.length);
-            bankStatus.textContent = '目前題庫 ' + bankQuestions.length + ' 題，可匯出 Excel 或按比例抽成試卷。';
+            const hasQuotas = rules.some(rule => rule.count > 0);
+            const newBank = hasQuotas ? selectQuestionsByCategory(source, rules) : source.slice();
+            reset();
+            bankQuestions = newBank;
+            paperTotal.max = String(bankQuestions.length);
+            paperTotal.value = String(Math.min(20, bankQuestions.length));
+            bankStatus.textContent = '✅ 已生成 ' + bankQuestions.length + ' 題題庫。試卷只會從此題庫抽取，不再回原始題庫選題。';
             bankExportButton.disabled = false;
-            bankFromButton.disabled = false;
+            paperAutoButton.disabled = false;
+            paperApplyUniformButton.disabled = false;
+            paperStep.classList.remove('opacity-60');
             renderBankText();
-            notify('已生成 ' + bankQuestions.length + ' 題題庫。', 'success');
-        } catch (error) {
-            notify(error.message, 'error');
-        }
-    }
-
-    function generateFromBank() {
-        if (!isAdmin() || !bankQuestions.length) return;
-        const count = Number(bankCount.value);
-        try {
-            const questions = sampleProportionally(bankQuestions, count);
-            setPaperQuestions(questions, '已從題庫按類別比例抽取 ' + count + ' 題試卷。');
+            renderPaperCategoryRows();
+            autoAllocatePaper();
+            notify('已生成 ' + bankQuestions.length + ' 題題庫，可設定試卷題數。', 'success');
         } catch (error) {
             notify(error.message, 'error');
         }
     }
 
     function draw() {
-        if (!isAdmin()) return;
-        const rules = requirements();
-        if (rules.some(rule => !Number.isSafeInteger(rule.count) || rule.count < 0)) {
-            notify('每個類別的抽題數必須是 0 或正整數。', 'error');
+        if (!isAdmin() || !bankQuestions.length) {
+            notify('請先生成題庫，再從題庫抽試卷。', 'error');
             return;
         }
-        if (!rules.some(rule => rule.count > 0)) {
-            notify('請至少在一個題目類別設定抽題數。', 'error');
+        updatePaperSummary();
+        if (paperDrawButton.disabled) {
+            notify('請檢查試卷總題數、類別合計及題庫庫存。', 'error');
             return;
-        }
-        const available = sourceQuestions();
-        for (const rule of rules) {
-            const count = available.filter(q => q.questionCategoryId === rule.categoryId).length;
-            if (rule.count > count) {
-                notify('「' + getCategoryName(rule.categoryId) + '」只有 ' + count + ' 題，無法抽取 ' + rule.count + ' 題。', 'error');
-                return;
-            }
         }
         try {
-            const sample = selectQuestionsByCategory(available, rules);
-            setPaperQuestions(sample, '成功挑選 ' + sample.length + ' 題。');
+            const pickedFromBank = selectQuestionsByCategory(bankQuestions, paperRequirements());
+            setPaperQuestions(shuffledCopy(pickedFromBank), '成功從已生成題庫抽取 ' + pickedFromBank.length + ' 題。');
         } catch (error) {
             notify(error.message, 'error');
         }
@@ -476,24 +608,17 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         bankSection.classList.remove('hidden');
     }
 
-    function makeBankText() {
-        if (!isAdmin()) return;
-        if (!bankQuestions.length) {
-            if (!picked.length) {
-                notify('請先生成題庫或試卷。', 'error');
-                return;
-            }
-            bankQuestions = picked.slice();
-            bankCount.value = String(bankQuestions.length);
-            bankCount.max = String(bankQuestions.length);
-            bankExportButton.disabled = false;
-            bankFromButton.disabled = false;
-        }
-        renderBankText();
-        notify('已顯示 ' + bankQuestions.length + ' 題題庫純文字。', 'success');
-    }
-
     product.addEventListener('change', refresh);
+    root.querySelector('#picker-bank-apply-uniform').addEventListener('click', applyUniformBank);
+    paperTotal.addEventListener('input', () => {
+        if (paperAllocationMode === 'auto') autoAllocatePaper();
+        else {
+            resetPaper();
+            updatePaperSummary();
+        }
+    });
+    paperAutoButton.addEventListener('click', autoAllocatePaper);
+    paperApplyUniformButton.addEventListener('click', applyUniformPaper);
     shuffleControl.addEventListener('change', () => {
         if (picked.length) {
             remakePapers();
@@ -505,10 +630,8 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveSet(btn.dataset.pickerSet)));
     root.querySelector('#picker-draw').addEventListener('click', draw);
     bankGenerateButton.addEventListener('click', generateBank);
-    bankFromButton.addEventListener('click', generateFromBank);
     bankExportButton.addEventListener('click', () => exportExcel('bank'));
     exportButton.addEventListener('click', () => exportExcel('paper'));
     copyButton.addEventListener('click', copyPaper);
-    bankButton.addEventListener('click', makeBankText);
     return { refresh, reset };
 }
