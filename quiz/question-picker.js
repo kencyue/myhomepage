@@ -157,7 +157,9 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         paperApplyUniformButton.disabled = true;
         paperTotal.value = '';
         paperTotal.max = '0';
+        paperTotal.disabled = true;
         paperUniform.value = '';
+        paperUniform.disabled = true;
         paperAllocationMode = 'auto';
         paperRows.replaceChildren();
         paperStep.classList.add('opacity-60');
@@ -451,6 +453,8 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             bankQuestions = newBank;
             paperTotal.max = String(bankQuestions.length);
             paperTotal.value = String(Math.min(20, bankQuestions.length));
+            paperTotal.disabled = false;
+            paperUniform.disabled = false;
             bankStatus.textContent = '✅ 已生成 ' + bankQuestions.length + ' 題題庫。試卷只會從此題庫抽取，不再回原始題庫選題。';
             bankExportButton.disabled = false;
             paperAutoButton.disabled = false;
