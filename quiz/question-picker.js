@@ -98,7 +98,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     const bankUniform = root.querySelector('#picker-bank-uniform');
     const paperTotal = root.querySelector('#picker-paper-total');
     const paperUniform = root.querySelector('#picker-paper-uniform');
-    const paperRows = root.querySelector('#picker-paper-category-rows');
+    const paperCategoryRows = root.querySelector('#picker-paper-category-rows');
     const paperStatus = root.querySelector('#picker-paper-status');
     const paperDrawButton = root.querySelector('#picker-draw');
     const paperAutoButton = root.querySelector('#picker-paper-auto');
@@ -161,7 +161,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         paperUniform.value = '';
         paperUniform.disabled = true;
         paperAllocationMode = 'auto';
-        paperRows.replaceChildren();
+        paperCategoryRows.replaceChildren();
         paperStep.classList.add('opacity-60');
         bankStatus.textContent = '尚未生成題庫，請先完成步驟 1。';
         paperStatus.textContent = '請先生成題庫。';
@@ -246,7 +246,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     }
 
     function renderPaperCategoryRows() {
-        paperRows.replaceChildren();
+        paperCategoryRows.replaceChildren();
         for (const cat of getCategories()) {
             const available = bankStockByCategory(cat.id);
             if (!available) continue;
@@ -271,12 +271,12 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
                 updatePaperSummary();
             });
             wrapper.append(name, input);
-            paperRows.append(wrapper);
+            paperCategoryRows.append(wrapper);
         }
     }
 
     function paperRequirements() {
-        return Array.from(paperRows.querySelectorAll('input[data-paper-category-id]'), input => ({
+        return Array.from(paperCategoryRows.querySelectorAll('input[data-paper-category-id]'), input => ({
             categoryId: input.dataset.paperCategoryId,
             count: input.value.trim() === '' ? NaN : Number(input.value)
         }));
@@ -289,7 +289,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         const invalid = rules.filter(rule => !Number.isSafeInteger(rule.count) || rule.count < 0 ||
             rule.count > bankStockByCategory(rule.categoryId));
         const badTotal = !Number.isSafeInteger(total) || total < 1 || total > bankQuestions.length;
-        for (const input of paperRows.querySelectorAll('input[data-paper-category-id]')) {
+        for (const input of paperCategoryRows.querySelectorAll('input[data-paper-category-id]')) {
             input.classList.toggle('border-red-500', invalid.some(rule => rule.categoryId === input.dataset.paperCategoryId));
         }
         paperDrawButton.disabled = !bankQuestions.length || badTotal || invalid.length > 0 || sum !== total;
@@ -318,7 +318,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             updatePaperSummary();
             return;
         }
-        for (const input of paperRows.querySelectorAll('input[data-paper-category-id]')) {
+        for (const input of paperCategoryRows.querySelectorAll('input[data-paper-category-id]')) {
             input.value = String(allocations.get(input.dataset.paperCategoryId) || 0);
         }
         paperAllocationMode = 'auto';
@@ -335,7 +335,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         }
         let total = 0;
         let capped = false;
-        for (const input of paperRows.querySelectorAll('input[data-paper-category-id]')) {
+        for (const input of paperCategoryRows.querySelectorAll('input[data-paper-category-id]')) {
             const available = Number(input.max);
             const amount = Math.min(count, available);
             input.value = String(amount);
