@@ -313,9 +313,32 @@
                                 <option value="">全部商品類別</option>
                             </select>
                         </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5 p-4 rounded-lg bg-emerald-50">
+                            <label class="flex items-center gap-2 font-medium text-sm text-gray-700">
+                                <input type="checkbox" id="picker-shuffle" checked class="w-4 h-4 accent-emerald-600">
+                                打亂題目及選項順序
+                            </label>
+                            <label for="picker-option-style" class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                                選項編號樣式
+                                <select id="picker-option-style" class="rounded-lg border border-gray-300 bg-white px-3 py-2">
+                                    <option value="ABCD">A、B、C、D</option>
+                                    <option value="1234">1、2、3、4</option>
+                                </select>
+                            </label>
+                            <label for="picker-format" class="flex flex-col gap-1 text-sm font-medium text-gray-700">
+                                Excel 試卷格式
+                                <select id="picker-format" class="rounded-lg border border-gray-300 bg-white px-3 py-2">
+                                    <option value="expanded">展開（序號／答案／題目／四個選項）</option>
+                                    <option value="compact">簡化（題目和選項分列）</option>
+                                </select>
+                            </label>
+                        </div>
                         <div class="flex flex-wrap items-center justify-between gap-2 mt-6 mb-3">
                             <h3 class="font-bold text-lg text-gray-800">各題目類別抽題數</h3>
-                            <span id="picker-available-total" class="text-sm text-gray-500">範圍內共 0 題</span>
+                            <div class="flex flex-wrap gap-3 text-sm text-gray-500">
+                                <span id="picker-available-total">範圍內共 0 題</span>
+                                <span id="picker-request-total" class="font-semibold text-emerald-700">預計抽取：0 題</span>
+                            </div>
                         </div>
                         <div id="picker-category-rows" class="grid grid-cols-1 lg:grid-cols-2 gap-3"></div>
                         <div id="picker-empty" class="hidden mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -331,9 +354,27 @@
                         </div>
                         <p id="picker-summary" class="mt-4 text-sm text-gray-600" aria-live="polite">設定各類別的抽題數，再按「隨機挑題」。</p>
                     </section>
-                    <section id="picker-output" class="hidden">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">本次抽題預覽</h3>
+                    <section id="picker-output" class="hidden space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <h3 class="text-xl font-bold text-gray-800">本次抽題預覽</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" id="picker-copy" disabled class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-40">
+                                    複製目前試卷表格
+                                </button>
+                                <button type="button" id="picker-bank" disabled class="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-40">
+                                    生成題庫純文字
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2" role="tablist" aria-label="試卷選擇">
+                            <button type="button" data-picker-set="A" role="tab" aria-selected="true" class="rounded-t-lg bg-indigo-600 text-white px-6 py-2 font-semibold shadow-sm">A 卷</button>
+                            <button type="button" data-picker-set="B" role="tab" aria-selected="false" class="rounded-t-lg bg-gray-100 text-gray-700 px-6 py-2 font-semibold shadow-sm">B 卷</button>
+                        </div>
                         <div id="picker-preview" class="space-y-3"></div>
+                        <div id="picker-bank-section" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-4">
+                            <label for="picker-bank-text" class="block mb-2 font-bold text-gray-800">題庫純文字（可選取複製）</label>
+                            <textarea id="picker-bank-text" readonly rows="14" class="w-full rounded-lg border border-gray-300 p-3 text-sm font-mono"></textarea>
+                        </div>
                     </section>
                 </main>
             </div>
