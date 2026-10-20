@@ -50,6 +50,27 @@ export function buildPaper(items, shuffle, alternate = false) {
     });
 }
 
+// 依既有 PHP 生成器的分類比例分配題數，採最大餘數法避免總數誤差。
+export function sampleProportionally(pool, target) {
+    if (!Number.isSafeInteger(target) || target < 1 || target > pool.length) {
+        throw new Error('從題庫抽題數須介於 1 與題庫總數之間。');
+    }
+    const groups = new Map();
+    for (const q of pool) {
+        const key = q.questionCategoryId || '__uncategorized__';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(q);
+    }
+    const allocation = Array.from(groups, ([categoryId, questions]) => {
+        const exact = target * questions.length / pool.length;
+        return { categoryId, questions, count: Math.floor(exact), remainder: exact % 1 };
+    });
+    let remaining = target - allocation.reduce((n, group) => n + group.count, 0);
+    allocation.sort((a, b) => b.remainder - a.remainder);
+    for (let i = 0; i < remaining; i++) allocation[i].count++;
+    return shuffledCopy(allocation.flatMap(group => shuffledCopy(group.questions).slice(0, group.count)));
+}
+
 export function createQuestionPicker({ getQuestions, getProducts, getCategories, isAdmin, notify }) {
     const root = document.getElementById('question-picker-view');
     const product = root.querySelector('#picker-product');
@@ -66,6 +87,12 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     const bankSection = root.querySelector('#picker-bank-section');
     const bankTextarea = root.querySelector('#picker-bank-text');
     const tabButtons = Array.from(root.querySelectorAll('[data-picker-set]'));
+    const bankGenerateButton = root.querySelector('#picker-bank-generate');
+    const bankExportButton = root.querySelector('#picker-bank-export');
+    const bankFromButton = root.querySelector('#picker-from-bank');
+    const bankCount = root.querySelector('#picker-bank-count');
+    const bankStatus = root.querySelector('#picker-bank-status');
+    let bankQuestions = [];
     let picked = [];
     let papers = { A: [], B: [] };
     let activeSet = 'A';
@@ -100,7 +127,14 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
 
     function reset() {
         picked = [];
+        bankQuestions = [];
         papers = { A: [], B: [] };
+        bankExportButton.disabled = true;
+        bankFromButton.disabled = true;
+        bankCount.value = '';
+        bankCount.max = '0';
+        bankStatus.textContent = '尚未生成題庫。';
+        bankSection.classList.add('hidden');
         exportButton.disabled = true;
         copyButton.disabled = true;
         bankButton.disabled = true;
@@ -244,6 +278,52 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         bankButton.disabled = false;
     }
 
+    function setPaperQuestions(questions, message) {
+        picked = questions;
+        remakePapers();
+        renderPreview();
+        notify(message, 'success');
+    }
+
+    function generateBank() {
+        if (!isAdmin()) return;
+        const rules = requirements();
+        if (rules.some(rule => !Number.isSafeInteger(rule.count) || rule.count < 0)) {
+            notify('請輸入有效的各類別題數。', 'error');
+            return;
+        }
+        const source = sourceQuestions();
+        if (!source.length) {
+            notify('目前選擇的商品範圍內沒有題目。', 'error');
+            return;
+        }
+        const hasQuotas = rules.some(rule => rule.count > 0);
+        try {
+            // 舊版 PHP：未設定各類別數量時，產生全部可用題庫。
+            bankQuestions = hasQuotas ? selectQuestionsByCategory(source, rules) : source.slice();
+            bankCount.max = String(bankQuestions.length);
+            bankCount.value = String(bankQuestions.length);
+            bankStatus.textContent = '目前題庫 ' + bankQuestions.length + ' 題，可匯出 Excel 或按比例抽成試卷。';
+            bankExportButton.disabled = false;
+            bankFromButton.disabled = false;
+            renderBankText();
+            notify('已生成 ' + bankQuestions.length + ' 題題庫。', 'success');
+        } catch (error) {
+            notify(error.message, 'error');
+        }
+    }
+
+    function generateFromBank() {
+        if (!isAdmin() || !bankQuestions.length) return;
+        const count = Number(bankCount.value);
+        try {
+            const questions = sampleProportionally(bankQuestions, count);
+            setPaperQuestions(questions, '已從題庫按類別比例抽取 ' + count + ' 題試卷。');
+        } catch (error) {
+            notify(error.message, 'error');
+        }
+    }
+
     function draw() {
         if (!isAdmin()) return;
         const rules = requirements();
@@ -264,11 +344,8 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             }
         }
         try {
-            picked = selectQuestionsByCategory(available, rules);
-            remakePapers();
-            bankSection.classList.add('hidden');
-            renderPreview();
-            notify('成功挑選 ' + picked.length + ' 題。', 'success');
+            const sample = selectQuestionsByCategory(available, rules);
+            setPaperQuestions(sample, '成功挑選 ' + sample.length + ' 題。');
         } catch (error) {
             notify(error.message, 'error');
         }
@@ -308,24 +385,37 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         return data;
     }
 
-    function exportExcel() {
-        if (!isAdmin() || !picked.length) return;
+    function exportExcel(kind = 'paper') {
+        const exportingBank = kind === 'bank';
+        const source = exportingBank ? bankQuestions : picked;
+        if (!isAdmin() || !source.length) return;
         if (typeof window.XLSX === 'undefined') {
             notify('Excel 套件尚未載入，請確認網路後重新整理頁面。', 'error');
             return;
         }
         const statsSheet = [['商品篩選', product.value ? getProductName(product.value) : '全部商品類別'],
             ['匯出時間', new Date().toLocaleString('zh-TW')],
-            ['總題數', picked.length], ['選項處理', shuffleControl.checked ? '題目和選項均打亂' : 'B 卷重新排序題目'],
+            ['輸出類型', exportingBank ? '題庫' : '試卷'],
+            ['總題數', source.length], ['選項處理', shuffleControl.checked ? '題目和選項均打亂' : 'B 卷重新排序題目'],
             ['選項編號', optionStyle.value === '1234' ? '1、2、3、4' : 'A、B、C、D'], [],
             ['題目類別', '可抽題數', '抽取題數']];
         for (const cat of getCategories()) {
-            const count = picked.filter(q => q.questionCategoryId === cat.id).length;
+            const count = source.filter(q => q.questionCategoryId === cat.id).length;
             if (count) statsSheet.push([cat.name, sourceQuestions().filter(q => q.questionCategoryId === cat.id).length, count]);
         }
         try {
             const workbook = window.XLSX.utils.book_new();
-            const sheets = [
+            const bankRows = [['分類', '商品類別', '原題號', '題目', '選項A', '選項B', '選項C', '選項D', '正確答案', '正確答案內容', '題目ID']];
+            source.forEach(q => bankRows.push([
+                getCategoryName(q.questionCategoryId), getProductName(q.productCategoryId),
+                String(q.questionNumber ?? ''), q.questionText || '',
+                q.option1 || '', q.option2 || '', q.option3 || '', q.option4 || '',
+                answerLetter(q.correctAnswer), q['option' + q.correctAnswer] || '', String(q.id || '')
+            ]));
+            const bankSpec = { name: '題庫', data: bankRows, widths: [20, 18, 18, 65, 32, 32, 32, 32, 14, 38, 28] };
+            const sheets = exportingBank ? [
+                bankSpec, { name: '題庫統計', data: statsSheet, widths: [25, 25, 22] }
+            ] : [
                 { name: 'A卷', ...paperRows(papers.A) },
                 { name: 'B卷', ...paperRows(papers.B) },
                 { name: '答案對照', data: makeAnswersRows(), widths: [10, 10, 20, 18, 18, 12, 55] },
@@ -334,7 +424,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             for (const spec of sheets) {
                 const sheet = window.XLSX.utils.aoa_to_sheet(spec.data);
                 sheet['!cols'] = spec.widths.map(wch => ({ wch }));
-                if (spec.name !== '抽題統計' && sheet['!ref']) sheet['!autofilter'] = { ref: sheet['!ref'] };
+                if (!spec.name.includes('統計') && sheet['!ref']) sheet['!autofilter'] = { ref: sheet['!ref'] };
                 window.XLSX.utils.book_append_sheet(workbook, sheet, spec.name);
             }
             const time = new Date();
@@ -342,8 +432,8 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
                 String(time.getMonth() + 1).padStart(2, '0') +
                 String(time.getDate()).padStart(2, '0') + '_' +
                 String(time.getHours()).padStart(2, '0') + String(time.getMinutes()).padStart(2, '0');
-            window.XLSX.writeFile(workbook, '挑題試卷_' + stamp + '.xlsx');
-            notify('已匯出 A／B 卷及答案對照，共 ' + picked.length + ' 題。', 'success');
+            window.XLSX.writeFile(workbook, (exportingBank ? '題庫_' : '挑題試卷_') + stamp + '.xlsx');
+            notify('已匯出' + (exportingBank ? '題庫' : ' A／B 卷及答案對照') + '，共 ' + source.length + ' 題。', 'success');
         } catch (error) {
             console.error('Excel 匯出失敗:', error);
             notify('Excel 匯出失敗：' + error.message, 'error');
@@ -363,13 +453,18 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         }
     }
 
-    function makeBankText() {
-        if (!picked.length || !isAdmin()) return;
+    function renderBankText() {
         const result = [];
-        for (const category of getCategories()) {
-            const group = picked.filter(q => q.questionCategoryId === category.id);
-            if (!group.length) continue;
-            result.push('====== 【分類: ' + category.name + ' (' + group.length + ' 題)】 ======');
+        const categories = getCategories();
+        const byCategory = new Map();
+        bankQuestions.forEach(q => {
+            const key = q.questionCategoryId || '__uncategorized__';
+            if (!byCategory.has(key)) byCategory.set(key, []);
+            byCategory.get(key).push(q);
+        });
+        for (const [id, group] of byCategory) {
+            const name = categories.find(cat => cat.id === id)?.name || '未分類';
+            result.push('====== 【分類: ' + name + ' (' + group.length + ' 題)】 ======');
             group.forEach((q, index) => {
                 const option = String(q['option' + q.correctAnswer] ?? '').trim();
                 result.push('[ID:' + q.id + '] ' + (index + 1) + '. ' +
@@ -379,7 +474,23 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         }
         bankTextarea.value = result.join('\n').trim();
         bankSection.classList.remove('hidden');
-        notify('已生成 ' + picked.length + ' 題純文字題庫。', 'success');
+    }
+
+    function makeBankText() {
+        if (!isAdmin()) return;
+        if (!bankQuestions.length) {
+            if (!picked.length) {
+                notify('請先生成題庫或試卷。', 'error');
+                return;
+            }
+            bankQuestions = picked.slice();
+            bankCount.value = String(bankQuestions.length);
+            bankCount.max = String(bankQuestions.length);
+            bankExportButton.disabled = false;
+            bankFromButton.disabled = false;
+        }
+        renderBankText();
+        notify('已顯示 ' + bankQuestions.length + ' 題題庫純文字。', 'success');
     }
 
     product.addEventListener('change', refresh);
@@ -393,7 +504,10 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     formatControl.addEventListener('change', () => { if (picked.length) renderPreview(); });
     tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveSet(btn.dataset.pickerSet)));
     root.querySelector('#picker-draw').addEventListener('click', draw);
-    exportButton.addEventListener('click', exportExcel);
+    bankGenerateButton.addEventListener('click', generateBank);
+    bankFromButton.addEventListener('click', generateFromBank);
+    bankExportButton.addEventListener('click', () => exportExcel('bank'));
+    exportButton.addEventListener('click', () => exportExcel('paper'));
     copyButton.addEventListener('click', copyPaper);
     bankButton.addEventListener('click', makeBankText);
     return { refresh, reset };
