@@ -77,6 +77,101 @@ export function sampleProportionally(pool, target) {
         Array.from(ratios, ([categoryId, count]) => ({ categoryId, count }))));
 }
 
+// PHP 舊版題庫：每題「題目…答案」，若答案為「全部皆...」則展開其他選項。
+export function phpBankAnswer(q) {
+    let answer = String(q['option' + q.correctAnswer] ?? '').trim();
+    if (/^全部皆/.test(answer)) {
+        const others = [1, 2, 3, 4]
+            .filter(i => i !== Number(q.correctAnswer) && q['option' + i])
+            .map(i => String(q['option' + i]).trim().replace(/\s*\n\s*/g, ' '));
+        if (others.length) answer = others.join('、');
+    }
+    return answer;
+}
+
+function compactBankText(q) {
+    return String(q.questionText ?? '').trim().replace(/\s*\n\s*/g, ' ') + '…' + phpBankAnswer(q);
+}
+
+export function compactBankRows(questions, categoryNames = new Map()) {
+    const data = [['題目ID', '分類', '類別序號', '題目…正確答案']];
+    const groups = new Map();
+    for (const q of questions) {
+        const key = q.questionCategoryId || '__uncategorized__';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(q);
+    }
+    for (const [categoryId, group] of groups) {
+        group.forEach((q, index) => data.push([
+            String(q.id || ''), categoryNames.get(categoryId) || '未分類',
+            index + 1, compactBankText(q)
+        ]));
+    }
+    return data;
+}
+
+// 匯入 Excel/CSV 表格。相容新版精簡題庫與舊版完整題庫（ID 在最後一欄）。
+export function parseBankRows(matrix) {
+    const rows = matrix.filter(row => Array.isArray(row));
+    const normalizeHeader = value => String(value ?? '').trim().replace(/[\s＿_\-]/g, '').toLowerCase();
+    const headers = ['題目id', 'questionid', 'id', 'firebaseid'];
+    const at = rows.findIndex(row => row.some(value => headers.includes(normalizeHeader(value))));
+    if (at < 0) throw new Error('找不到「題目ID」欄位。請匯入保留 ID 的原始管理員題庫檔案。');
+    const header = rows[at].map(normalizeHeader);
+    const idCol = header.findIndex(value => headers.includes(value));
+    const compactCol = header.findIndex(value => value === '題目…正確答案' || value === '題目及正確答案');
+    const questionCol = header.findIndex(value => value === '題目');
+    const answerCol = header.findIndex(value => value === '正確答案內容');
+    const entries = [];
+    for (let index = at + 1; index < rows.length; index++) {
+        const row = rows[index];
+        if (row.every(value => String(value ?? '').trim() === '')) continue;
+        const id = String(row[idCol] ?? '').trim();
+        if (!id) throw new Error('題庫第 ' + (index + 1) + ' 列缺少題目 ID，無法完整還原試卷題目。');
+        entries.push({
+            id,
+            compact: compactCol < 0 ? '' : String(row[compactCol] ?? '').trim(),
+            questionText: questionCol < 0 ? '' : String(row[questionCol] ?? '').trim(),
+            answerText: answerCol < 0 ? '' : String(row[answerCol] ?? '').trim()
+        });
+    }
+    if (!entries.length) throw new Error('檔案沒有可匯入的題目 ID。');
+    return entries;
+}
+
+// 相容 PHP 的 [ID:xxx] 題號. 題目…答案，或逐行 [ID:xxx] 純文字。
+export function parsePhpBankText(text) {
+    const entries = [];
+    for (const line of String(text).split(/\r?\n/)) {
+        const match = line.match(/\[ID:([^\]\r\n]+)\]\s*(?:\d+\.\s*)?(.*)/i);
+        if (!match) continue;
+        entries.push({ id: match[1].trim(), compact: match[2].trim() });
+    }
+    if (!entries.length) throw new Error('文字題庫找不到 [ID:題目ID]，無法從原始題庫還原試卷。');
+    return entries;
+}
+
+export function resolveBankEntries(entries, currentQuestions) {
+    const sourceById = new Map(currentQuestions.map(q => [String(q.id), q]));
+    const restored = [], missing = [], modified = [], duplicates = [];
+    const used = new Set();
+    const normalize = value => String(value ?? '').trim().replace(/\s+/g, ' ');
+    for (const entry of entries) {
+        const id = String(entry.id ?? '').trim();
+        if (!id || used.has(id)) { duplicates.push(id || '空白 ID'); continue; }
+        used.add(id);
+        const q = sourceById.get(id);
+        if (!q) { missing.push(id); continue; }
+        if ((entry.compact && normalize(entry.compact) !== normalize(compactBankText(q))) ||
+            (entry.questionText && normalize(entry.questionText) !== normalize(q.questionText)) ||
+            (entry.answerText && normalize(entry.answerText) !== normalize(q['option' + q.correctAnswer]))) {
+            modified.push(id);
+        }
+        restored.push(q);
+    }
+    return { questions: restored, missing, modified, duplicates };
+}
+
 export function createQuestionPicker({ getQuestions, getProducts, getCategories, isAdmin, notify }) {
     const root = document.getElementById('question-picker-view');
     const product = root.querySelector('#picker-product');
@@ -94,6 +189,9 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     const tabButtons = Array.from(root.querySelectorAll('[data-picker-set]'));
     const bankGenerateButton = root.querySelector('#picker-bank-generate');
     const bankExportButton = root.querySelector('#picker-bank-export');
+    const bankTextExportButton = root.querySelector('#picker-bank-text-download');
+    const bankImportInput = root.querySelector('#picker-bank-import');
+    const bankImportStatus = root.querySelector('#picker-bank-import-status');
     const bankStatus = root.querySelector('#picker-bank-status');
     const bankUniform = root.querySelector('#picker-bank-uniform');
     const paperTotal = root.querySelector('#picker-paper-total');
@@ -109,6 +207,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     let picked = [];
     let papers = { A: [], B: [] };
     let activeSet = 'A';
+    let bankOrigin = 'generated';
 
     const sourceQuestions = () => getQuestions().filter(q => !product.value || q.productCategoryId === product.value);
     const getCategoryName = id => getCategories().find(c => c.id === id)?.name || '已刪除類別';
@@ -152,6 +251,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         resetPaper();
         bankQuestions = [];
         bankExportButton.disabled = true;
+        bankTextExportButton.disabled = true;
         paperDrawButton.disabled = true;
         paperAutoButton.disabled = true;
         paperApplyUniformButton.disabled = true;
@@ -164,6 +264,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         paperCategoryRows.replaceChildren();
         paperStep.classList.add('opacity-60');
         bankStatus.textContent = '尚未生成題庫，請先完成步驟 1。';
+        bankImportStatus.textContent = '';
         paperStatus.textContent = '請先生成題庫。';
         bankSection.classList.add('hidden');
         bankTextarea.value = '';
@@ -434,6 +535,99 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         notify(message, 'success');
     }
 
+    function initializeBank(newBank, label, origin) {
+        reset();
+        bankOrigin = origin;
+        bankQuestions = newBank;
+        paperTotal.max = String(bankQuestions.length);
+        paperTotal.value = String(Math.min(20, bankQuestions.length));
+        paperTotal.disabled = false;
+        paperUniform.disabled = false;
+        bankStatus.textContent = '✅ ' + label + '：' + bankQuestions.length +
+            ' 題。後續抽卷與換題都只使用這一份題庫。';
+        bankExportButton.disabled = false;
+        bankTextExportButton.disabled = false;
+        paperAutoButton.disabled = false;
+        paperApplyUniformButton.disabled = false;
+        paperStep.classList.remove('opacity-60');
+        renderBankText();
+        renderPaperCategoryRows();
+        autoAllocatePaper();
+    }
+
+    async function importBankFile(file) {
+        if (!file || !isAdmin()) return;
+        bankImportStatus.textContent = '正在讀取 ' + file.name + '…';
+        try {
+            if (file.size > 15 * 1024 * 1024) throw new Error('檔案不可超過 15 MB。');
+            let entries;
+            if (/\.txt$/i.test(file.name)) {
+                entries = parsePhpBankText(await file.text());
+            } else if (/\.(xlsx|xls|csv)$/i.test(file.name)) {
+                if (!window.XLSX) throw new Error('Excel 解析套件未載入，請重新整理頁面。');
+                const bytes = await file.arrayBuffer();
+                const workbook = window.XLSX.read(bytes, { type: 'array' });
+                const candidates = ['題庫', ...workbook.SheetNames.filter(name => name !== '題庫')];
+                let foundError;
+                for (const name of candidates) {
+                    if (!workbook.Sheets[name]) continue;
+                    try {
+                        entries = parseBankRows(window.XLSX.utils.sheet_to_json(workbook.Sheets[name], {
+                            header: 1, defval: '', raw: false
+                        }));
+                        break;
+                    } catch (error) {
+                        foundError = error;
+                        if (!/找不到「題目ID」欄位/.test(error.message)) throw error;
+                    }
+                }
+                if (!entries) throw foundError || new Error('檔案內找不到題庫表格。');
+            } else {
+                throw new Error('僅支援 .xlsx、.xls、.csv 或含有 [ID:...] 的 .txt 題庫。');
+            }
+            const restored = resolveBankEntries(entries, getQuestions());
+            const describe = ids => ids.slice(0, 5).join('、') + (ids.length > 5 ? ' 等 ' + ids.length + ' 題' : '');
+            if (restored.duplicates.length) {
+                throw new Error('檔案有重複或空白題目 ID：' + describe(restored.duplicates) + '。');
+            }
+            if (restored.missing.length) {
+                throw new Error('找不到 ' + restored.missing.length + ' 題原始題目（可能已刪除）：' +
+                    describe(restored.missing) + '。請先確認題庫，未匯入任何題目。');
+            }
+            if (restored.modified.length) {
+                throw new Error('有 ' + restored.modified.length + ' 題內容或答案與目前原始題庫不同：' +
+                    describe(restored.modified) + '。為避免考題與已發題庫不一致，本次未匯入。');
+            }
+            const invalidCategories = restored.questions.filter(q =>
+                !getCategories().some(cat => cat.id === q.questionCategoryId));
+            if (invalidCategories.length) throw new Error('部分題目的類別已不存在，請先修復原始題目分類。');
+            if (!restored.questions.length) throw new Error('題庫沒有可以還原的題目。');
+            initializeBank(restored.questions, '已匯入「' + file.name + '」', 'imported');
+            bankImportStatus.textContent = '✅ 已依 ID 驗證並還原 ' + restored.questions.length +
+                ' 題，可以直接設定試卷總題數與分類配額。';
+            notify('題庫匯入成功，共 ' + restored.questions.length + ' 題。', 'success');
+        } catch (error) {
+            bankImportStatus.textContent = '❌ ' + error.message;
+            notify('匯入失敗：' + error.message, 'error');
+        } finally {
+            bankImportInput.value = '';
+        }
+    }
+
+    function downloadBankText() {
+        if (!isAdmin() || !bankQuestions.length) return;
+        renderBankText();
+        const blob = new Blob(['\ufeff' + bankTextarea.value], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '題庫_舊PHP格式_' + new Date().toISOString().slice(0, 10) + '.txt';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
     function generateBank() {
         if (!isAdmin()) return;
         const rules = requirements();
@@ -449,20 +643,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
         try {
             const hasQuotas = rules.some(rule => rule.count > 0);
             const newBank = hasQuotas ? selectQuestionsByCategory(source, rules) : source.slice();
-            reset();
-            bankQuestions = newBank;
-            paperTotal.max = String(bankQuestions.length);
-            paperTotal.value = String(Math.min(20, bankQuestions.length));
-            paperTotal.disabled = false;
-            paperUniform.disabled = false;
-            bankStatus.textContent = '✅ 已生成 ' + bankQuestions.length + ' 題題庫。試卷只會從此題庫抽取，不再回原始題庫選題。';
-            bankExportButton.disabled = false;
-            paperAutoButton.disabled = false;
-            paperApplyUniformButton.disabled = false;
-            paperStep.classList.remove('opacity-60');
-            renderBankText();
-            renderPaperCategoryRows();
-            autoAllocatePaper();
+            initializeBank(newBank, '已生成題庫', 'generated');
             notify('已生成 ' + bankQuestions.length + ' 題題庫，可設定試卷題數。', 'success');
         } catch (error) {
             notify(error.message, 'error');
@@ -529,7 +710,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             notify('Excel 套件尚未載入，請確認網路後重新整理頁面。', 'error');
             return;
         }
-        const statsSheet = [['商品篩選', product.value ? getProductName(product.value) : '全部商品類別'],
+        const statsSheet = [['商品篩選', bankOrigin === 'imported' ? '由既有題庫檔案匯入' : (product.value ? getProductName(product.value) : '全部商品類別')],
             ['匯出時間', new Date().toLocaleString('zh-TW')],
             ['輸出類型', exportingBank ? '題庫' : '試卷'],
             ['總題數', source.length], ['選項處理', shuffleControl.checked ? '題目和選項均打亂' : 'B 卷重新排序題目'],
@@ -537,18 +718,18 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             ['題目類別', '可抽題數', '抽取題數']];
         for (const cat of getCategories()) {
             const count = source.filter(q => q.questionCategoryId === cat.id).length;
-            if (count) statsSheet.push([cat.name, sourceQuestions().filter(q => q.questionCategoryId === cat.id).length, count]);
+            if (count) statsSheet.push([cat.name, (bankOrigin === 'imported' ? getQuestions() : sourceQuestions()).filter(q => q.questionCategoryId === cat.id).length, count]);
         }
         try {
             const workbook = window.XLSX.utils.book_new();
-            const bankRows = [['分類', '商品類別', '原題號', '題目', '選項A', '選項B', '選項C', '選項D', '正確答案', '正確答案內容', '題目ID']];
-            source.forEach(q => bankRows.push([
-                getCategoryName(q.questionCategoryId), getProductName(q.productCategoryId),
-                String(q.questionNumber ?? ''), q.questionText || '',
-                q.option1 || '', q.option2 || '', q.option3 || '', q.option4 || '',
-                answerLetter(q.correctAnswer), q['option' + q.correctAnswer] || '', String(q.id || '')
-            ]));
-            const bankSpec = { name: '題庫', data: bankRows, widths: [20, 18, 18, 65, 32, 32, 32, 32, 14, 38, 28] };
+            // 題庫 Excel 主工作表改為 PHP 的「題目…答案」精簡樣式，ID 獨立一欄。
+            // 管理員保留含 ID 的原始檔，發給考生時可自行刪除 ID 欄。
+            const names = new Map(getCategories().map(cat => [cat.id, cat.name]));
+            const bankSpec = {
+                name: '題庫',
+                data: compactBankRows(source, names),
+                widths: [34, 22, 14, 115]
+            };
             const sheets = exportingBank ? [
                 bankSpec, { name: '題庫統計', data: statsSheet, widths: [25, 25, 22] }
             ] : [
@@ -602,9 +783,7 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
             const name = categories.find(cat => cat.id === id)?.name || '未分類';
             result.push('====== 【分類: ' + name + ' (' + group.length + ' 題)】 ======');
             group.forEach((q, index) => {
-                const option = String(q['option' + q.correctAnswer] ?? '').trim();
-                result.push('[ID:' + q.id + '] ' + (index + 1) + '. ' +
-                    String(q.questionText ?? '').trim().replaceAll('\n', ' ') + '…' + option);
+                result.push('[ID:' + q.id + '] ' + (index + 1) + '. ' + compactBankText(q));
             });
             result.push('');
         }
@@ -634,6 +813,8 @@ export function createQuestionPicker({ getQuestions, getProducts, getCategories,
     tabButtons.forEach(btn => btn.addEventListener('click', () => setActiveSet(btn.dataset.pickerSet)));
     root.querySelector('#picker-draw').addEventListener('click', draw);
     bankGenerateButton.addEventListener('click', generateBank);
+    bankImportInput.addEventListener('change', event => importBankFile(event.target.files?.[0]));
+    bankTextExportButton.addEventListener('click', downloadBankText);
     bankExportButton.addEventListener('click', () => exportExcel('bank'));
     exportButton.addEventListener('click', () => exportExcel('paper'));
     copyButton.addEventListener('click', copyPaper);
