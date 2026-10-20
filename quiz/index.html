@@ -513,7 +513,7 @@
 
     <!-- Firebase 模組載入與應用程式邏輯 -->
     <script type="module">
-        import { createQuestionPicker } from './question-picker.js';
+        import { createQuestionPicker } from './question-picker.js?v=bank-first-20261020-3';
         // 修正: 確保所有模組都使用相同的版本 URL
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserSessionPersistence, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
