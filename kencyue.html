@@ -308,6 +308,21 @@
     .egrid-add:hover { border-color: var(--primary-color); color: var(--primary-color); }
     .egrid-add small { font-size: 10px; margin-top: 2px; }
 
+    /* 跨分類拖曳放置區：保留原有分類頁籤排序 */
+    .category-drop-hint { font-size: 12px; color: #667085; margin: 2px 0 8px; }
+    .category-drop-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .category-drop-target {
+        min-height: 38px; min-width: 96px; padding: 8px 12px;
+        box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+        border: 2px dashed #afc4da; border-radius: 9px;
+        background: #f3f8ff; color: #355677; font-size: 13px; font-weight: 600;
+        transition: border-color .15s, background .15s;
+    }
+    .category-drop-target.drop-ready { border-color: #4a90e2; background: #e8f2ff; }
+    .category-drop-target:hover { border-color: #2876c8; background: #dcecff; }
+    .category-drop-target .egrid-item { pointer-events: none; }
+    .category-drop-target .egrid-item .egrid-delete { display: none; }
+
     /* --- 選中項目的編輯面板 --- */
     .item-edit-panel {
         margin-top: 14px;
@@ -682,6 +697,8 @@ function switchEditorTab(idx) {
                     oninput="window.updateGroupName(this, ${idx})">
                 <button onclick="window.deleteGroup(${idx})" class="btn-danger" style="font-size:12px; padding:4px 8px; margin-left:10px; white-space:nowrap;">刪除分頁</button>
             </div>
+            <div class="category-drop-hint" id="dropHint-${idx}">↗ 拖曳下方 Icon 到分類框，即可移到其他分類</div>
+            <div class="category-drop-list" id="dropTargets-${idx}"></div>
             <div class="editor-icon-grid" id="cardGrid-${idx}"></div>
             <div class="item-edit-panel" id="editPanel-${idx}">
                 <div class="form-group"><label>名稱</label><input type="text" id="ef-text-${idx}"></div>
@@ -694,6 +711,29 @@ function switchEditorTab(idx) {
             </div>
           `;
           editorPanels.appendChild(panel);
+
+          const dropHint = panel.querySelector(`#dropHint-${idx}`);
+          const dropTargets = panel.querySelector(`#dropTargets-${idx}`);
+          dropHint.style.display = data.groups.length > 1 ? "" : "none";
+
+          data.groups.forEach((destination, destIdx) => {
+              if (destIdx === idx) return;
+              const target = document.createElement("div");
+              target.className = "category-drop-target";
+              target.dataset.destination = destIdx;
+              target.textContent = destination.group || "(未命名)";
+              target.title = `將 Icon 拖曳至「${destination.group}」`;
+              dropTargets.appendChild(target);
+
+              // Sortable 跨列表接收，分類頁籤仍獨立排序。
+              new Sortable(target, {
+                  ...getSortableConfig(),
+                  group: { name: "bookmark-icons", pull: false, put: true },
+                  draggable: ".egrid-item",
+                  sort: false,
+                  onAdd: (evt) => moveItemBetweenGroups(idx, destIdx, evt.item.dataset.id)
+              });
+          });
 
           renderCardGrid(idx);
       });
@@ -717,10 +757,28 @@ function switchEditorTab(idx) {
       return String(str ?? "").replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
 
-  // ★ 編輯區改為 icon 格狀顯示，項目多時也能一眼看到全部並直接拖曳排序
+  // 移動到其他分類；待 Sortable 拖曳事件結束後重繪。
+  function moveItemBetweenGroups(sourceIdx, destinationIdx, itemId) {
+      if (sourceIdx === destinationIdx) return;
+      const source = data.groups[sourceIdx];
+      const destination = data.groups[destinationIdx];
+      if (!source || !destination) return;
+      const sourceItems = source.items || [];
+      const itemIndex = sourceItems.findIndex(item => item._id === itemId);
+      if (itemIndex < 0) return;
+      const [moved] = sourceItems.splice(itemIndex, 1);
+      if (!destination.items) destination.items = [];
+      destination.items.push(moved);
+      selectedItemKey = null;
+      currentEditorTab = destinationIdx;
+      setTimeout(() => window.openEditor(), 0);
+  }
+
+  // 格狀書籤支援分類內排序及跨分類拖曳。
   function renderCardGrid(idx) {
       const grid = document.getElementById(`cardGrid-${idx}`);
       if (!grid) return;
+      Sortable.get(grid)?.destroy();
       grid.innerHTML = "";
 
       (data.groups[idx].items || []).forEach(item => {
@@ -757,15 +815,23 @@ function switchEditorTab(idx) {
 
       new Sortable(grid, {
           ...getSortableConfig(),
-          filter: ".egrid-add",
-          onMove: (evt) => !evt.related.classList.contains("egrid-add"),
+          group: { name: "bookmark-icons", pull: true, put: false },
+          draggable: ".egrid-item",
+          filter: ".egrid-delete, .egrid-add",
+          preventOnFilter: false,
+          onMove: (evt) => !evt.related?.classList.contains("egrid-add"),
+          onStart: () => {
+              document.querySelectorAll(".category-drop-target").forEach(t => t.classList.add("drop-ready"));
+          },
           onEnd: (evt) => {
-              if (evt.newIndex === evt.oldIndex) return;
+              document.querySelectorAll(".category-drop-target").forEach(t => t.classList.remove("drop-ready"));
+              // 由目標 onAdd 處理跨分類，來源 onEnd 只處理原分類內排序。
+              if (evt.from !== evt.to || evt.newDraggableIndex === evt.oldDraggableIndex) return;
               const items = data.groups[idx].items;
-              // 扣掉最後那顆「新增」tile 對 index 的影響
-              const oldI = Math.min(evt.oldIndex, items.length - 1);
-              const newI = Math.min(evt.newIndex, items.length - 1);
-              const moved = items.splice(oldI, 1)[0];
+              const oldI = items.findIndex(item => item._id === evt.item.dataset.id);
+              if (oldI < 0) return;
+              const newI = Math.max(0, Math.min(evt.newDraggableIndex, items.length - 1));
+              const [moved] = items.splice(oldI, 1);
               items.splice(newI, 0, moved);
               renderCardGrid(idx);
           }
