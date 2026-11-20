@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>車輛管家 V2.12 (花費可編輯)</title>
+  <title>車輛管家 V2.13 (完整歷史分類)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
   <script>
@@ -108,6 +108,10 @@
             <button onclick="setHistoryFilter('trips', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">🛣️ 里程</button>
             <button onclick="setHistoryFilter('expenses', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">💰 花費</button>
             <button onclick="setHistoryFilter('gas', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">⛽ 加油</button>
+            <button onclick="setHistoryFilter('maintain', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">🔧 保養</button>
+            <button onclick="setHistoryFilter('wash', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">🧼 洗車</button>
+            <button onclick="setHistoryFilter('repair', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">🛠️ 維修</button>
+            <button onclick="setHistoryFilter('other', this)" class="filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-gray-500/10 opacity-60">📦 其他</button>
           </div>
           <div id="history-list" class="divide-y divide-gray-500/10 overflow-y-auto max-h-[60vh] no-scrollbar"></div>
         </div>
@@ -618,7 +622,9 @@
       let filtered = allHistoryItems;
       if (currentFilter === 'trips') filtered = allHistoryItems.filter(i => i.db === 'trips');
       else if (currentFilter === 'expenses') filtered = allHistoryItems.filter(i => i.db === 'expenses');
-      else if (currentFilter === 'gas') filtered = allHistoryItems.filter(i => i.db === 'expenses' && i.type === 'gas');
+      else if (['gas', 'maintain', 'wash', 'repair', 'other'].includes(currentFilter)) {
+        filtered = allHistoryItems.filter(i => i.db === 'expenses' && i.type === currentFilter);
+      }
       
       if (filtered.length === 0) { list.innerHTML = `<p class="text-center py-6 opacity-30 text-xs">無資料</p>`; return; }
 
